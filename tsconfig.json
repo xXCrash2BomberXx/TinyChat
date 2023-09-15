@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": ".\\",
+        "target": "esnext",
+        "lib": ["esnext", "dom"],
+        "module": "esnext",
+        "moduleResolution": "nodenext",
+        "strict": true,
+        "allowSyntheticDefaultImports": false,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true
+    },
+    "files": [
+        ".\\TinyChat.ts"
+    ]
+}
