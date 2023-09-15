@@ -1,0 +1,42 @@
+html {
+	width: -webkit-fill-available;
+	height: -webkit-fill-available;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+}
+
+html,
+body {
+	margin: 0;
+	overflow: hidden;
+}
+
+input {
+	border: 10px;
+	border-radius: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+	body {
+		background-color: gray;
+	}
+	input {
+		border-color: black;;
+		background-color: white;
+		color: black;
+	}
+}
+@media (prefers-color-scheme: dark) {
+	body {
+		background-color: black;
+	}
+
+	input {
+		border-color: white;
+		background-color: gray;
+		color: white;
+	}
+}
