@@ -83,12 +83,12 @@ peer.on('connection', function (dataConnection: DataConnection) {
 		const split: Array<string> = data.split(/\|(.*)/s);
 		let el: HTMLTextAreaElement | null = document.getElementById(split[0]) as HTMLTextAreaElement | null;
 		if (el)
-			el.value += '\n'+split[1];
+			el.value += '\n' + split[1];
 		else {
 			el = new HTMLTextAreaElement();
 			el.id = split[0];
 			el.disabled = true;
-			el.value = split[0]+"\n"+split[1];
+			el.value = split[0] + "\n" + split[1];
 			document.body.insertAdjacentElement('beforeend', el);
 		}
 	});
@@ -99,15 +99,15 @@ function send() {
 	const message: HTMLInputElement = document.getElementById("message") as HTMLInputElement;
 	const conn: DataConnection = peer.connect(to.value);
 	conn.on('open', () => {
-		conn.send(peer.id+"|"+message);
+		conn.send(peer.id + "|" + message);
 		let el: HTMLTextAreaElement | null = document.getElementById(to.value) as HTMLTextAreaElement | null;
 		if (el)
-			el.value += '\n'+message;
+			el.value += '\n' + message;
 		else {
 			el = new HTMLTextAreaElement();
 			el.id = to.value;
 			el.disabled = true;
-			el.value = to.value+"\n"+message.value;
+			el.value = to.value + "\n" + message.value;
 			document.body.insertAdjacentElement('beforeend', el);
 		}
 	});
