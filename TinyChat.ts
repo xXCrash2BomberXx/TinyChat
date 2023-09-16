@@ -79,6 +79,7 @@ declare class Peer {
 
 enum MessageDataEvent {
 	Typing,
+	StopTyping,
 	Edit,
 	Reaction,
 	Effect,
@@ -104,14 +105,16 @@ peer.on('connection', function (dataConnection: DataConnection) {
 			paragraph.className = 'typing';
 			if (el.lastChild && el.lastChild.className == 'typing')
 				return;
-			el.insertAdjacentElement('beforeend', paragraph);
+		} else if (messageData.event == MessageDataEvent.StopTyping) {
+			if (el.lastChild && el.lastChild.className == 'typing')
+				el.removeChild(el.lastChild);
 		} else {
 			paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 			paragraph.className = 'received';
 			if (el.lastChild && el.lastChild.className == 'typing')
 				el.removeChild(el.lastChild);
-			el.insertAdjacentElement('beforeend', paragraph);
 		}
+		el.insertAdjacentElement('beforeend', paragraph);
 	});
 });
 
@@ -127,10 +130,16 @@ const createChat = (to: string): HTMLSpanElement => {
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = (event: KeyboardEvent): void => {
 		if (event.key == 'Enter') {
-			send(to, {from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString()});
+			send(to, { from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString() });
 			sendBar.value = '';
 		} else
-			send(to, {from: peer.id, body: '', time: '', event: MessageDataEvent.Typing});
+			send(to, {
+				from: peer.id,
+				body: '',
+				time: '',
+				event: (event.key == 'Backspace' && sendBar.value.length <= 1) ?
+					MessageDataEvent.StopTyping : MessageDataEvent.Typing
+			});
 	};
 	el.insertAdjacentElement('afterend', sendBar);
 	return el;

@@ -69,7 +69,8 @@ p {
 	input,
 	label,
 	textarea:disabled,
-	.message {
+	.message,
+	.sendBar {
 		color: black;
 		border-color: gray;
 		background-color: lightgray;
@@ -85,7 +86,8 @@ p {
 	input,
 	label,
 	textarea:disabled,
-	.message {
+	.message,
+	.sendBar {
 		color: white;
 		border-color: darkgray;
 		background-color: gray;
