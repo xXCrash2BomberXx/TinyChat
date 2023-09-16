@@ -128,6 +128,7 @@ const createChat = (to: string): HTMLSpanElement => {
 			});
 	};
 	el.insertAdjacentElement('afterend', sendBar);
+	sendBar.focus();
 	return el;
 }
 
@@ -153,6 +154,7 @@ const send = (to: string, messageData: MessageData): void => {
 					ev.preventDefault();
 					console.log(`REPLYING: ${paragraph.id}`);
 					replying = paragraph.id;
+					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 				}
 				paragraph.ondblclick = (ev: MouseEvent): void => {
 					ev.preventDefault();
@@ -168,6 +170,7 @@ const send = (to: string, messageData: MessageData): void => {
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
 					} else
 						throw new Error('Cannot Edit Non-Delivered Message.');
+					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 				}
 				const el: HTMLSpanElement = document.getElementById(to) as HTMLSpanElement;
 				if (el.lastChild && (el.lastChild as Element).className === 'typing')
