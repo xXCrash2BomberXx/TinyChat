@@ -40,7 +40,7 @@ body {
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
-	width: 100%;
+	width: 75%;
 }
 
 .message {
@@ -51,7 +51,8 @@ p {
 	margin: 0px;
 }
 
-.received {
+.received,
+.typing {
 	text-align: left;
 }
 

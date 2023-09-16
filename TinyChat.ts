@@ -77,10 +77,18 @@ declare class Peer {
 	destroyed: boolean;
 }
 
+enum MessageDataEvent {
+	Typing,
+	Edit,
+	Reaction,
+	Effect,
+};
+
 interface MessageData {
 	from: string,
 	body: string,
 	time: string,
+	event?: MessageDataEvent,
 };
 
 const peer: Peer = new Peer();
@@ -91,9 +99,19 @@ peer.on('connection', function (dataConnection: DataConnection) {
 		if (!el)
 			el = createChat(messageData.from);
 		const paragraph: HTMLParagraphElement = document.createElement('p');
-		paragraph.innerHTML = `${messageData.body} <small><i>${messageData.time}</i></small>`;
-		paragraph.className = 'received';
-		el.insertAdjacentElement('beforeend', paragraph);
+		if (messageData.event == MessageDataEvent.Typing) {
+			paragraph.innerHTML = 'Typing...';
+			paragraph.className = 'typing';
+			if (el.lastChild && el.lastChild.className == 'typing')
+				return;
+			el.insertAdjacentElement('beforeend', paragraph);
+		} else {
+			paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+			paragraph.className = 'received';
+			if (el.lastChild && el.lastChild.className == 'typing')
+				el.removeChild(el.lastChild);
+			el.insertAdjacentElement('beforeend', paragraph);
+		}
 	});
 });
 
@@ -109,9 +127,10 @@ const createChat = (to: string): HTMLSpanElement => {
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = (event: KeyboardEvent): void => {
 		if (event.key == 'Enter') {
-			send(to as string, {from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString()});
+			send(to, {from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString()});
 			sendBar.value = '';
-		}
+		} else
+			send(to, {from: peer.id, body: '', time: '', event: MessageDataEvent.Typing});
 	};
 	el.insertAdjacentElement('afterend', sendBar);
 	return el;
@@ -121,8 +140,10 @@ const send = (to: string, messageData: MessageData): void => {
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', () => {
 		conn.send(JSON.stringify(messageData));
+		if (messageData.event == MessageDataEvent.Typing)
+			return;
 		const paragraph: HTMLParagraphElement = document.createElement('p');
-		paragraph.innerHTML = `<small><i>${messageData.time}</i></small> ${messageData.body}`;
+		paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 		paragraph.className = 'sent';
 		(document.getElementById(to) as HTMLSpanElement).insertAdjacentElement('beforeend', paragraph);
 	});
