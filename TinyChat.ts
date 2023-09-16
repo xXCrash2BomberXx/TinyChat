@@ -94,6 +94,8 @@ interface MessageData {
 	event?: MessageDataEvent,
 };
 
+var editing: string | null = null;
+
 const peer: Peer = new Peer();
 peer.on('connection', (dataConnection: DataConnection): void => {
 	dataConnection.on('data', (data: string): void => {
@@ -119,6 +121,18 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					if (el.children[i].id == messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 						break;
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
+				return;
+			case MessageDataEvent.Edit:
+				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+					el.removeChild(el.lastChild);
+				send(messageData.from, {
+					from: peer.id,
+					body: '',
+					time: '',
+					id: messageData.id,
+					event: MessageDataEvent.Delivered,
+				});
 				return;
 			default:
 				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
@@ -150,12 +164,21 @@ const createChat = (to: string): HTMLSpanElement => {
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = (event: KeyboardEvent): void => {
 		if (event.key == 'Enter') {
-			send(to, {
-				from: peer.id,
-				body: sendBar.value,
-				time: new Date().toLocaleTimeString(),
-				id: crypto.randomUUID(),
-			});
+			if (editing)
+				send(to, {
+					from: peer.id,
+					body: sendBar.value,
+					time: new Date().toLocaleTimeString(),
+					id: editing,
+					event: MessageDataEvent.Edit,
+				});
+			else
+				send(to, {
+					from: peer.id,
+					body: sendBar.value,
+					time: new Date().toLocaleTimeString(),
+					id: crypto.randomUUID(),
+				});
 			sendBar.value = '';
 		} else if (sendBar.value.length == 0 && event.key != 'Backspace')
 			send(to, {
@@ -182,17 +205,37 @@ const send = (to: string, messageData: MessageData): void => {
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', () => {
 		conn.send(JSON.stringify(messageData));
-		if (messageData.event == MessageDataEvent.Typing)
-			return;
-		const paragraph: HTMLParagraphElement = document.createElement('p');
-		paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
-		paragraph.className = 'sent';
-		paragraph.id = messageData.id;
-		const el: HTMLSpanElement = document.getElementById(to) as HTMLSpanElement;
-		if (el.lastChild && (el.lastChild as Element).className == 'typing')
-			el.insertBefore(paragraph, el.lastChild);
-		else
-			el.insertAdjacentElement('beforeend', paragraph);
+		switch (messageData.event) {
+			case MessageDataEvent.Typing:
+			case MessageDataEvent.StopTyping:
+				break;
+			case MessageDataEvent.Edit:
+				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+				break;
+			default:
+				const paragraph: HTMLParagraphElement = document.createElement('p');
+				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+				paragraph.className = 'sent';
+				paragraph.id = messageData.id;
+				paragraph.ondblclick = (ev: MouseEvent): void => {
+					ev.preventDefault();
+					if (editing) {
+						const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+						prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					}
+					editing = paragraph.id;
+					if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>')) {
+						paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✎</i></small></small></small>');
+						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
+					} else
+						throw new Error('Cannot Edit Non-Delivered Message.');
+				}
+				const el: HTMLSpanElement = document.getElementById(to) as HTMLSpanElement;
+				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+					el.insertBefore(paragraph, el.lastChild);
+				else
+					el.insertAdjacentElement('beforeend', paragraph);
+		}
 	});
 }
 
