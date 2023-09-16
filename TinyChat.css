@@ -20,17 +20,23 @@ input[type='submit'] {
 	padding: 0.2em;
 	border: 0.2em solid;
 	border-radius: 20em;
-	min-height: 4%;
+	height: 100%;
+	width: 50%;
 }
 
 input[type='text'] {
 	border: 0px;
 	background-color: #00000000;
-	min-width: 30%;
+	width: 30%;
+	height: 100%;
 }
 
 input[type='submit'] {
 	width: 5%;
+}
+
+textarea {
+	width: 100%;
 }
 
 @media (prefers-color-scheme: light) {
@@ -44,6 +50,10 @@ input[type='submit'] {
 		background-color: lightgray;
 		color: black;
 	}
+
+	input {
+		color: black;
+	}
 }
 @media (prefers-color-scheme: dark) {
 	body {
@@ -54,6 +64,10 @@ input[type='submit'] {
 	input[type='submit'] {
 		border-color: darkgray;
 		background-color: gray;
+		color: white;
+	}
+
+	input {
 		color: white;
 	}
 }
