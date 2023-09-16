@@ -14,18 +14,34 @@ body {
 	overflow: hidden;
 }
 
-input {
-	border: 10px;
-	border-radius: 10px;
+span,
+input[type='submit'] {
+	margin-top: 0.4em;
+	padding: 0.2em;
+	border: 0.2em solid;
+	border-radius: 20em;
+	min-height: 4%;
+}
+
+input[type='text'] {
+	border: 0px;
+	background-color: #00000000;
+	min-width: 30%;
+}
+
+input[type='submit'] {
+	width: 5%;
 }
 
 @media (prefers-color-scheme: light) {
 	body {
-		background-color: gray;
-	}
-	input {
-		border-color: black;;
 		background-color: white;
+	}
+
+	span,
+	input[type='submit'] {
+		border-color: gray;
+		background-color: lightgray;
 		color: black;
 	}
 }
@@ -34,8 +50,9 @@ input {
 		background-color: black;
 	}
 
-	input {
-		border-color: white;
+	span,
+	input[type='submit'] {
+		border-color: darkgray;
 		background-color: gray;
 		color: white;
 	}
