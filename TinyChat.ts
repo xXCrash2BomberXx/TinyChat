@@ -157,14 +157,21 @@ const createChat = (to: string): HTMLSpanElement => {
 				id: crypto.randomUUID(),
 			});
 			sendBar.value = '';
-		} else
+		} else if (sendBar.value.length == 0 && event.key != 'Backspace')
 			send(to, {
 				from: peer.id,
 				body: '',
 				time: '',
 				id: crypto.randomUUID(),
-				event: (event.key == 'Backspace' && sendBar.value.length <= 1) ?
-					MessageDataEvent.StopTyping : MessageDataEvent.Typing,
+				event: MessageDataEvent.Typing,
+			});
+		else if (sendBar.value.length == 1 && event.key == 'Backspace')
+			send(to, {
+				from: peer.id,
+				body: '',
+				time: '',
+				id: crypto.randomUUID(),
+				event: MessageDataEvent.StopTyping,
 			});
 	};
 	el.insertAdjacentElement('afterend', sendBar);
@@ -181,7 +188,11 @@ const send = (to: string, messageData: MessageData): void => {
 		paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 		paragraph.className = 'sent';
 		paragraph.id = messageData.id;
-		(document.getElementById(to) as HTMLSpanElement).insertAdjacentElement('beforeend', paragraph);
+		const el: HTMLSpanElement = document.getElementById(to) as HTMLSpanElement;
+		if (el.lastChild && (el.lastChild as Element).className == 'typing')
+			el.insertBefore(paragraph, el.lastChild);
+		else
+			el.insertAdjacentElement('beforeend', paragraph);
 	});
 }
 
