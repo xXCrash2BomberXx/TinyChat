@@ -122,7 +122,7 @@ const send = (to: string, messageData: MessageData): void => {
 	conn.on('open', () => {
 		conn.send(JSON.stringify(messageData));
 		const paragraph: HTMLParagraphElement = document.createElement('p');
-		paragraph.innerHTML = `${messageData.body} <small><i>${messageData.time}</i></small>`;
+		paragraph.innerHTML = `<small><i>${messageData.time}</i></small> ${messageData.body}`;
 		paragraph.className = 'sent';
 		(document.getElementById(to) as HTMLSpanElement).insertAdjacentElement('beforeend', paragraph);
 	});

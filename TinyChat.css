@@ -34,15 +34,17 @@ body {
 	width: 50%;
 }
 
-.message {
+.message,
+.sendBar {
 	padding: 0.2em;
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
+	width: 100%;
 }
 
-.sendBar {
-	width: 100%;
+.message {
+	margin-top: 0.8em;
 }
 
 p {
