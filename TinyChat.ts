@@ -110,18 +110,20 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				paragraph.className = 'typing';
 				if (el.lastChild && (el.lastChild as Element).className == 'typing')
 					return;
+				paragraph.id = messageData.id;
+				el.insertAdjacentElement('beforeend', paragraph);
 				break;
 			case MessageDataEvent.StopTyping:
 				if (el.lastChild && (el.lastChild as Element).className == 'typing')
 					el.removeChild(el.lastChild);
-				return;
+				break;
 			case MessageDataEvent.Delivered:
 				let i: number;
 				for (i = el.children.length - 1; i >= 0; i--)
 					if (el.children[i].id == messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 						break;
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
-				return;
+				break;
 			case MessageDataEvent.Edit:
 				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 				if (el.lastChild && (el.lastChild as Element).className == 'typing')
@@ -133,7 +135,7 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					id: messageData.id,
 					event: MessageDataEvent.Delivered,
 				});
-				return;
+				break;
 			default:
 				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 				paragraph.className = 'received';
@@ -146,9 +148,10 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					id: messageData.id,
 					event: MessageDataEvent.Delivered,
 				});
+				paragraph.id = messageData.id;
+				el.insertAdjacentElement('beforeend', paragraph);
+				break;
 		}
-		paragraph.id = messageData.id;
-		el.insertAdjacentElement('beforeend', paragraph);
 	});
 });
 
@@ -168,7 +171,7 @@ const createChat = (to: string): HTMLSpanElement => {
 				send(to, {
 					from: peer.id,
 					body: sendBar.value,
-					time: new Date().toLocaleTimeString(),
+					time: 'edited at ' + new Date().toLocaleTimeString(),
 					id: editing,
 					event: MessageDataEvent.Edit,
 				});
@@ -235,6 +238,7 @@ const send = (to: string, messageData: MessageData): void => {
 					el.insertBefore(paragraph, el.lastChild);
 				else
 					el.insertAdjacentElement('beforeend', paragraph);
+				break;
 		}
 	});
 }
