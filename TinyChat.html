@@ -7,21 +7,12 @@
 </head>
 
 <body>
-	<div>
-		<span id="id" class="control"></span>
-	</div>
+	<span class="control">
+		To:
+		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') createChat(this.value);">
+	</span>
+	<span id="id" class="control"></span>
 	<script type="text/javascript" src="./TinyChat.js"></script>
-	<div>
-		<span class="control">
-			To:
-			<input type="text" name="to" id="to">
-		</span>
-		<span class="control">
-			Message:
-			<input type="text" name="message" id="message">
-		</span>
-		<input type="submit" name="send" id="send" value="Send" onclick="send()">
-	</div>
 </body>
 
 </html>

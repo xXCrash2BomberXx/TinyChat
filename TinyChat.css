@@ -12,40 +12,26 @@ html,
 body {
 	margin: 0;
 	overflow: hidden;
+	padding-top: 0.5em;
 }
 
 .underline-text {
 	text-decoration: underline;
 }
 
-div {
-	margin-top: 0.4em;
-}
-
-.control,
-input[type='submit'] {
+.control {
 	margin-top: 0.4em;
 	margin-right: 0.2em;
 	padding: 0.2em;
 	border: 0.2em solid;
 	border-radius: 20em;
 	height: 100%;
-	width: 50%;
 }
 
-input[type='text'] {
+#to {
 	border: 0px;
 	background-color: #00000000;
-	width: 30%;
-	height: 100%;
-}
-
-input[type='submit'] {
-	width: 5%;
-}
-
-textarea {
-	width: 100%;
+	width: 50%;
 }
 
 .message {
@@ -55,23 +41,38 @@ textarea {
 	margin-top: 0.2em;
 }
 
+.sendBar {
+	width: 100%;
+}
+
+p {
+	margin: 0px;
+}
+
+.received {
+	text-align: left;
+}
+
+.sent {
+	text-align: right;
+}
+
 @media (prefers-color-scheme: light) {
 	body {
 		background-color: white;
 	}
 
 	.control,
-	input[type='submit'] {
+	input,
+	label,
+	textarea:disabled,
+	.message {
+		color: black;
 		border-color: gray;
 		background-color: lightgray;
-		color: black;
-	}
-
-	input,
-	textarea:disabled {
-		color: black;
 	}
 }
+
 @media (prefers-color-scheme: dark) {
 	body {
 		background-color: black;
@@ -83,11 +84,6 @@ textarea {
 	textarea:disabled,
 	.message {
 		color: white;
-	}
-
-	.control,
-	input[type='submit'],
-	.message {
 		border-color: darkgray;
 		background-color: gray;
 	}

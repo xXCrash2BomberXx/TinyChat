@@ -77,39 +77,54 @@ declare class Peer {
 	destroyed: boolean;
 }
 
+interface MessageData {
+	from: string,
+	body: string,
+	time: string,
+};
+
 const peer: Peer = new Peer();
 peer.on('connection', function (dataConnection: DataConnection) {
 	dataConnection.on('data', function (data: string) {
-		const split: Array<string> = data.split(/\|(.*)/s);
-		let el: HTMLSpanElement | null = document.getElementById(split[0]) as HTMLSpanElement | null;
-		if (el)
-			el.innerHTML += '<br>' + split[1];
-		else {
-			el = document.createElement('span');
-			el.className = 'message';
-			el.id = split[0];
-			el.innerHTML = `<u>${split[0]}</u><br>${split[1]}`;
-			document.body.insertAdjacentElement('beforeend', el);
-		}
+		const messageData: MessageData = JSON.parse(data);
+		let el: HTMLSpanElement | null = document.getElementById(messageData.from) as HTMLSpanElement | null;
+		if (!el)
+			el = createChat(messageData.from);
+		const paragraph: HTMLParagraphElement = document.createElement('p');
+		paragraph.innerHTML = `${messageData.body} <small><i>${messageData.time}</i></small>`;
+		paragraph.className = 'received';
+		el.insertAdjacentElement('beforeend', paragraph);
 	});
 });
 
-const send = (): void => {
-	const to: HTMLInputElement = document.getElementById("to") as HTMLInputElement;
-	const message: HTMLInputElement = document.getElementById("message") as HTMLInputElement;
-	const conn: DataConnection = peer.connect(to.value);
-	conn.on('open', () => {
-		conn.send(peer.id + "|" + message.value);
-		let el: HTMLSpanElement | null = document.getElementById(to.value) as HTMLSpanElement | null;
-		if (el)
-			el.innerHTML += '<br>' + message.value;
-		else {
-			el = document.createElement('span');
-			el.className = 'message';
-			el.id = to.value;
-			el.innerHTML = `<u>${to.value}</u><br>${message.value}`;
-			document.body.insertAdjacentElement('beforeend', el);
+const createChat = (to: string): HTMLSpanElement => {
+	const el = document.createElement('span');
+	el.className = 'message';
+	el.id = to;
+	el.innerHTML = `<u>${to}</u>`
+	document.body.insertAdjacentElement('beforeend', el);
+
+	const sendBar: HTMLInputElement = document.createElement('input');
+	sendBar.type = 'text';
+	sendBar.className = 'sendBar';
+	sendBar.onkeydown = (event: KeyboardEvent): void => {
+		if (event.key == 'Enter') {
+			send(to as string, {from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString()});
+			sendBar.value = '';
 		}
+	};
+	el.insertAdjacentElement('afterend', sendBar);
+	return el;
+}
+
+const send = (to: string, messageData: MessageData): void => {
+	const conn: DataConnection = peer.connect(to);
+	conn.on('open', () => {
+		conn.send(JSON.stringify(messageData));
+		const paragraph: HTMLParagraphElement = document.createElement('p');
+		paragraph.innerHTML = `${messageData.body} <small><i>${messageData.time}</i></small>`;
+		paragraph.className = 'sent';
+		(document.getElementById(to) as HTMLSpanElement).insertAdjacentElement('beforeend', paragraph);
 	});
 }
 
