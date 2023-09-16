@@ -13,13 +13,16 @@ interface MessageData {
 	time: string,
 	id: string,
 	event?: MessageDataEvent,
+	prev?: string,
 };
 
-var editing: string | null = null;
+var editing: string | undefined = undefined;
+var replying: string | undefined = undefined;
 
 const peer: Peer = new Peer();
 peer.on('connection', (dataConnection: DataConnection): void => {
 	dataConnection.on('data', (data: string): void => {
+		console.log(`RECEIVED: ${data}`);
 		const messageData: MessageData = JSON.parse(data);
 		let el: HTMLSpanElement | null = document.getElementById(messageData.from) as HTMLSpanElement | null;
 		if (!el)
@@ -29,25 +32,25 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 			case MessageDataEvent.Typing:
 				paragraph.innerHTML = 'Typing...';
 				paragraph.className = 'typing';
-				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					return;
 				paragraph.id = messageData.id;
 				el.insertAdjacentElement('beforeend', paragraph);
 				break;
 			case MessageDataEvent.StopTyping:
-				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
 				break;
 			case MessageDataEvent.Delivered:
 				let i: number;
 				for (i = el.children.length - 1; i >= 0; i--)
-					if (el.children[i].id == messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+					if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 						break;
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 				break;
 			case MessageDataEvent.Edit:
 				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
-				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
 				send(messageData.from, {
 					from: peer.id,
@@ -60,7 +63,7 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 			default:
 				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 				paragraph.className = 'received';
-				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
 				send(messageData.from, {
 					from: peer.id,
@@ -87,7 +90,7 @@ const createChat = (to: string): HTMLSpanElement => {
 	sendBar.type = 'text';
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = (event: KeyboardEvent): void => {
-		if (event.key == 'Enter') {
+		if (event.key === 'Enter') {
 			if (editing)
 				send(to, {
 					from: peer.id,
@@ -95,6 +98,7 @@ const createChat = (to: string): HTMLSpanElement => {
 					time: 'edited at ' + new Date().toLocaleTimeString(),
 					id: editing,
 					event: MessageDataEvent.Edit,
+					prev: replying,
 				});
 			else
 				send(to, {
@@ -102,22 +106,24 @@ const createChat = (to: string): HTMLSpanElement => {
 					body: sendBar.value,
 					time: new Date().toLocaleTimeString(),
 					id: crypto.randomUUID(),
+					prev: replying,
 				});
 			sendBar.value = '';
-		} else if (sendBar.value.length == 0 && event.key != 'Backspace')
+			replying = undefined;
+		} else if (sendBar.value.length === 0 && event.key != 'Backspace')
 			send(to, {
 				from: peer.id,
 				body: '',
 				time: '',
-				id: crypto.randomUUID(),
+				id: '',
 				event: MessageDataEvent.Typing,
 			});
-		else if (sendBar.value.length == 1 && event.key == 'Backspace')
+		else if (sendBar.value.length === 1 && event.key === 'Backspace')
 			send(to, {
 				from: peer.id,
 				body: '',
 				time: '',
-				id: crypto.randomUUID(),
+				id: '',
 				event: MessageDataEvent.StopTyping,
 			});
 	};
@@ -128,7 +134,9 @@ const createChat = (to: string): HTMLSpanElement => {
 const send = (to: string, messageData: MessageData): void => {
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', () => {
-		conn.send(JSON.stringify(messageData));
+		const data: string = JSON.stringify(messageData);
+		conn.send(data);
+		console.log(`SENT: ${data}`);
 		switch (messageData.event) {
 			case MessageDataEvent.Typing:
 			case MessageDataEvent.StopTyping:
@@ -141,8 +149,15 @@ const send = (to: string, messageData: MessageData): void => {
 				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 				paragraph.className = 'sent';
 				paragraph.id = messageData.id;
+				paragraph.onclick = (ev: MouseEvent): void => {
+					ev.preventDefault();
+					console.log(`REPLYING: ${paragraph.id}`);
+					replying = paragraph.id;
+				}
 				paragraph.ondblclick = (ev: MouseEvent): void => {
 					ev.preventDefault();
+					console.log(`EDITING: ${paragraph.id}`);
+					replying = undefined;
 					if (editing) {
 						const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
 						prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
@@ -155,7 +170,7 @@ const send = (to: string, messageData: MessageData): void => {
 						throw new Error('Cannot Edit Non-Delivered Message.');
 				}
 				const el: HTMLSpanElement = document.getElementById(to) as HTMLSpanElement;
-				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.insertBefore(paragraph, el.lastChild);
 				else
 					el.insertAdjacentElement('beforeend', paragraph);
