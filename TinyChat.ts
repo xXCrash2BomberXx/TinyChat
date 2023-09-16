@@ -83,6 +83,7 @@ enum MessageDataEvent {
 	Edit,
 	Reaction,
 	Effect,
+	Delivered,
 };
 
 interface MessageData {
@@ -100,19 +101,35 @@ peer.on('connection', function (dataConnection: DataConnection) {
 		if (!el)
 			el = createChat(messageData.from);
 		const paragraph: HTMLParagraphElement = document.createElement('p');
-		if (messageData.event == MessageDataEvent.Typing) {
-			paragraph.innerHTML = 'Typing...';
-			paragraph.className = 'typing';
-			if (el.lastChild && (el.lastChild as Element).className == 'typing')
+		switch (messageData.event) {
+			case MessageDataEvent.Typing:
+				paragraph.innerHTML = 'Typing...';
+				paragraph.className = 'typing';
+				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+					return;
+				break;
+			case MessageDataEvent.StopTyping:
+				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+					el.removeChild(el.lastChild);
 				return;
-		} else if (messageData.event == MessageDataEvent.StopTyping) {
-			if (el.lastChild && (el.lastChild as Element).className == 'typing')
-				el.removeChild(el.lastChild);
-		} else {
-			paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
-			paragraph.className = 'received';
-			if (el.lastChild && (el.lastChild as Element).className == 'typing')
-				el.removeChild(el.lastChild);
+			case MessageDataEvent.Delivered:
+				let i: number;
+				for (i = el.children.length - 1; i >= 0; i--)
+					if (!el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+						break;
+				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
+				return;
+			default:
+				paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+				paragraph.className = 'received';
+				if (el.lastChild && (el.lastChild as Element).className == 'typing')
+					el.removeChild(el.lastChild);
+				send(messageData.from, {
+					from: peer.id,
+					body: '',
+					time: '',
+					event: MessageDataEvent.Delivered,
+				});
 		}
 		el.insertAdjacentElement('beforeend', paragraph);
 	});
@@ -138,7 +155,7 @@ const createChat = (to: string): HTMLSpanElement => {
 				body: '',
 				time: '',
 				event: (event.key == 'Backspace' && sendBar.value.length <= 1) ?
-					MessageDataEvent.StopTyping : MessageDataEvent.Typing
+					MessageDataEvent.StopTyping : MessageDataEvent.Typing,
 			});
 	};
 	el.insertAdjacentElement('afterend', sendBar);
