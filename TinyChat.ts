@@ -103,15 +103,15 @@ peer.on('connection', function (dataConnection: DataConnection) {
 		if (messageData.event == MessageDataEvent.Typing) {
 			paragraph.innerHTML = 'Typing...';
 			paragraph.className = 'typing';
-			if (el.lastChild && el.lastChild.className == 'typing')
+			if (el.lastChild && (el.lastChild as Element).className == 'typing')
 				return;
 		} else if (messageData.event == MessageDataEvent.StopTyping) {
-			if (el.lastChild && el.lastChild.className == 'typing')
+			if (el.lastChild && (el.lastChild as Element).className == 'typing')
 				el.removeChild(el.lastChild);
 		} else {
 			paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 			paragraph.className = 'received';
-			if (el.lastChild && el.lastChild.className == 'typing')
+			if (el.lastChild && (el.lastChild as Element).className == 'typing')
 				el.removeChild(el.lastChild);
 		}
 		el.insertAdjacentElement('beforeend', paragraph);
