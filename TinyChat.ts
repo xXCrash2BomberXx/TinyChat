@@ -90,6 +90,7 @@ interface MessageData {
 	from: string,
 	body: string,
 	time: string,
+	id: string,
 	event?: MessageDataEvent,
 };
 
@@ -115,7 +116,7 @@ peer.on('connection', function (dataConnection: DataConnection) {
 			case MessageDataEvent.Delivered:
 				let i: number;
 				for (i = el.children.length - 1; i >= 0; i--)
-					if (!el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+					if (el.children[i].id == messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 						break;
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 				return;
@@ -128,9 +129,11 @@ peer.on('connection', function (dataConnection: DataConnection) {
 					from: peer.id,
 					body: '',
 					time: '',
+					id: messageData.id,
 					event: MessageDataEvent.Delivered,
 				});
 		}
+		paragraph.id = messageData.id;
 		el.insertAdjacentElement('beforeend', paragraph);
 	});
 });
@@ -147,13 +150,19 @@ const createChat = (to: string): HTMLSpanElement => {
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = (event: KeyboardEvent): void => {
 		if (event.key == 'Enter') {
-			send(to, { from: peer.id, body: sendBar.value, time: new Date().toLocaleTimeString() });
+			send(to, {
+				from: peer.id,
+				body: sendBar.value,
+				time: new Date().toLocaleTimeString(),
+				id: crypto.randomUUID(),
+			});
 			sendBar.value = '';
 		} else
 			send(to, {
 				from: peer.id,
 				body: '',
 				time: '',
+				id: crypto.randomUUID(),
 				event: (event.key == 'Backspace' && sendBar.value.length <= 1) ?
 					MessageDataEvent.StopTyping : MessageDataEvent.Typing,
 			});
@@ -171,6 +180,7 @@ const send = (to: string, messageData: MessageData): void => {
 		const paragraph: HTMLParagraphElement = document.createElement('p');
 		paragraph.innerHTML = `${messageData.body} <small><small><small><i>${messageData.time}</i></small></small></small>`;
 		paragraph.className = 'sent';
+		paragraph.id = messageData.id;
 		(document.getElementById(to) as HTMLSpanElement).insertAdjacentElement('beforeend', paragraph);
 	});
 }
