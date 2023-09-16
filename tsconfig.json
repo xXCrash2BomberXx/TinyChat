@@ -11,6 +11,7 @@
         "noImplicitReturns": true
     },
     "files": [
+		".\\PeerJS.d.ts",
         ".\\TinyChat.ts"
     ]
 }
