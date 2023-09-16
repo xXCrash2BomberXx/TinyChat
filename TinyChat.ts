@@ -81,34 +81,43 @@ const peer: Peer = new Peer();
 peer.on('connection', function (dataConnection: DataConnection) {
 	dataConnection.on('data', function (data: string) {
 		const split: Array<string> = data.split(/\|(.*)/s);
-		let el: HTMLTextAreaElement | null = document.getElementById(split[0]) as HTMLTextAreaElement | null;
+		let el: HTMLSpanElement | null = document.getElementById(split[0]) as HTMLSpanElement | null;
 		if (el)
-			el.value += '\n' + split[1];
+			el.innerHTML += '<br>' + split[1];
 		else {
-			el = document.createElement('textarea');
+			el = document.createElement('span');
+			el.className = 'message';
 			el.id = split[0];
-			el.disabled = true;
-			el.value = split[0] + "\n" + split[1];
+			el.innerHTML = `<u>${split[0]}</u><br>${split[1]}`;
 			document.body.insertAdjacentElement('beforeend', el);
 		}
 	});
 });
 
-function send() {
+const send = (): void => {
 	const to: HTMLInputElement = document.getElementById("to") as HTMLInputElement;
 	const message: HTMLInputElement = document.getElementById("message") as HTMLInputElement;
 	const conn: DataConnection = peer.connect(to.value);
 	conn.on('open', () => {
 		conn.send(peer.id + "|" + message.value);
-		let el: HTMLTextAreaElement | null = document.getElementById(to.value) as HTMLTextAreaElement | null;
+		let el: HTMLSpanElement | null = document.getElementById(to.value) as HTMLSpanElement | null;
 		if (el)
-			el.value += '\n' + message;
+			el.innerHTML += '<br>' + message.value;
 		else {
-			el = document.createElement('textarea');
+			el = document.createElement('span');
+			el.className = 'message';
 			el.id = to.value;
-			el.disabled = true;
-			el.value = to.value + "\n" + message.value;
+			el.innerHTML = `<u>${to.value}</u><br>${message.value}`;
 			document.body.insertAdjacentElement('beforeend', el);
 		}
 	});
 }
+
+const check = (): void => {
+	if (peer.id) {
+		(document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${peer.id}`;
+		return;
+	}
+	setTimeout(check, 50);
+}
+check();

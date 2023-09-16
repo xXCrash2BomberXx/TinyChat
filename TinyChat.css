@@ -14,9 +14,18 @@ body {
 	overflow: hidden;
 }
 
-span,
+.underline-text {
+	text-decoration: underline;
+}
+
+div {
+	margin-top: 0.4em;
+}
+
+.control,
 input[type='submit'] {
 	margin-top: 0.4em;
+	margin-right: 0.2em;
 	padding: 0.2em;
 	border: 0.2em solid;
 	border-radius: 20em;
@@ -39,19 +48,27 @@ textarea {
 	width: 100%;
 }
 
+.message {
+	padding: 0.2em;
+	display: block;
+	border: 0.2em solid;
+	margin-top: 0.2em;
+}
+
 @media (prefers-color-scheme: light) {
 	body {
 		background-color: white;
 	}
 
-	span,
+	.control,
 	input[type='submit'] {
 		border-color: gray;
 		background-color: lightgray;
 		color: black;
 	}
 
-	input {
+	input,
+	textarea:disabled {
 		color: black;
 	}
 }
@@ -60,14 +77,18 @@ textarea {
 		background-color: black;
 	}
 
-	span,
-	input[type='submit'] {
-		border-color: darkgray;
-		background-color: gray;
+	.control,
+	input,
+	label,
+	textarea:disabled,
+	.message {
 		color: white;
 	}
 
-	input {
-		color: white;
+	.control,
+	input[type='submit'],
+	.message {
+		border-color: darkgray;
+		background-color: gray;
 	}
 }

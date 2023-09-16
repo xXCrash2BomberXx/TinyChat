@@ -3,17 +3,20 @@
 
 <head>
 	<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-	<script type="text/javascript" src="./TinyChat.js"></script>
 	<link rel="stylesheet" href="./TinyChat.css">
 </head>
 
 <body>
 	<div>
-		<span>
+		<span id="id" class="control"></span>
+	</div>
+	<script type="text/javascript" src="./TinyChat.js"></script>
+	<div>
+		<span class="control">
 			To:
 			<input type="text" name="to" id="to">
 		</span>
-		<span>
+		<span class="control">
 			Message:
 			<input type="text" name="message" id="message">
 		</span>
