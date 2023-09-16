@@ -95,8 +95,8 @@ interface MessageData {
 };
 
 const peer: Peer = new Peer();
-peer.on('connection', function (dataConnection: DataConnection) {
-	dataConnection.on('data', function (data: string) {
+peer.on('connection', (dataConnection: DataConnection): void => {
+	dataConnection.on('data', (data: string): void => {
 		const messageData: MessageData = JSON.parse(data);
 		let el: HTMLSpanElement | null = document.getElementById(messageData.from) as HTMLSpanElement | null;
 		if (!el)
