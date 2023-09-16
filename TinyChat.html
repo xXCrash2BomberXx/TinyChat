@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, height=device-height">
+	<title>TinyChat</title>
 	<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 	<link rel="stylesheet" href="./TinyChat.css">
 </head>
@@ -9,7 +12,7 @@
 <body>
 	<span class="control">
 		To:
-		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') createChat(this.value);">
+		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') createChat(this.value);" placeholder="...">
 	</span>
 	<span id="id" class="control"></span>
 	<script type="text/javascript" src="./TinyChat.js"></script>
