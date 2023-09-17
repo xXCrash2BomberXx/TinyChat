@@ -9,6 +9,8 @@ enum MessageDataEvent {
 	AESKeyShare,
 };
 
+enum MessageDataEffects {};
+
 interface MessageData {
 	from: string,
 	body: string,
@@ -16,6 +18,7 @@ interface MessageData {
 	id: string,
 	event?: MessageDataEvent,
 	prev?: string,
+	effect?: MessageDataEffects,
 };
 
 var editing: string | undefined = undefined;
