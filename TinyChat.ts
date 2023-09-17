@@ -12,7 +12,7 @@ enum MessageDataEvent {
 enum MessageDataEffects {};
 
 interface MessageData {
-	from: number,
+	from: string,
 	body: string,
 	time: string,
 	id: string,
