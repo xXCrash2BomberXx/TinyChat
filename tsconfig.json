@@ -4,14 +4,18 @@
         "target": "esnext",
         "lib": ["esnext", "dom"],
         "module": "esnext",
-        "moduleResolution": "nodenext",
+        "moduleResolution": "node",
         "strict": true,
         "allowSyntheticDefaultImports": false,
         "noImplicitOverride": true,
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
+		"forceConsistentCasingInFileNames": true
     },
     "files": [
 		".\\PeerJS.d.ts",
         ".\\TinyChat.ts"
-    ]
+    ],
+	"exclude": [
+		"node_modules"
+	]
 }
