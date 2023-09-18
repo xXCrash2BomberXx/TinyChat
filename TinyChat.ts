@@ -1,29 +1,126 @@
+/**
+ * Message event used in {@link MessageData.event}.
+ * @readonly
+ * - {@link Typing} - Indicates a user has started typing.
+ * - {@link StopTyping} - Indicates a user has stopped typing without sending.
+ * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
+ * - {@link Delivered} - Indicates a message has been recieved.
+ * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
+ * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
+ * @enum {number}
+ */
 enum MessageDataEvent {
+	/**
+	 * Indicates a user has started typing.
+	 * @name MessageDataEvent.Typing
+	 */
 	Typing,
+	/**
+	 * Indicates a user has stopped typing without sending.
+	 * @name MessageDataEvent.StopTyping
+	 */
 	StopTyping,
+	/**
+	 * Indicates a user has edited the message with ID {@link MessageData.id}.
+	 * @name MessageDataEvent.Edit
+	 */
 	Edit,
-	Reaction,
-	Effect,
+	/**
+	 * Indicates a message has been recieved.
+	 * @name MessageDataEvent.Delivered
+	 */
 	Delivered,
+	/**
+	 * Indicates an RSA public key is being sent unencrypted.
+	 * @name MessageDataEvent.RSAKeyShare
+	 */
 	RSAKeyShare,
+	/**
+	 * Indicates an AES key is being sent encrypted with the previously sent RSA public key.
+	 * @name MessageDataEvent.AESKeyShare
+	 */
 	AESKeyShare,
 };
 
+/**
+ * Message effect used in {@link MessageData.effect}.
+ * @readonly
+ * @enum {number}
+ */
 enum MessageDataEffects {};
 
+/**
+ * A message to be sent to a peer.
+ * @property {string} from - The sender of the current {@link MessageData} object.
+ * @property {string} body - The message being sent.
+ * @property {string} time - The locale string representation of the time the message is being sent at.
+ * @property {string} id - The message ID.
+ * @property {MessageDataEvent=} event - Special event for a message.
+ * @property {string=} prev - Message being replied to.
+ * @property {MessageDataEffects=} effect - Message effect being applied.
+ * @interface
+ */
 interface MessageData {
+	/**
+	 * The sender of the current {@link MessageData} object.
+	 * @type {string}
+	 * @name MessageData.from
+	 */
 	from: string,
+	/**
+	 * The message being sent.
+	 * @type {string}
+	 * @name MessageData.body
+	 */
 	body: string,
+	/**
+	 * The locale string representation of the time the message is being sent at.
+	 * @type {string}
+	 * @name MessageData.time
+	 */
 	time: string,
+	/**
+	 * The message ID.
+	 * @type {string}
+	 * @name MessageData.id
+	 */
 	id: string,
+	/**
+	 * Special event for a message.
+	 * @type {MessageDataEvent?}
+	 * @name MessageData.event
+	 */
 	event?: MessageDataEvent,
+	/**
+	 * Message being replied to.
+	 * @type {string?}
+	 * @name MessageData.prev
+	 */
 	prev?: string,
+	/**
+	 * Message effect being applied.
+	 * @type {MessageDataEffects?}
+	 * @name MessageData.effect
+	 */
 	effect?: MessageDataEffects,
 };
 
+/**
+ * Message ID of the message being edited.
+ * @type {string?}
+ */
 var editing: string | undefined = undefined;
+
+/**
+ * Message ID of the message being edited.
+ * @type {string?}
+ */
 var replying: string | undefined = undefined;
 
+/**
+ * RSA public and private key pair.
+ * @type {Promise<CryptoKeyPair>}
+ */
 var keyPair: Promise<CryptoKeyPair> = crypto.subtle.generateKey(
 	{
 		name: 'RSA-OAEP',
@@ -35,10 +132,24 @@ var keyPair: Promise<CryptoKeyPair> = crypto.subtle.generateKey(
 	['encrypt', 'decrypt'],
 );
 
+/**
+ * AES keys for the active conversations.
+ * @type { { [string]: [Uint8Array, CryptoKey] } }
+ */
 var aesKeys: { [id: string]: [Uint8Array, CryptoKey] } = {};
 
+/**
+ * Exports an RSA `CryptoKey` into a `Promise<string>` that resolves to a `string` representation.
+ * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
+ * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
+ */
 const exportRSAKey = async (key: CryptoKey): Promise<string> => `-----BEGIN PUBLIC KEY-----\n${window.btoa(String.fromCharCode.apply(null, new Uint8Array(await window.crypto.subtle.exportKey("spki", key)) as unknown as Array<number>))}\n-----END PUBLIC KEY-----`;
 
+/**
+ * Converts a `string` into an `ArrayBuffer`.
+ * @param {string} str - `string` to convert to an `ArrayBuffer`.
+ * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
+ */
 const str2ab = (str: string): ArrayBuffer => {
 	const buf: ArrayBuffer = new ArrayBuffer(str.length);
 	const bufView: Uint8Array = new Uint8Array(buf);
@@ -48,6 +159,11 @@ const str2ab = (str: string): ArrayBuffer => {
 	return buf;
 }
 
+/**
+ * Imports an RSA `CryptoKey` into a `Promise<CryptoKey>` from a `string` that resolves to the RSA `CryptoKey`.
+ * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
+ * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
+ */
 const importRSAKey = async (pem: string): Promise<CryptoKey> => crypto.subtle.importKey(
 	'spki',
 	await str2ab(window.atob(pem.substring('-----BEGIN PUBLIC KEY-----'.length, pem.length - '-----END PUBLIC KEY-----'.length - 1))),
@@ -59,7 +175,13 @@ const importRSAKey = async (pem: string): Promise<CryptoKey> => crypto.subtle.im
 	['encrypt'],
 );
 
+/**
+ * User connection to the server
+ * @type {Peer}
+ * @readonly
+ */
 const peer: Peer = new Peer();
+
 peer.on('connection', (dataConnection: DataConnection): void => {
 	dataConnection.on('data', async (data: string): Promise<void> => {
 		console.log(`RECEIVED: ${data}`);
@@ -169,6 +291,12 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 	});
 });
 
+/**
+ * Creates a new conversation with the provded `string` ID of a client.
+ * @param {string} to - The recipient ID to start a conversation with.
+ * @param {boolean} [establishKey = true] - Whether or not to establish a new AES key.
+ * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
+ */
 const createChat = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
 	const el = document.createElement('span');
 	el.className = 'message';
@@ -236,6 +364,11 @@ const createChat = async (to: string, establishKey: boolean = true): Promise<HTM
 	return el;
 }
 
+/**
+ * Send a new message to the provided `string` ID of a client.
+ * @param {string} to - The recipient ID to send the message to.
+ * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
+ */
 const send = (to: string, messageData: MessageData): void => {
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', async (): Promise<void> => {
@@ -301,6 +434,9 @@ const send = (to: string, messageData: MessageData): void => {
 	});
 }
 
+/**
+ * Waits for the client to connect to the server and refreshes the client id.
+ */
 const check = (): void => {
 	if (peer.id) {
 		(document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${peer.id}`;
