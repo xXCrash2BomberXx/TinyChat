@@ -304,6 +304,7 @@ const createChat = async (to: string, establishKey: boolean = true): Promise<HTM
 	summary.innerHTML = peer.id;
 	collapsible.insertAdjacentElement('afterbegin', summary);
 	const el = document.createElement('span');
+	el.className = 'message';
 	el.id = to;
 	el.innerHTML = `<u>${to}</u>`;
 	collapsible.insertAdjacentElement('beforeend', el);
