@@ -143,14 +143,14 @@ var aesKeys: { [id: string]: [Uint8Array, CryptoKey] } = {};
  * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
  * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
  */
-const exportRSAKey = async (key: CryptoKey): Promise<string> => `-----BEGIN PUBLIC KEY-----\n${window.btoa(String.fromCharCode.apply(null, new Uint8Array(await window.crypto.subtle.exportKey("spki", key)) as unknown as Array<number>))}\n-----END PUBLIC KEY-----`;
+const exportRSAKey: (key: CryptoKey) => Promise<string> = async (key: CryptoKey): Promise<string> => `-----BEGIN PUBLIC KEY-----\n${window.btoa(String.fromCharCode.apply(null, new Uint8Array(await window.crypto.subtle.exportKey("spki", key)) as unknown as Array<number>))}\n-----END PUBLIC KEY-----`;
 
 /**
  * Converts a `string` into an `ArrayBuffer`.
  * @param {string} str - `string` to convert to an `ArrayBuffer`.
  * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
  */
-const str2ab = (str: string): ArrayBuffer => {
+const str2ab: (str: string) => ArrayBuffer = (str: string): ArrayBuffer => {
 	const buf: ArrayBuffer = new ArrayBuffer(str.length);
 	const bufView: Uint8Array = new Uint8Array(buf);
 	for (let i: number = 0, strLen = str.length; i < strLen; i++) {
@@ -164,7 +164,7 @@ const str2ab = (str: string): ArrayBuffer => {
  * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
  * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
  */
-const importRSAKey = async (pem: string): Promise<CryptoKey> => crypto.subtle.importKey(
+const importRSAKey: (pem: string) => Promise<CryptoKey> = async (pem: string): Promise<CryptoKey> => crypto.subtle.importKey(
 	'spki',
 	await str2ab(window.atob(pem.substring('-----BEGIN PUBLIC KEY-----'.length, pem.length - '-----END PUBLIC KEY-----'.length - 1))),
 	{
@@ -297,13 +297,14 @@ peer.on('connection', (dataConnection: DataConnection): void => {
  * @param {boolean} [establishKey = true] - Whether or not to establish a new AES key.
  * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
  */
-const createChat = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
-	const collapsible = document.createElement('details');
+const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement> = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
+	const collapsible: HTMLDetailsElement = document.createElement('details');
+	collapsible.open = true;
     document.body.insertAdjacentElement('beforeend', collapsible);
-	const summary = document.createElement('summary');
+	const summary: HTMLUnknownElement = document.createElement('summary');
 	summary.innerHTML = peer.id;
 	collapsible.insertAdjacentElement('afterbegin', summary);
-	const el = document.createElement('span');
+	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
 	el.id = to;
 	el.innerHTML = `<u>${to}</u>`;
@@ -355,7 +356,7 @@ const createChat = async (to: string, establishKey: boolean = true): Promise<HTM
 				id: '',
 				event: MessageDataEvent.Typing,
 			});
-		else if (sendBar.value.length === 1 && event.key === 'Backspace')
+		else if (sendBar.value.length === 1 && event.key === 'Backspace' && !editing)
 			send(to, {
 				from: peer.id,
 				body: '',
@@ -374,7 +375,7 @@ const createChat = async (to: string, establishKey: boolean = true): Promise<HTM
  * @param {string} to - The recipient ID to send the message to.
  * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
  */
-const send = (to: string, messageData: MessageData): void => {
+const send: (to: string, messageData: MessageData) => void = (to: string, messageData: MessageData): void => {
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', async (): Promise<void> => {
 		const data: string = JSON.stringify(messageData);
@@ -385,7 +386,7 @@ const send = (to: string, messageData: MessageData): void => {
 			case MessageDataEvent.AESKeyShare:
 			case MessageDataEvent.Typing:
 			case MessageDataEvent.StopTyping:
-				break;
+				return;
 			case MessageDataEvent.Edit:
 				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${
 					new TextDecoder().decode(await crypto.subtle.decrypt(
@@ -445,7 +446,7 @@ const send = (to: string, messageData: MessageData): void => {
 /**
  * Waits for the client to connect to the server and refreshes the client id.
  */
-const check = (): void => {
+const check: () => void = (): void => {
 	if (peer.id) {
 		(document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${peer.id}`;
 		return;
