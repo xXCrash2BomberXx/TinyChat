@@ -19,13 +19,15 @@ body {
 	text-decoration: underline;
 }
 
-.control {
+.control,
+summary {
 	margin-top: 0.4em;
 	margin-right: 0.2em;
 	padding: 0.2em;
 	border: 0.2em solid;
 	border-radius: 20em;
 	height: 100%;
+	cursor: pointer;
 }
 
 #to {
@@ -34,17 +36,20 @@ body {
 	width: 50%;
 }
 
+details {
+	display: block;
+	margin-top: 0.2em;
+	width: 75%;
+	margin-top: 0.8em;
+}
+
 .message,
 .sendBar {
-	padding: 0.2em;
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
 	width: 75%;
-}
-
-.message {
-	margin-top: 0.8em;
+	margin-left: 5%;
 }
 
 p {
@@ -70,7 +75,8 @@ p {
 	label,
 	textarea:disabled,
 	.message,
-	.sendBar {
+	.sendBar,
+	summary {
 		color: black;
 		border-color: gray;
 		background-color: lightgray;
@@ -87,7 +93,8 @@ p {
 	label,
 	textarea:disabled,
 	.message,
-	.sendBar {
+	.sendBar,
+	summary {
 		color: white;
 		border-color: darkgray;
 		background-color: gray;

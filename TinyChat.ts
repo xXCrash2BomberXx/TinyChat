@@ -298,11 +298,15 @@ peer.on('connection', (dataConnection: DataConnection): void => {
  * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
  */
 const createChat = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
+	const collapsible = document.createElement('details');
+    document.body.insertAdjacentElement('beforeend', collapsible);
+	const summary = document.createElement('summary');
+	summary.innerHTML = peer.id;
+	collapsible.insertAdjacentElement('afterbegin', summary);
 	const el = document.createElement('span');
-	el.className = 'message';
 	el.id = to;
-	el.innerHTML = `<u>${to}</u>`
-	document.body.insertAdjacentElement('beforeend', el);
+	el.innerHTML = `<u>${to}</u>`;
+	collapsible.insertAdjacentElement('beforeend', el);
 
 	if (establishKey)
 		send(to, {
@@ -359,7 +363,7 @@ const createChat = async (to: string, establishKey: boolean = true): Promise<HTM
 				event: MessageDataEvent.StopTyping,
 			});
 	};
-	el.insertAdjacentElement('afterend', sendBar);
+	collapsible.insertAdjacentElement('beforeend', sendBar);
 	sendBar.focus();
 	return el;
 }
@@ -406,6 +410,7 @@ const send = (to: string, messageData: MessageData): void => {
 					ev.preventDefault();
 					console.log(`REPLYING: ${paragraph.id}`);
 					replying = paragraph.id;
+					console.log(paragraph);
 					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 				}
 				paragraph.ondblclick = (ev: MouseEvent): void => {
@@ -431,6 +436,8 @@ const send = (to: string, messageData: MessageData): void => {
 					el.insertAdjacentElement('beforeend', paragraph);
 				break;
 		}
+		replying = undefined;
+		editing = undefined;
 	});
 }
 
