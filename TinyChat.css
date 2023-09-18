@@ -27,6 +27,9 @@ summary {
 	border: 0.2em solid;
 	border-radius: 20em;
 	height: 100%;
+}
+
+summary {
 	cursor: pointer;
 }
 
