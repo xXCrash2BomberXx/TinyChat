@@ -143,7 +143,7 @@ var aesKeys: { [id: string]: [Uint8Array, CryptoKey] } = {};
  * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
  * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
  */
-const exportRSAKey: (key: CryptoKey) => Promise<string> = async (key: CryptoKey): Promise<string> => `-----BEGIN PUBLIC KEY-----\n${window.btoa(String.fromCharCode.apply(null, new Uint8Array(await window.crypto.subtle.exportKey("spki", key)) as unknown as Array<number>))}\n-----END PUBLIC KEY-----`;
+const exportRSAKey: (key: CryptoKey) => Promise<string> = async (key: CryptoKey): Promise<string> => window.btoa(String.fromCharCode.apply(null, new Uint8Array(await window.crypto.subtle.exportKey("spki", key)) as unknown as Array<number>));
 
 /**
  * Converts a `string` into an `ArrayBuffer`.
@@ -166,7 +166,7 @@ const str2ab: (str: string) => ArrayBuffer = (str: string): ArrayBuffer => {
  */
 const importRSAKey: (pem: string) => Promise<CryptoKey> = async (pem: string): Promise<CryptoKey> => crypto.subtle.importKey(
 	'spki',
-	await str2ab(window.atob(pem.substring('-----BEGIN PUBLIC KEY-----'.length, pem.length - '-----END PUBLIC KEY-----'.length - 1))),
+	await str2ab(window.atob(pem)),
 	{
 		name: 'RSA-OAEP',
 		hash: 'SHA-256',
