@@ -95,10 +95,10 @@ Additionally, because everything is end-to-end encrypted, the server holding the
 
 ```mermaid
 graph TB;
-  A>Client #1 Creates an RSA Key] --> B>Client #1 Creates a new Conversation w/ Client #2];
+  A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation w/ Client #2];
   B --> D>Add Conversation to CLient #1 UI];
   B --> E>Client #1 Sends RSA Public Key to Client #2];
-  F>Client #2 Creates an RSA Key] --> G>Client #2 Waits for RSA Public Key from Client #1];
+  F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for RSA Public Key from Client #1];
   E --> G;
   G --> H>Client #2 Creates an AES Symmetric Key];
   H -->I>Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
