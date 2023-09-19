@@ -10,10 +10,9 @@ TinyChat aims to give end-to-end encrypted communication through RSA-OAEP and AE
 Each conversation will have a unique AES-256 key with that key being shared using your RSA public key to allow the peer to produce a key that only the sender knows prior to encryption and that only you can decrypt as it will be encrypted with your RSA public key.
 
 > [!WARNING]
-> Although the messages themselves are encrypted, the actions being performed are not.
-> This means that although an attacker cannot read the message, they can see whether you are typing, editing, delivering, etc.
+> Although the messages themselves are encrypted, many other metadata items are not.
 >
-> What the attack *cannot* read:
+> What the attacker *cannot* read:
 >
 > - The message body
 >
