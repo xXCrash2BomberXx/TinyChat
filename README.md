@@ -94,7 +94,9 @@ Additionally, because everything is end-to-end encrypted, the server holding the
 
 ```mermaid
 graph TB;
+  subgraph one
   A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation with Client #2];
+  end
   B --> D>The Conversation is Added to the Conversation Screen for Client #1];
   B --> E>Client #1 Sends their RSA Public Key to Client #2];
   F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for the RSA Public Key from Client #1];
