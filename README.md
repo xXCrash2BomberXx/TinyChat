@@ -136,7 +136,7 @@ graph TB;
   U --> R;
   end
 
-  classDef user fill:#005
+  classDef user fill:#fff,color:#000
   class B,M,Z user;
 ```
 
