@@ -136,11 +136,7 @@ graph TB;
   U --> R;
   end
 
-  classDef c1 fill:#500
-  classDef c2 fill:#050
   classDef user fill:#005
-  class A,C,D,E,K,L,M,N,O,Q,R,V,W c1;
-  class F,G,H,I,J,P,S,T,U,X,Y,C c2;
   class B,M,Z user;
 ```
 
