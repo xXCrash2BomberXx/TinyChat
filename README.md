@@ -89,7 +89,7 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 
 Below shows the process of two clients intiating a conversation and sending a message.
 The <span style="color:red">red</span> blocks represent processes ran on the client who created the chat, the <span style="color:green">green</span> blocks represent processes ran on the client who is joining the chat after creation, and the <span style="color:blue">blue</span> blocks represent user actions.
-As you can see, from the graph, the processes the user performs themselves are quite minimal allowing for an overall easy to use messaging client.
+As you can see, from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
 Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
 
 ```mermaid
