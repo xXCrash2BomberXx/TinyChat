@@ -17,14 +17,14 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 >
 > - The message body
 > - The time the message was sent
+> - The message ID being replied to (should the message be a reply)
+> - The effect being applied to the message (confetti, spotlight, etc.)
 >
 > What the attacker *can* read:
 >
 > - The User ID that sent the message
 > - The message ID (This is a randomly generated GUID)
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
-> - The message ID being replied to (should the message be a reply) (This is a randomly generated GUID)
-> - The effect being applied to the message (confetti, spotlight, etc.)
 
 ## Features
 
@@ -77,12 +77,19 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [ ] Frontend
     - [x] Create Replies
     - [ ] Reply Indication in UI
+- [ ] Effects
+  - [ ] Backend
+    - [ ] Create Effects
+    - [ ] Send Effects
+  - [ ] Frontend
+    - [ ] Create Effects
+    - [ ] Reaction Indication in UI
 - [ ] Reactions
   - [ ] Backend
     - [ ] Create Reactions
     - [ ] Send Reactions
   - [ ] Frontend
-    - [ ] Create Reaction
+    - [ ] Create Reactions
     - [ ] Reaction Indication in UI
 
 ## Mermaid Diagram

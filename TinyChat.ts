@@ -337,6 +337,12 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				aesKeys[to][1],
 				new Uint8Array(new TextEncoder().encode(sendBar.value)),
 			))));
+			if (replying)
+				replying = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
+					{ name: 'AES-CBC', iv: aesKeys[to][0] },
+					aesKeys[to][1],
+					new Uint8Array(new TextEncoder().encode(replying)),
+				))));
 			if (editing)
 				send(to, {
 					from: peer.id,
