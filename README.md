@@ -88,39 +88,37 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 ## Mermaid Diagram
 
 Below shows the process of two clients intiating a conversation and sending a message.
-This process is simplified to remove the typing indicators being sent, but they follow the same procedure as as the message delivery.
 The <span style="color:red">red</span> blocks represent processes ran on the client who created the chat, the <span style="color:green">green</span> blocks represent processes ran on the client who is joining the chat after creation, and the <span style="color:blue">blue</span> blocks represent user actions.
 As you can see, from the graph, the processes the user performs themselves are quite minimal allowing for an overall easy to use messaging client.
 Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
 
 ```mermaid
 graph TB;
-  A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation w/ Client #2];
-  B --> D>Add Conversation to CLient #1 UI];
-  B --> E>Client #1 Sends RSA Public Key to Client #2];
-  F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for RSA Public Key from Client #1];
+  A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation with Client #2];
+  B --> D>The Conversation is Added to the Conversation Screen for Client #1];
+  B --> E>Client #1 Sends their RSA Public Key to Client #2];
+  F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for the RSA Public Key from Client #1];
   E --> G;
   G --> H>Client #2 Creates an AES Symmetric Key];
   H -->I>Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
-  I -->J>Client #2 Sends Encrypted Key to Cient #1];
+  I -->J>Client #2 Sends the Encrypted Key to Cient #1];
   E --> K>Client #1 Waits for AES Symmetric Key from Client #2];
   J --> K;
-  K --> L>Client #1 Decrypts Encrypted Key with RSA Private Key];
+  K --> L>Client #1 Decrypts the Encrypted Key with RSA Private Key];
+  L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1];
   M --> W>A Typing Indicator is sent to Client #2];
   W --> X>Client #2 Receives the Typing Indicator];
   X --> Y>The Typing Indicator is Added to the Conversation Screen for Client #2];
   M --> Z>Client #1 Sends the Typed Message];
-  L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1];
-  Z --> C>The message is converted to a MessageData object];
-  C --> N>The message is Encrypted with the AES Symmetric Key Established];
+  Z --> N>The message is Encrypted with the AES Symmetric Key Established];
   N --> O>The Encrypted Message is Sent to Client #2];
-  C --> Q>The Message is Added to the Conversation Screen for Client #1];
+  Z --> Q>The Message is Added to the Conversation Screen for Client #1];
   Q --> R>Client #1 Waits for Delivery Receipt from Client #1];
   R --> V>A Delivery Indicator is Added to the Conversation Screen];
   O --> P>Client #2 Receives the message];
   P --> S>Client #2 Decrypts the Message];
-  S --> AA>The Typing Indicator is removed from the Conversation Screen for Client #2];
-  AA --> T>The Message is Added to the Conversation Screen for Client #2];
+  S --> C>The Typing Indicator is removed from the Conversation Screen for Client #2];
+  C --> T>The Message is Added to the Conversation Screen for Client #2];
   P --> U>Client #2 Sends a Delivery Receipts to Client #1];
   U --> R;
 
@@ -128,6 +126,6 @@ graph TB;
   classDef c2 fill:#050
   classDef user fill:#005
   class A,C,D,E,K,L,M,N,O,Q,R,V,W c1;
-  class F,G,H,I,J,P,S,T,U,X,Y,AA c2;
+  class F,G,H,I,J,P,S,T,U,X,Y,C c2;
   class B,M,Z user;
 ```
