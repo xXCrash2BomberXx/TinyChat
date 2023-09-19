@@ -76,7 +76,11 @@ graph TB;
   B --> E[Client #1 Sends RSA Public Key to Client #2];
   E --> G[Client #2 Waits for RSA Public Key from Client #1];
   F[Client #2 Creates an RSA Key] --> G;
-  
+  G --> H[Client #2 Creates an AES Symmetric Key];
+  H -->I[Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
+  I -->J[Client #2 Sends Encrypted Key to Cient #1];
+  J --> K[Client #1 Waits for AES Symmetric Key from Client #2];
+ 
 ```
 
 </details>
