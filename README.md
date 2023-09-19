@@ -143,3 +143,45 @@ graph TB;
   class F,G,H,I,J,P,S,T,U,X,Y,C c2;
   class B,M,Z user;
 ```
+
+```mermaid
+graph TB;
+  subgraph "Key Share"
+  A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation with Client #2];
+  B --> D>The Conversation is Added to the Conversation Screen for Client #1];
+  B --> E>Client #1 Sends their RSA Public Key to Client #2];
+  F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for the RSA Public Key from Client #1];
+  E --> G;
+  G --> H>Client #2 Creates an AES Symmetric Key];
+  H -->I>Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
+  I -->J>Client #2 Sends the Encrypted Key to Cient #1];
+  E --> K>Client #1 Waits for AES Symmetric Key from Client #2];
+  J --> K;
+  K --> L>Client #1 Decrypts the Encrypted Key with RSA Private Key];
+  end
+  L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1];
+  subgraph Messaging
+  M --> W>A Typing Indicator is sent to Client #2];
+  W --> X>Client #2 Receives the Typing Indicator];
+  X --> Y>The Typing Indicator is Added to the Conversation Screen for Client #2];
+  M --> Z>Client #1 Sends the Typed Message];
+  Z --> N>The message is Encrypted with the AES Symmetric Key Established];
+  N --> O>The Encrypted Message is Sent to Client #2];
+  Z --> Q>The Message is Added to the Conversation Screen for Client #1];
+  Q --> R>Client #1 Waits for Delivery Receipt from Client #1];
+  R --> V>A Delivery Indicator is Added to the Conversation Screen];
+  O --> P>Client #2 Receives the message];
+  P --> S>Client #2 Decrypts the Message];
+  S --> C>The Typing Indicator is removed from the Conversation Screen for Client #2];
+  C --> T>The Message is Added to the Conversation Screen for Client #2];
+  P --> U>Client #2 Sends a Delivery Receipts to Client #1];
+  U --> R;
+  end
+
+  classDef c1 fill:#500
+  classDef c2 fill:#050
+  classDef user fill:#005
+  class A,C,D,E,K,L,M,N,O,Q,R,V,W c1;
+  class F,G,H,I,J,P,S,T,U,X,Y,C c2;
+  class B,M,Z user;
+```
