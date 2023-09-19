@@ -71,7 +71,7 @@
 
 ```mermaid
 graph TB;
-  A>Client #1 Creates an RSA Key] --> B((Client #1 Creates a new Conversation w/ Client #2));
+  A>Client #1 Creates an RSA Key] --> B{Client #1 Creates a new Conversation w/ Client #2};
   B --> D>Add Conversation to CLient #1 UI];
   B --> E>Client #1 Sends RSA Public Key to Client #2];
   F>Client #2 Creates an RSA Key] --> G>Client #2 Waits for RSA Public Key from Client #1];
@@ -82,7 +82,7 @@ graph TB;
   E --> K>Client #1 Waits for AES Symmetric Key from Client #2];
   J --> K;
   K --> L>Client #1 Decrypts Encrypted Key with RSA Private Key];
-  L --> |The following could be either client, but Client #1 will be the sender for this example| M((A Message is Typed by Client #1 and Sent to Client #2));
+  L --> |The following could be either client, but Client #1 will be the sender for this example| M{A Message is Typed by Client #1 and Sent to Client #2};
   M --> W>The message is converted to a MessageData object];
   W --> N>The message is Encrypted with the AES Symmetric Key Established];
   N --> O>The Encrypted Message is Sent to Client #2];
