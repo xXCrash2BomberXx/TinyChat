@@ -83,9 +83,10 @@ graph TB;
   J --> K;
   K --> L>Client #1 Decrypts Encrypted Key with RSA Private Key];
   L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1 and Sent to Client #2];
-  M --> N>The message is Encrypted with the AES Symmetric Key Established];
+  M --> C>The message is converted to a MessageData object];
+  C --> N>The message is Encrypted with the AES Symmetric Key Established];
   N --> O>The Encrypted Message is Sent to Client #2];
-  M --> Q>The Message is Added to the Conversation Screen for Client #1];
+  C --> Q>The Message is Added to the Conversation Screen for Client #1];
   Q --> R>Client #1 Waits for Delivery Receipt from Client #1];
   R --> V>A Delivery Indicator is Added to the Conversation Screen];
   O --> P>Client #2 Receives the message];
@@ -93,6 +94,11 @@ graph TB;
   S --> T>The Message is Added to the Conversation Screen for Client #2];
   P --> U>Client #2 Sends a Delivery Receipts to Client #1];
   U --> R;
+
+  classDef c1 fill:#500
+  classDef c2 fill:#050
+  class A,B,C,D,E,K,L,M,N,O,Q,R,V c1;
+  class F,G,H,I,J,P,S,T,U c2;
 ```
 
 </details>
