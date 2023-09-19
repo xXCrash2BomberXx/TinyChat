@@ -283,6 +283,13 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					))
 					}</i></small></small></small>`;
 				paragraph.className = 'received';
+				if (messageData.prev)
+					console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+						{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
+						aesKeys[messageData.from][1],
+						new Uint8Array(JSON.parse(messageData.prev)),
+					))
+						}'`);
 				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
 				send(messageData.from, {
@@ -369,6 +376,14 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					prev: replying,
 				});
 			sendBar.value = '';
+
+			if (replying)
+				console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[to][0] },
+					aesKeys[to][1],
+					new Uint8Array(JSON.parse(replying)),
+				))
+					}'`);
 			replying = undefined;
 		} else if (sendBar.value.length === 0 && event.key != 'Backspace')
 			send(to, {
@@ -429,12 +444,11 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 					aesKeys[to][1],
 					new Uint8Array(JSON.parse(messageData.body)),
 				)) : messageData.body
-					} <small><small><small><i>${
-						messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
-							{ name: 'AES-CBC', iv: aesKeys[to][0] },
-							aesKeys[to][1],
-							new Uint8Array(JSON.parse(messageData.time)),
-						)) : messageData.time
+					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
+						{ name: 'AES-CBC', iv: aesKeys[to][0] },
+						aesKeys[to][1],
+						new Uint8Array(JSON.parse(messageData.time)),
+					)) : messageData.time
 					}</i></small></small></small>`;
 				paragraph.className = 'sent';
 				paragraph.id = messageData.id;
