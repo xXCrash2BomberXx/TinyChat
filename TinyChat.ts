@@ -121,7 +121,7 @@ var replying: string | undefined = undefined;
  * RSA public and private key pair.
  * @type {Promise<CryptoKeyPair>}
  */
-var keyPair: Promise<CryptoKeyPair> = crypto.subtle.generateKey(
+var keyPair: Promise<CryptoKeyPair> = window.crypto.subtle.generateKey(
 	{
 		name: 'RSA-OAEP',
 		modulusLength: 4096,
@@ -164,7 +164,7 @@ const str2ab: (str: string) => ArrayBuffer = (str: string): ArrayBuffer => {
  * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
  * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
  */
-const importRSAKey: (pem: string) => Promise<CryptoKey> = async (pem: string): Promise<CryptoKey> => crypto.subtle.importKey(
+const importRSAKey: (pem: string) => Promise<CryptoKey> = async (pem: string): Promise<CryptoKey> => window.crypto.subtle.importKey(
 	'spki',
 	await str2ab(window.atob(pem)),
 	{
@@ -192,7 +192,7 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 		const paragraph: HTMLParagraphElement = document.createElement('p');
 		switch (messageData.event) {
 			case MessageDataEvent.RSAKeyShare:
-				aesKeys[messageData.from] = [crypto.getRandomValues(new Uint8Array(16)), await window.crypto.subtle.generateKey(
+				aesKeys[messageData.from] = [window.crypto.getRandomValues(new Uint8Array(16)), await window.crypto.subtle.generateKey(
 					{
 						name: 'AES-CBC',
 						length: 256,
@@ -204,10 +204,10 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					from: peer.id,
 					body: JSON.stringify([
 						Array.from(aesKeys[messageData.from][0]),
-						Array.from(new Uint8Array(await crypto.subtle.encrypt(
+						Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 							{ name: 'RSA-OAEP' },
 							await importRSAKey(messageData.body),
-							await crypto.subtle.exportKey('raw', aesKeys[messageData.from][1]),
+							await window.crypto.subtle.exportKey('raw', aesKeys[messageData.from][1]),
 						))),
 					]),
 					time: '',
@@ -217,9 +217,9 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				break;
 			case MessageDataEvent.AESKeyShare:
 				const parsed: Array<any> = JSON.parse(messageData.body);
-				aesKeys[messageData.from] = [new Uint8Array(parsed[0]), await crypto.subtle.importKey(
+				aesKeys[messageData.from] = [new Uint8Array(parsed[0]), await window.crypto.subtle.importKey(
 					'raw',
-					await crypto.subtle.decrypt(
+					await window.crypto.subtle.decrypt(
 						{ name: 'RSA-OAEP' },
 						(await keyPair).privateKey,
 						new Uint8Array(parsed[1]),
@@ -249,12 +249,12 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 				break;
 			case MessageDataEvent.Edit:
-				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 					aesKeys[messageData.from][1],
 					new Uint8Array(JSON.parse(messageData.body)),
 				))
-					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
+					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 						aesKeys[messageData.from][1],
 						new Uint8Array(JSON.parse(messageData.time)),
@@ -271,12 +271,12 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				});
 				break;
 			default:
-				paragraph.innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+				paragraph.innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 					aesKeys[messageData.from][1],
 					new Uint8Array(JSON.parse(messageData.body)),
 				))
-					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
+					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 						aesKeys[messageData.from][1],
 						new Uint8Array(JSON.parse(messageData.time)),
@@ -332,7 +332,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
 		if (event.key === 'Enter') {
-			sendBar.value = JSON.stringify(Array.from(new Uint8Array(await crypto.subtle.encrypt(
+			sendBar.value = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 				{ name: 'AES-CBC', iv: aesKeys[to][0] },
 				aesKeys[to][1],
 				new Uint8Array(new TextEncoder().encode(sendBar.value)),
@@ -341,7 +341,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				send(to, {
 					from: peer.id,
 					body: sendBar.value,
-					time: JSON.stringify(Array.from(new Uint8Array(await crypto.subtle.encrypt(
+					time: JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 						{ name: 'AES-CBC', iv: aesKeys[to][0] },
 						aesKeys[to][1],
 						new Uint8Array(new TextEncoder().encode('edited at ' + new Date().toLocaleTimeString())),
@@ -354,12 +354,12 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				send(to, {
 					from: peer.id,
 					body: sendBar.value,
-					time: JSON.stringify(Array.from(new Uint8Array(await crypto.subtle.encrypt(
+					time: JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 						{ name: 'AES-CBC', iv: aesKeys[to][0] },
 						aesKeys[to][1],
 						new Uint8Array(new TextEncoder().encode(new Date().toLocaleTimeString())),
 					)))),
-					id: crypto.randomUUID(),
+					id: window.crypto.randomUUID(),
 					prev: replying,
 				});
 			sendBar.value = '';
@@ -404,12 +404,12 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 			case MessageDataEvent.StopTyping:
 				return;
 			case MessageDataEvent.Edit:
-				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[to][0] },
 					aesKeys[to][1],
 					new Uint8Array(JSON.parse(messageData.body)),
 				))
-					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
+					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[to][0] },
 						aesKeys[to][1],
 						new Uint8Array(JSON.parse(messageData.time)),
@@ -418,13 +418,13 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 				break;
 			default:
 				const paragraph: HTMLParagraphElement = document.createElement('p');
-				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await crypto.subtle.decrypt(
+				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[to][0] },
 					aesKeys[to][1],
 					new Uint8Array(JSON.parse(messageData.body)),
 				)) : messageData.body
 					} <small><small><small><i>${
-						messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await crypto.subtle.decrypt(
+						messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: aesKeys[to][0] },
 							aesKeys[to][1],
 							new Uint8Array(JSON.parse(messageData.time)),
