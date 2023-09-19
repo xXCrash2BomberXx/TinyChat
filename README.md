@@ -70,7 +70,7 @@
 <summary>Mermaid Diagram</summary>
 
 ```mermaid
-graph TB;
+graph TD;
   A[Client #1 Creates an RSA Key] --> B[Client #1 Creates a new Conversation w/ Client #2];
   B --> D[Add Conversation to CLient #1 UI];
   B --> E[Client #1 Sends RSA Public Key to Client #2];
