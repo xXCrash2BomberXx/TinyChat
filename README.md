@@ -76,16 +76,16 @@ graph TB;
   B --> D[Add Conversation to CLient #1 UI];
   B --> E[Client #1 Sends RSA Public Key to Client #2];
   end
+  E --> G;
   subgraph "Client#2"
   F[Client #2 Creates an RSA Key] --> G[Client #2 Waits for RSA Public Key from Client #1];
-  E --> G;
   G --> H[Client #2 Creates an AES Symmetric Key];
   H -->I[Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
   I -->J[Client #2 Sends Encrypted Key to Cient #1];
   end
+  J --> K;
   subgraph "Client#1"
   E --> K[Client #1 Waits for AES Symmetric Key from Client #2];
-  J --> K;
   K --> L[Client #1 Decrypts Encrypted Key with RSA Private Key];
   end
   subgraph "Client#1Demo"
@@ -96,13 +96,13 @@ graph TB;
   Q --> R[Client #1 Waits for Delivery Receipt from Client #1];
   R --> V[A Delivery Indicator is Added to the Conversation Screen];
   end
+  O --> P;
   subgraph "Client#2Demo"
-  O --> P[Client #2 Receives the message];
-  P --> S[Client #2 Decrypts the Message];
+  P[Client #2 Receives the message] --> S[Client #2 Decrypts the Message];
   S --> T[The Message is Added to the Conversation Screen for Client #2];
   P --> U[Client #2 Sends a Delivery Receipts to Client #1];
-  U --> R;
   end
+  U --> R;
 ```
 
 </details>
