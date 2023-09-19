@@ -80,8 +80,8 @@ graph TB;
   H -->I[Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
   I -->J[Client #2 Sends Encrypted Key to Cient #1];
   J --> K[Client #1 Waits for AES Symmetric Key from Client #2];
-  E --> K;
 ```
+  E --> K;
   K --> L[Client #1 Decrypts Encrypted Key with RSA Private Key];
   L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1 and Sent to Client #2];
   M --> N[The message is Encrypted with the AES Symmetric Key Established];
