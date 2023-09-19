@@ -79,6 +79,11 @@ Below shows the process of two clients intiating a conversation and sending a me
 This process is simplified to remove the typing indicators being sent, but they follow the same procedure as as the message delivery.
 The <span style="color:red">red</span> blocks represent processes ran on the client who created the chat, the <span style="color:green">green</span> blocks represent processes ran on the client who is joining the chat after creation, and the <span style="color:blue">blue</span> blocks represent user actions.
 As you can see, from the graph, the processes the user performs themselves are quite minimal allowing for an overall easy to use messaging client.
+Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
+
+> [!WARNING]
+> Although the messages themselves are encrypted, the actions being performed are not.
+> This means that although an attacker cannot read the message, they can see whether you are typing, editing, delivering, etc.
 
 ```mermaid
 graph TB;
