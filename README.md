@@ -73,15 +73,15 @@
 graph TB;
   A[Client #1 Creates an RSA Key] --> B>Client #1 Creates a new Conversation w/ Client #2];
   B --> D[Add Conversation to CLient #1 UI];
-  B --> E[Client #1 Sends RSA Public Key to Client #2];
+  B --> E{Client #1 Sends RSA Public Key to Client #2};
   E --> G[Client #2 Waits for RSA Public Key from Client #1];
   F[Client #2 Creates an RSA Key] --> G;
   G --> H[Client #2 Creates an AES Symmetric Key];
   H -->I[Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
   I -->J[Client #2 Sends Encrypted Key to Cient #1];
   J --> K[Client #1 Waits for AES Symmetric Key from Client #2];
-```
   E --> K;
+```
   K --> L[Client #1 Decrypts Encrypted Key with RSA Private Key];
   L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1 and Sent to Client #2];
   M --> N[The message is Encrypted with the AES Symmetric Key Established];
