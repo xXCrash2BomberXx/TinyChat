@@ -12,6 +12,11 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > [!WARNING]
 > Although the messages themselves are encrypted, the actions being performed are not.
 > This means that although an attacker cannot read the message, they can see whether you are typing, editing, delivering, etc.
+>
+> What the attack *cannot* read:
+>
+> - The message body
+>
 > What the attacker *can* read:
 >
 > - The User ID that sent the message
@@ -20,10 +25,6 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
 > - The message ID being replied to (should the message be a reply)
 > - The effect being applied to the message (confetti, spotlight, etc.)
->
-> What the attack *cannot* read:
->
-> - The message body
 
 ## Features
 
