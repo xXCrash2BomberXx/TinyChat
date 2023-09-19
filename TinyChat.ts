@@ -47,7 +47,7 @@ enum MessageDataEvent {
  * @readonly
  * @enum {number}
  */
-enum MessageDataEffects {};
+enum MessageDataEffects { };
 
 /**
  * A message to be sent to a peer.
@@ -249,13 +249,17 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 				break;
 			case MessageDataEvent.Edit:
-				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${
-					new TextDecoder().decode(await crypto.subtle.decrypt(
+				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
+					aesKeys[messageData.from][1],
+					new Uint8Array(JSON.parse(messageData.body)),
+				))
+					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 						aesKeys[messageData.from][1],
-						new Uint8Array(JSON.parse(messageData.body)),
+						new Uint8Array(JSON.parse(messageData.time)),
 					))
-				} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+					}</i></small></small></small>`;
 				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
 				send(messageData.from, {
@@ -267,13 +271,17 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 				});
 				break;
 			default:
-				paragraph.innerHTML = `${
-					new TextDecoder().decode(await crypto.subtle.decrypt(
+				paragraph.innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
+					aesKeys[messageData.from][1],
+					new Uint8Array(JSON.parse(messageData.body)),
+				))
+					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[messageData.from][0] },
 						aesKeys[messageData.from][1],
-						new Uint8Array(JSON.parse(messageData.body)),
+						new Uint8Array(JSON.parse(messageData.time)),
 					))
-				} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+					}</i></small></small></small>`;
 				paragraph.className = 'received';
 				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.removeChild(el.lastChild);
@@ -300,7 +308,7 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement> = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
 	const collapsible: HTMLDetailsElement = document.createElement('details');
 	collapsible.open = true;
-    document.body.insertAdjacentElement('beforeend', collapsible);
+	document.body.insertAdjacentElement('beforeend', collapsible);
 	const summary: HTMLUnknownElement = document.createElement('summary');
 	summary.innerHTML = peer.id;
 	collapsible.insertAdjacentElement('afterbegin', summary);
@@ -333,7 +341,11 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				send(to, {
 					from: peer.id,
 					body: sendBar.value,
-					time: 'edited at ' + new Date().toLocaleTimeString(),
+					time: JSON.stringify(Array.from(new Uint8Array(await crypto.subtle.encrypt(
+						{ name: 'AES-CBC', iv: aesKeys[to][0] },
+						aesKeys[to][1],
+						new Uint8Array(new TextEncoder().encode('edited at ' + new Date().toLocaleTimeString())),
+					)))),
 					id: editing,
 					event: MessageDataEvent.Edit,
 					prev: replying,
@@ -342,7 +354,11 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				send(to, {
 					from: peer.id,
 					body: sendBar.value,
-					time: new Date().toLocaleTimeString(),
+					time: JSON.stringify(Array.from(new Uint8Array(await crypto.subtle.encrypt(
+						{ name: 'AES-CBC', iv: aesKeys[to][0] },
+						aesKeys[to][1],
+						new Uint8Array(new TextEncoder().encode(new Date().toLocaleTimeString())),
+					)))),
 					id: crypto.randomUUID(),
 					prev: replying,
 				});
@@ -388,24 +404,32 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 			case MessageDataEvent.StopTyping:
 				return;
 			case MessageDataEvent.Edit:
-				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${
-					new TextDecoder().decode(await crypto.subtle.decrypt(
+				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[to][0] },
+					aesKeys[to][1],
+					new Uint8Array(JSON.parse(messageData.body)),
+				))
+					} <small><small><small><i>${new TextDecoder().decode(await crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[to][0] },
 						aesKeys[to][1],
-						new Uint8Array(JSON.parse(messageData.body)),
+						new Uint8Array(JSON.parse(messageData.time)),
 					))
-				} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+					}</i></small></small></small>`;
 				break;
 			default:
 				const paragraph: HTMLParagraphElement = document.createElement('p');
-				paragraph.innerHTML = `${
-					
-				messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: aesKeys[to][0] },
-						aesKeys[to][1],
-						new Uint8Array(JSON.parse(messageData.body)),
-					)) : messageData.body
-				} <small><small><small><i>${messageData.time}</i></small></small></small>`;
+				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[to][0] },
+					aesKeys[to][1],
+					new Uint8Array(JSON.parse(messageData.body)),
+				)) : messageData.body
+					} <small><small><small><i>${
+						messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await crypto.subtle.decrypt(
+							{ name: 'AES-CBC', iv: aesKeys[to][0] },
+							aesKeys[to][1],
+							new Uint8Array(JSON.parse(messageData.time)),
+						)) : messageData.time
+					}</i></small></small></small>`;
 				paragraph.className = 'sent';
 				paragraph.id = messageData.id;
 				paragraph.onclick = (ev: MouseEvent): void => {

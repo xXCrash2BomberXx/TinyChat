@@ -16,14 +16,14 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > What the attacker *cannot* read:
 >
 > - The message body
+> - The time the message was sent
 >
 > What the attacker *can* read:
 >
 > - The User ID that sent the message
-> - The time the message was sent
-> - The message ID
+> - The message ID (This is a randomly generated GUID)
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
-> - The message ID being replied to (should the message be a reply)
+> - The message ID being replied to (should the message be a reply) (This is a randomly generated GUID)
 > - The effect being applied to the message (confetti, spotlight, etc.)
 
 ## Features
