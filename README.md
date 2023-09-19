@@ -1,15 +1,31 @@
 # TinyChat
 
+> [!NOTE]
+> Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.
+
 TinyChat works through the usage of [PeerJS](https://peerjs.com/).
 When you open a TinyChat web page, a User ID will be shown in the top right bar.
 This User ID is how people can contact you, but this will change every time you refresh the page.
 TinyChat aims to give end-to-end encrypted communication through RSA-OAEP and AES-CBC encryption.
 Each conversation will have a unique AES-256 key with that key being shared using your RSA public key to allow the peer to produce a key that only the sender knows prior to encryption and that only you can decrypt as it will be encrypted with your RSA public key.
 
-## Features
+> [!WARNING]
+> Although the messages themselves are encrypted, the actions being performed are not.
+> This means that although an attacker cannot read the message, they can see whether you are typing, editing, delivering, etc.
+> What the attacker *can* read:
+>
+> - The User ID that sent the message
+> - The time the message was sent
+> - The message ID
+> - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
+> - The message ID being replied to (should the message be a reply)
+> - The effect being applied to the message (confetti, spotlight, etc.)
+>
+> What the attack *cannot* read:
+>
+> - The message body
 
-<details>
-<summary>Features</summary>
+## Features
 
 - [x] Sending Messages
   - [x] Backend
@@ -68,22 +84,13 @@ Each conversation will have a unique AES-256 key with that key being shared usin
     - [ ] Create Reaction
     - [ ] Reaction Indication in UI
 
-</details>
-
 ## Mermaid Diagram
-
-<details>
-<summary>Mermaid Diagram</summary>
 
 Below shows the process of two clients intiating a conversation and sending a message.
 This process is simplified to remove the typing indicators being sent, but they follow the same procedure as as the message delivery.
 The <span style="color:red">red</span> blocks represent processes ran on the client who created the chat, the <span style="color:green">green</span> blocks represent processes ran on the client who is joining the chat after creation, and the <span style="color:blue">blue</span> blocks represent user actions.
 As you can see, from the graph, the processes the user performs themselves are quite minimal allowing for an overall easy to use messaging client.
 Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-
-> [!WARNING]
-> Although the messages themselves are encrypted, the actions being performed are not.
-> This means that although an attacker cannot read the message, they can see whether you are typing, editing, delivering, etc.
 
 ```mermaid
 graph TB;
@@ -118,5 +125,3 @@ graph TB;
   class F,G,H,I,J,P,S,T,U c2;
   class B,M user;
 ```
-
-</details>
