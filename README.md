@@ -97,8 +97,10 @@ graph TB;
 
   classDef c1 fill:#500
   classDef c2 fill:#050
-  class A,B,C,D,E,K,L,M,N,O,Q,R,V c1;
+  classDef user fill:#005
+  class A,C,D,E,K,L,M,N,O,Q,R,V c1;
   class F,G,H,I,J,P,S,T,U c2;
+  class B,M user;
 ```
 
 </details>
