@@ -119,7 +119,7 @@ graph TB;
   P --> S>Client #2 Decrypts the Message];
   S --> C>The Typing Indicator is removed from the Conversation Screen for Client #2];
   C --> T>The Message is Added to the Conversation Screen for Client #2];
-  P --> U>Client #2 Sends a Delivery Receipts to Client #1];
+  P --> U>Client #2 Sends a Delivery Receipt to Client #1];
   U --> R;
 
   classDef c1 fill:#500
