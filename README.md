@@ -81,9 +81,18 @@ graph TB;
   I -->J[Client #2 Sends Encrypted Key to Cient #1];
   J --> K[Client #1 Waits for AES Symmetric Key from Client #2];
   E --> K;
+```
   K --> L[Client #1 Decrypts Encrypted Key with RSA Private Key];
   L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1 and Sent to Client #2];
-  
-```
+  M --> N[The message is Encrypted with the AES Symmetric Key Established];
+  N --> O[The Encrypted Message is Sent to Client #2];
+  M --> Q[The Message is Added to the Conversation Screen for Client #1];
+  Q --> R[Client #1 Waits for Delivery Receipt from Client #1];
+  R --> V[A Delivery Indicator is Added to the Conversation Screen];
+  O --> P[Client #2 Receives the message];
+  P --> S[Client #2 Decrypts the Message];
+  S --> T[The Message is Added to the Conversation Screen for Client #2];
+  P --> U[Client #2 Sends a Delivery Receipts to Client #1];
+  U --> R;
 
 </details>
