@@ -28,54 +28,54 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 
 ## Features
 
-- [x] Sending Messages
-  - [x] Backend
-    - [x] Create Conversation Groups with Client ID
-    - [x] Create Conversations
-    - [x] Create Messages
-    - [x] Send Messages
-    - [x] Receive Messages
-  - [x] Frontend
-    - [x] Create Conversation UI
-    - [x] Create Message UI
-    - [x] View Message History
-- [x] Themes (Light/Dark)
-  - [x] Frontend
-    - [x] Light Theme
-    - [x] Dark Theme
-- [x] Delivery Receipts
-  - [x] Backend
-    - [x] Send Delivery Receipts
-    - [x] Receive Delivery Receipts
-  - [x] Frontend
-    - [x] Show Delivery Receipts in UI
-- [x] Typing Indicators
-  - [x] Backend
-    - [x] Handle Typing Logic
-    - [x] Send Typing Indication
-    - [x] Receive Typing Indication
-  - [x] Frontend
-    - [x] Show Typing Indicators in UI
-- [x] Editing Messages
-  - [x] Backend
-    - [x] Send Edited Messages
-    - [x] Receive Edited Messages
-  - [x] Frontend
-    - [x] Edit Message UI
-    - [x] Edited Message Indication in UI
-- [x] End-To-End Encrypted
-  - [x] Backend
-    - [x] Establish RSA Keys
-      - [x] Public
-      - [x] Private
-    - [x] Share AES Key Encrypted with RSA
-    - [x] Send Encrypted Messages
+- [x] ~~Sending Messages~~
+  - [x] ~~Backend~~
+    - [x] ~~Create Conversation Groups with Client ID~~
+    - [x] ~~Create Conversations~~
+    - [x] ~~Create Messages~~
+    - [x] ~~Send Messages~~
+    - [x] ~~Receive Messages~~
+  - [x] ~~Frontend~~
+    - [x] ~~Create Conversation UI~~
+    - [x] ~~Create Message UI~~
+    - [x] ~~View Message History~~
+- [x] ~~Themes (Light/Dark)~~
+  - [x] ~~Frontend~~
+    - [x] ~~Light Theme~~
+    - [x] ~~Dark Theme~~
+- [x] ~~Delivery Receipts~~
+  - [x] ~~Backend~~
+    - [x] ~~Send Delivery Receipts~~
+    - [x] ~~Receive Delivery Receipts~~
+  - [x] ~~Frontend~~
+    - [x] ~~Show Delivery Receipts in UI~~
+- [x] ~~Typing Indicators~~
+  - [x] ~~Backend~~
+    - [x] ~~Handle Typing Logic~~
+    - [x] ~~Send Typing Indication~~
+    - [x] ~~Receive Typing Indication~~
+  - [x] ~~Frontend~~
+    - [x] ~~Show Typing Indicators in UI~~
+- [x] ~~Editing Messages~~
+  - [x] ~~Backend~~
+    - [x] ~~Send Edited Messages~~
+    - [x] ~~Receive Edited Messages~~
+  - [x] ~~Frontend~~
+    - [x] ~~Edit Message UI~~
+    - [x] ~~Edited Message Indication in UI~~
+- [x] ~~End-To-End Encrypted~~
+  - [x] ~~Backend~~
+    - [x] ~~Establish RSA Keys~~
+      - [x] ~~Public~~
+      - [x] ~~Private~~
+    - [x] ~~Share AES Key Encrypted with RSA~~
+    - [x] ~~Send Encrypted Messages~~
 - [ ] Replies
-  - [x] Backend
-    - [x] Create Replies
-    - [x] Send Replies
+  - [x] ~~Backend~~
+    - [x] ~~Create Replies~~
+    - [x] ~~Send Replies~~
   - [ ] Frontend
-    - [x] Create Replies
+    - [x] ~~Create Replies~~
     - [ ] Reply Indication in UI
 - [ ] Effects
   - [ ] Backend
