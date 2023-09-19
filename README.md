@@ -11,6 +11,7 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 
 > [!WARNING]
 > Although the messages themselves are encrypted, many other metadata items are not.
+> Further explanation of how this is done can be seen [here](#mermaid-diagram).
 >
 > What the attacker *cannot* read:
 >
