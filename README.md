@@ -75,6 +75,11 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 <details>
 <summary>Mermaid Diagram</summary>
 
+Below shows the process of two clients intiating a conversation and sending a message.
+This process is simplified to remove the typing indicators being sent, but they follow the same procedure as as the message delivery.
+The <span style="color:red">red</span> blocks represent processes ran on the client who created the chat, the <span style="color:green">green</span> blocks represent processes ran on the client who is joining the chat after creation, and the <span style="color:blue">blue</span> blocks represent user actions.
+As you can see, from the graph, the processes the user performs themselves are quite minimal allowing for an overall easy to use messaging client.
+
 ```mermaid
 graph TB;
   A>Client #1 Creates an RSA Key] --> B>Client #1 Creates a new Conversation w/ Client #2];
