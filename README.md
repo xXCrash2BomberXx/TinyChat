@@ -91,6 +91,15 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [ ] Frontend
     - [ ] Create Reactions
     - [ ] Reaction Indication in UI
+- [ ] Unsend/Delete
+  - [ ] Backend
+    - [ ] Create Deletion Request
+    - [ ] Handle Deletion Request for Sender
+    - [ ] Handle Deletion Request for Receiver
+  - [ ] Frontend
+    - [ ] Create Deletion Request
+    - [ ] Delete Message from Sender
+    - [ ] Delete Message from Receiver
 
 ## Mermaid Diagram
 
