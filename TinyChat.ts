@@ -317,7 +317,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	collapsible.open = true;
 	document.body.insertAdjacentElement('beforeend', collapsible);
 	const summary: HTMLUnknownElement = document.createElement('summary');
-	summary.innerHTML = peer.id;
+	summary.innerHTML = to;
 	collapsible.insertAdjacentElement('afterbegin', summary);
 	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
