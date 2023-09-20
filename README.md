@@ -84,13 +84,6 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [ ] Frontend
     - [ ] Create Effects
     - [ ] Reaction Indication in UI
-- [ ] Reactions
-  - [ ] Backend
-    - [ ] Create Reactions
-    - [ ] Send Reactions
-  - [ ] Frontend
-    - [ ] Create Reactions
-    - [ ] Reaction Indication in UI
 - [ ] Unsend/Delete
   - [ ] Backend
     - [ ] Create Deletion Request
@@ -100,6 +93,13 @@ Each conversation will have a unique AES-256 key with that key being shared usin
     - [ ] Create Deletion Request
     - [ ] Delete Message from Sender
     - [ ] Delete Message from Receiver
+- [ ] Reactions
+  - [ ] Backend
+    - [ ] Create Reactions
+    - [ ] Send Reactions
+  - [ ] Frontend
+    - [ ] Create Reactions
+    - [ ] Reaction Indication in UI
 
 ## Mermaid Diagram
 
