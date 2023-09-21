@@ -257,7 +257,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			for (let i: number = 1; i < split.length; i++) {
 				let split2: Array<string> = messageData.from.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				send(trueFrom2, {
 					from: split2.join(','),
@@ -318,7 +318,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = messageData.from.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				send(trueFrom2, {
 					from: split2.join(','),
@@ -354,7 +354,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = messageData.from.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				send(trueFrom2, {
 					from: split2.join(','),
@@ -425,7 +425,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				if (editing)
 					send(trueFrom2, {
@@ -467,7 +467,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 			for (let i: number = 1; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				send(trueFrom2, {
 					from: split2.join(','),
@@ -481,7 +481,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 			for (let i: number = 1; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
-				split2 = split2.splice(i, 1);
+				split2.splice(i, 1);
 				split2.unshift(peer.id);
 				send(trueFrom2, {
 					from: split2.join(','),
@@ -515,6 +515,8 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 			case MessageDataEvent.AESKeyShare:
 			case MessageDataEvent.Typing:
 			case MessageDataEvent.StopTyping:
+			case MessageDataEvent.GroupRSAKeyRequest:
+			case MessageDataEvent.GroupRSAKeyShare:
 				return;
 			case MessageDataEvent.Edit:
 				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
@@ -529,6 +531,7 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 					))
 					}</i></small></small></small>`;
 				break;
+			case MessageDataEvent.Delivered:
 			default:
 				const paragraph: HTMLParagraphElement = document.createElement('p');
 				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
