@@ -495,7 +495,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = (to: string, messageData: MessageData, isFirst: boolean = true): void => {
 	const localEdit: string | undefined = editing;
 	const split: Array<string> = messageData.from.split(',');
-	const trueFrom: string = split[0];
+	split[0] = to;
 	const aesAccess: string = (split as any).toSorted().join(',');
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', async (): Promise<void> => {
