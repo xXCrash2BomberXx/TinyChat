@@ -367,7 +367,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement> = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
 	to = to.split(',').toSorted().map((x: string): string => x.trim()).join(',');
 	let split: Array<string> = to.split(',');
-	const aesAccess: string = split.join(',');
+	const aesAccess: string = split.toSorted().join(',');
 	const trueFrom: string = split[0];
 	split[0] = peer.id;
 
@@ -429,7 +429,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 						prev: replying,
 					});
 				else
-					send(split[i], {
+					send(trueFrom2, {
 						from: split2.join(','),
 						body: sendBar.value,
 						time: JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
@@ -441,7 +441,6 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 						prev: replying,
 					});
 			}
-			sendBar.value = '';
 
 			if (replying)
 				console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
@@ -450,7 +449,10 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					new Uint8Array(JSON.parse(replying)),
 				))
 					}'`);
+
+			sendBar.value = '';
 			replying = undefined;
+			editing = undefined;
 		} else if (sendBar.value.length === 0 && event.key != 'Backspace')
 			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
@@ -565,8 +567,6 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 					el.insertAdjacentElement('beforeend', paragraph);
 				break;
 		}
-		replying = undefined;
-		editing = undefined;
 	});
 }
 
