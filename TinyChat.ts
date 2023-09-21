@@ -315,19 +315,13 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 				}</i></small></small></small>`;
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
-			for (let i: number = 0; i < split.length; i++) {
-				let split2: Array<string> = messageData.from.split(',');
-				const trueFrom2: string = split2[i];
-				split2.splice(i, 1);
-				split2.unshift(peer.id);
-				send(trueFrom2, {
-					from: split2.join(','),
-					body: '',
-					time: '',
-					id: messageData.id,
-					event: MessageDataEvent.Delivered,
-				});
-			}
+			send(trueFrom, {
+				from: split.join(','),
+				body: '',
+				time: '',
+				id: messageData.id,
+				event: MessageDataEvent.Delivered,
+			});
 			break;
 		default:
 			paragraph.innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
@@ -351,19 +345,13 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 					}'`);
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
-			for (let i: number = 0; i < split.length; i++) {
-				let split2: Array<string> = messageData.from.split(',');
-				const trueFrom2: string = split2[i];
-				split2.splice(i, 1);
-				split2.unshift(peer.id);
-				send(trueFrom2, {
-					from: split2.join(','),
-					body: '',
-					time: '',
-					id: messageData.id,
-					event: MessageDataEvent.Delivered,
-				});
-			}
+			send(trueFrom, {
+				from: split.join(','),
+				body: '',
+				time: '',
+				id: messageData.id,
+				event: MessageDataEvent.Delivered,
+			});
 			paragraph.id = messageData.id;
 			el.insertAdjacentElement('beforeend', paragraph);
 			break;
@@ -379,7 +367,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement> = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
 	to = to.split(',').toSorted().map((x: string): string => x.trim()).join(',');
 	let split: Array<string> = to.split(',');
-	const aesAccess: string = split.toSorted().join(',');
+	const aesAccess: string = split.join(',');
 	const trueFrom: string = split[0];
 	split[0] = peer.id;
 
