@@ -5,6 +5,8 @@
  * - {@link StopTyping} - Indicates a user has stopped typing without sending.
  * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
  * - {@link Delivered} - Indicates a message has been recieved.
+ * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
+ * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
  * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
  * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
  * @enum {number}
@@ -196,14 +198,14 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 	dataConnection.on('data', async (data: string): Promise<void> => {
 		console.log(`RECEIVED: ${data}`);
 		const messageData: MessageData = JSON.parse(data);
-		let el: HTMLSpanElement | null = document.getElementById(messageData.from.split(',').toSorted().join(',')) as HTMLSpanElement | null;
-		if (!el)
-			el = await createChat(messageData.from, false);
-		const paragraph: HTMLParagraphElement = document.createElement('p');
 		let split: Array<string> = messageData.from.split(',');
 		const aesAccess: string = split.toSorted().join(',');
 		const trueFrom: string = split[0];
 		split[0] = peer.id;
+		let el: HTMLSpanElement | null = document.getElementById(aesAccess) as HTMLSpanElement | null;
+		if (!el)
+			el = await createChat(messageData.from, false);
+		const paragraph: HTMLParagraphElement = document.createElement('p');
 		switch (messageData.event) {
 			case MessageDataEvent.GroupRSAKeyRequest:
 				send(trueFrom, {
@@ -253,7 +255,7 @@ peer.on('connection', (dataConnection: DataConnection): void => {
 					id: '',
 					event: MessageDataEvent.AESKeyShare,
 				});
-				for (let i: number = 0; i < split.length; i++) {
+				for (let i: number = 1; i < split.length; i++) {
 					let split2: Array<string> = messageData.from.split(',');
 					const trueFrom2: string = split2[i];
 					split2 = split2.splice(i, 1);
