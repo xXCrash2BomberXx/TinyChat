@@ -198,7 +198,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 	console.log(`RECEIVED: ${data}`);
 	const messageData: MessageData = JSON.parse(data);
 	let split: Array<string> = messageData.from.split(',');
-	const aesAccess: string = split.toSorted().join(',');
+	const aesAccess: string = (split as any).toSorted().join(',');
 	const trueFrom: string = split[0];
 	split[0] = peer.id;
 	let el: HTMLSpanElement | null = document.getElementById(aesAccess) as HTMLSpanElement | null;
@@ -366,9 +366,9 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
  * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
  */
 const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement> = async (to: string, establishKey: boolean = true): Promise<HTMLSpanElement> => {
-	to = to.split(',').toSorted().map((x: string): string => x.trim()).join(',');
+	to = (to.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
 	let split: Array<string> = to.split(',');
-	const aesAccess: string = split.toSorted().join(',');
+	const aesAccess: string = (split as any).toSorted().join(',');
 	const trueFrom: string = split[0];
 	split[0] = peer.id;
 
@@ -429,7 +429,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					id: messageID,
 					event: editing ? MessageDataEvent.Edit : undefined,
 					prev: replying,
-				});
+				}, i === 0);
 			}
 
 			if (replying)
@@ -455,7 +455,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					time: '',
 					id: '',
 					event: MessageDataEvent.Typing,
-				});
+				}, i === 0);
 			}
 		else if (sendBar.value.length === 1 && event.key === 'Backspace' && !editing)
 			for (let i: number = 0; i < split.length; i++) {
@@ -469,7 +469,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					time: '',
 					id: '',
 					event: MessageDataEvent.StopTyping,
-				});
+				}, i === 0);
 			}
 	};
 	collapsible.insertAdjacentElement('beforeend', sendBar);
@@ -482,84 +482,83 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
  * @param {string} to - The recipient ID to send the message to.
  * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
  */
-const send: (to: string, messageData: MessageData) => void = (to: string, messageData: MessageData): void => {
+const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = (to: string, messageData: MessageData, isFirst: boolean = true): void => {
 	const split: Array<string> = messageData.from.split(',');
 	split[0] = to;
-	const aesAccess: string = split.toSorted().join(',');
+	const aesAccess: string = (split as any).toSorted().join(',');
 	const conn: DataConnection = peer.connect(to);
 	conn.on('open', async (): Promise<void> => {
 		const data: string = JSON.stringify(messageData);
 		conn.send(data);
 		console.log(`SENT: ${data}`);
-		switch (messageData.event) {
-			case MessageDataEvent.RSAKeyShare:
-			case MessageDataEvent.AESKeyShare:
-			case MessageDataEvent.Typing:
-			case MessageDataEvent.StopTyping:
-			case MessageDataEvent.GroupRSAKeyRequest:
-			case MessageDataEvent.GroupRSAKeyShare:
-				return;
-			case MessageDataEvent.Edit:
-				(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.body)),
-				))
-					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+		if (!isFirst)
+			switch (messageData.event) {
+				case MessageDataEvent.RSAKeyShare:
+				case MessageDataEvent.AESKeyShare:
+				case MessageDataEvent.Typing:
+				case MessageDataEvent.StopTyping:
+				case MessageDataEvent.GroupRSAKeyRequest:
+				case MessageDataEvent.GroupRSAKeyShare:
+					return;
+				case MessageDataEvent.Edit:
+					(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 						aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.time)),
+						new Uint8Array(JSON.parse(messageData.body)),
 					))
-					}</i></small></small></small>`;
-				break;
-			case MessageDataEvent.Delivered:
-			default:
-				const paragraph: HTMLParagraphElement = document.createElement('p');
-				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
-					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.body)),
-				)) : messageData.body
-					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
+						} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+							{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+							aesKeys[aesAccess][1],
+							new Uint8Array(JSON.parse(messageData.time)),
+						))
+						}</i></small></small></small>`;
+					break;
+				case MessageDataEvent.Delivered:
+				default:
+					const paragraph: HTMLParagraphElement = document.createElement('p');
+					paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 						aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.time)),
-					)) : messageData.time
-					}</i></small></small></small>`;
-				paragraph.className = 'sent';
-				paragraph.id = messageData.id;
-				paragraph.onclick = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					console.log(`REPLYING: ${paragraph.id}`);
-					replying = paragraph.id;
-					console.log(paragraph);
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-				}
-				paragraph.ondblclick = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					console.log(`EDITING: ${paragraph.id}`);
-					replying = undefined;
-					if (editing) {
-						const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
-						prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+						new Uint8Array(JSON.parse(messageData.body)),
+					)) : messageData.body
+						} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await window.crypto.subtle.decrypt(
+							{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+							aesKeys[aesAccess][1],
+							new Uint8Array(JSON.parse(messageData.time)),
+						)) : messageData.time
+						}</i></small></small></small>`;
+					paragraph.className = 'sent';
+					paragraph.id = messageData.id;
+					paragraph.onclick = (ev: MouseEvent): void => {
+						ev.preventDefault();
+						console.log(`REPLYING: ${paragraph.id}`);
+						replying = paragraph.id;
+						console.log(paragraph);
+						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
-					editing = paragraph.id;
-					if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>')) {
-						paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✎</i></small></small></small>');
-						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
-					} else
-						throw new Error('Cannot Edit Non-Delivered Message.');
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-				}
-				const el: HTMLSpanElement = document.getElementById(aesAccess) as HTMLSpanElement;
-				if (document.getElementById(paragraph.id))
+					paragraph.ondblclick = (ev: MouseEvent): void => {
+						ev.preventDefault();
+						console.log(`EDITING: ${paragraph.id}`);
+						replying = undefined;
+						if (editing) {
+							const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						editing = paragraph.id;
+						if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>')) {
+							paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✎</i></small></small></small>');
+							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
+						} else
+							throw new Error('Cannot Edit Non-Delivered Message.');
+						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+					}
+					const el: HTMLSpanElement = document.getElementById(aesAccess) as HTMLSpanElement;
+					if (el.lastChild && (el.lastChild as Element).className === 'typing')
+						el.insertBefore(paragraph, el.lastChild);
+					else
+						el.insertAdjacentElement('beforeend', paragraph);
 					break;
-				if (el.lastChild && (el.lastChild as Element).className === 'typing')
-					el.insertBefore(paragraph, el.lastChild);
-				else
-					el.insertAdjacentElement('beforeend', paragraph);
-				break;
-		}
+			}
 	});
 }
 
