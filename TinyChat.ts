@@ -205,6 +205,11 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 	if (!el)
 		el = await createChat(messageData.from, false);
 	const paragraph: HTMLParagraphElement = document.createElement('p');
+	paragraph.onclick = (ev: MouseEvent): void => {
+			ev.preventDefault();
+			replying = paragraph.id;
+			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+		}
 	switch (messageData.event) {
 		case MessageDataEvent.GroupRSAKeyRequest:
 			send(trueFrom, {
@@ -337,13 +342,6 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 				))
 				}</i></small></small></small>`;
 			paragraph.className = 'received';
-			if (messageData.prev)
-				console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.prev)),
-				))
-					}'`);
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
 			send(trueFrom, {
@@ -354,6 +352,18 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 				event: MessageDataEvent.Delivered,
 			});
 			paragraph.id = messageData.id;
+			if (messageData.prev) {
+				const reply: HTMLParagraphElement = document.createElement('p');
+				reply.innerHTML = `<small><small>${(document.getElementById(new TextDecoder().decode(await window.crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+					aesKeys[aesAccess][1],
+					new Uint8Array(JSON.parse(messageData.prev)),
+				))) as HTMLElement).outerHTML}</small></small>`;
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
+					el.insertBefore(reply, el.lastChild);
+				else
+					el.insertAdjacentElement('beforeend', reply);
+			}
 			el.insertAdjacentElement('beforeend', paragraph);
 			break;
 	}
@@ -431,14 +441,6 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					prev: replying,
 				}, i === 0);
 			}
-
-			if (replying)
-				console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(replying)),
-				))
-					}'`);
 
 			sendBar.value = '';
 			replying = undefined;
@@ -532,14 +534,11 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 					paragraph.id = messageData.id;
 					paragraph.onclick = (ev: MouseEvent): void => {
 						ev.preventDefault();
-						console.log(`REPLYING: ${paragraph.id}`);
 						replying = paragraph.id;
-						console.log(paragraph);
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
 					paragraph.ondblclick = (ev: MouseEvent): void => {
 						ev.preventDefault();
-						console.log(`EDITING: ${paragraph.id}`);
 						replying = undefined;
 						if (editing) {
 							const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
@@ -554,6 +553,18 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
 					const el: HTMLSpanElement = document.getElementById(aesAccess) as HTMLSpanElement;
+					if (messageData.prev) {
+						const reply: HTMLParagraphElement = document.createElement('p');
+						reply.innerHTML = `<small><small>${(document.getElementById(new TextDecoder().decode(await window.crypto.subtle.decrypt(
+							{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+							aesKeys[aesAccess][1],
+							new Uint8Array(JSON.parse(messageData.prev)),
+						))) as HTMLElement).outerHTML}</small></small>`;
+						if (el.lastChild && (el.lastChild as Element).className === 'typing')
+							el.insertBefore(reply, el.lastChild);
+						else
+							el.insertAdjacentElement('beforeend', reply);
+					}
 					if (el.lastChild && (el.lastChild as Element).className === 'typing')
 						el.insertBefore(paragraph, el.lastChild);
 					else
