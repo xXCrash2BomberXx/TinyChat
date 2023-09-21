@@ -209,7 +209,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			ev.preventDefault();
 			replying = paragraph.id;
 			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-		}
+		};
 	switch (messageData.event) {
 		case MessageDataEvent.GroupRSAKeyRequest:
 			send(trueFrom, {
