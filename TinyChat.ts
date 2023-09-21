@@ -209,7 +209,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			ev.preventDefault();
 			replying = paragraph.id;
 			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-		}
+		};
 	switch (messageData.event) {
 		case MessageDataEvent.GroupRSAKeyRequest:
 			send(trueFrom, {
@@ -352,6 +352,14 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 				event: MessageDataEvent.Delivered,
 			});
 			paragraph.id = messageData.id;
+			if (split.length > 1) {
+				const from: HTMLParagraphElement = document.createElement('p');
+				from.innerHTML = `<small><small>From: ${trueFrom}</small></small>`;
+				if (el.lastChild && (el.lastChild as Element).className === 'typing')
+					el.insertBefore(from, el.lastChild);
+				else
+					el.insertAdjacentElement('beforeend', from);
+			}
 			if (messageData.prev) {
 				const reply: HTMLParagraphElement = document.createElement('p');
 				reply.innerHTML = `<small><small>${(document.getElementById(new TextDecoder().decode(await window.crypto.subtle.decrypt(
