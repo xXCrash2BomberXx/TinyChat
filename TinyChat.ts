@@ -483,6 +483,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
  * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
  */
 const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = (to: string, messageData: MessageData, isFirst: boolean = true): void => {
+	const localEdit: string | undefined = editing;
 	const split: Array<string> = messageData.from.split(',');
 	split[0] = to;
 	const aesAccess: string = (split as any).toSorted().join(',');
@@ -501,7 +502,7 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 				case MessageDataEvent.GroupRSAKeyShare:
 					return;
 				case MessageDataEvent.Edit:
-					(document.getElementById(editing as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+					(document.getElementById(localEdit as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 						aesKeys[aesAccess][1],
 						new Uint8Array(JSON.parse(messageData.body)),
