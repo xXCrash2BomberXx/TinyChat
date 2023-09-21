@@ -194,183 +194,181 @@ const importRSAKey: (pem: string) => Promise<CryptoKey> = async (pem: string): P
  */
 const peer: Peer = new Peer();
 
-peer.on('connection', (dataConnection: DataConnection): void => {
-	dataConnection.on('data', async (data: string): Promise<void> => {
-		console.log(`RECEIVED: ${data}`);
-		const messageData: MessageData = JSON.parse(data);
-		let split: Array<string> = messageData.from.split(',');
-		const aesAccess: string = split.toSorted().join(',');
-		const trueFrom: string = split[0];
-		split[0] = peer.id;
-		let el: HTMLSpanElement | null = document.getElementById(aesAccess) as HTMLSpanElement | null;
-		if (!el)
-			el = await createChat(messageData.from, false);
-		const paragraph: HTMLParagraphElement = document.createElement('p');
-		switch (messageData.event) {
-			case MessageDataEvent.GroupRSAKeyRequest:
-				send(trueFrom, {
-					from: split.join(),
-					body: await exportRSAKey((await keyPair).publicKey),
-					time: '',
-					id: '',
-					event: MessageDataEvent.GroupRSAKeyShare,
-				});
-				break;
-			case MessageDataEvent.GroupRSAKeyShare:
-				send(trueFrom, {
-					from: split.join(','),
-					body: JSON.stringify([
-						Array.from(aesKeys[aesAccess][0]),
-						Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
-							{ name: 'RSA-OAEP' },
-							await importRSAKey(messageData.body),
-							await window.crypto.subtle.exportKey('raw', aesKeys[aesAccess][1]),
-						))),
-					]),
-					time: '',
-					id: '',
-					event: MessageDataEvent.AESKeyShare,
-				});
-				break;
-			case MessageDataEvent.RSAKeyShare:
-				aesKeys[aesAccess] = [window.crypto.getRandomValues(new Uint8Array(16)), await window.crypto.subtle.generateKey(
-					{
-						name: 'AES-CBC',
-						length: 256,
-					},
-					true,
-					['encrypt', 'decrypt'],
-				)];
-				send(trueFrom, {
-					from: split.join(','),
-					body: JSON.stringify([
-						Array.from(aesKeys[aesAccess][0]),
-						Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
-							{ name: 'RSA-OAEP' },
-							await importRSAKey(messageData.body),
-							await window.crypto.subtle.exportKey('raw', aesKeys[aesAccess][1]),
-						))),
-					]),
-					time: '',
-					id: '',
-					event: MessageDataEvent.AESKeyShare,
-				});
-				for (let i: number = 1; i < split.length; i++) {
-					let split2: Array<string> = messageData.from.split(',');
-					const trueFrom2: string = split2[i];
-					split2 = split2.splice(i, 1);
-					split2.unshift(peer.id);
-					send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: '',
-						event: MessageDataEvent.GroupRSAKeyRequest,
-					});
-				}
-				break;
-			case MessageDataEvent.AESKeyShare:
-				const parsed: Array<any> = JSON.parse(messageData.body);
-				aesKeys[aesAccess] = [new Uint8Array(parsed[0]), await window.crypto.subtle.importKey(
-					'raw',
-					await window.crypto.subtle.decrypt(
+peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
+	console.log(`RECEIVED: ${data}`);
+	const messageData: MessageData = JSON.parse(data);
+	let split: Array<string> = messageData.from.split(',');
+	const aesAccess: string = split.toSorted().join(',');
+	const trueFrom: string = split[0];
+	split[0] = peer.id;
+	let el: HTMLSpanElement | null = document.getElementById(aesAccess) as HTMLSpanElement | null;
+	if (!el)
+		el = await createChat(messageData.from, false);
+	const paragraph: HTMLParagraphElement = document.createElement('p');
+	switch (messageData.event) {
+		case MessageDataEvent.GroupRSAKeyRequest:
+			send(trueFrom, {
+				from: split.join(),
+				body: await exportRSAKey((await keyPair).publicKey),
+				time: '',
+				id: '',
+				event: MessageDataEvent.GroupRSAKeyShare,
+			});
+			break;
+		case MessageDataEvent.GroupRSAKeyShare:
+			send(trueFrom, {
+				from: split.join(','),
+				body: JSON.stringify([
+					Array.from(aesKeys[aesAccess][0]),
+					Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 						{ name: 'RSA-OAEP' },
-						(await keyPair).privateKey,
-						new Uint8Array(parsed[1]),
-					),
-					'AES-CBC',
-					true,
-					['encrypt', 'decrypt'],
-				)];
-				break;
-			case MessageDataEvent.Typing:
-				paragraph.innerHTML = 'Typing...';
-				paragraph.className = 'typing';
-				if (el.lastChild && (el.lastChild as Element).className === 'typing')
-					return;
-				paragraph.id = messageData.id;
-				el.insertAdjacentElement('beforeend', paragraph);
-				break;
-			case MessageDataEvent.StopTyping:
-				if (el.lastChild && (el.lastChild as Element).className === 'typing')
-					el.removeChild(el.lastChild);
-				break;
-			case MessageDataEvent.Delivered:
-				let i: number;
-				for (i = el.children.length - 1; i >= 0; i--)
-					if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
-						break;
-				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
-				break;
-			case MessageDataEvent.Edit:
-				(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+						await importRSAKey(messageData.body),
+						await window.crypto.subtle.exportKey('raw', aesKeys[aesAccess][1]),
+					))),
+				]),
+				time: '',
+				id: '',
+				event: MessageDataEvent.AESKeyShare,
+			});
+			break;
+		case MessageDataEvent.RSAKeyShare:
+			aesKeys[aesAccess] = [window.crypto.getRandomValues(new Uint8Array(16)), await window.crypto.subtle.generateKey(
+				{
+					name: 'AES-CBC',
+					length: 256,
+				},
+				true,
+				['encrypt', 'decrypt'],
+			)];
+			send(trueFrom, {
+				from: split.join(','),
+				body: JSON.stringify([
+					Array.from(aesKeys[aesAccess][0]),
+					Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
+						{ name: 'RSA-OAEP' },
+						await importRSAKey(messageData.body),
+						await window.crypto.subtle.exportKey('raw', aesKeys[aesAccess][1]),
+					))),
+				]),
+				time: '',
+				id: '',
+				event: MessageDataEvent.AESKeyShare,
+			});
+			for (let i: number = 1; i < split.length; i++) {
+				let split2: Array<string> = messageData.from.split(',');
+				const trueFrom2: string = split2[i];
+				split2 = split2.splice(i, 1);
+				split2.unshift(peer.id);
+				send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: '',
+					event: MessageDataEvent.GroupRSAKeyRequest,
+				});
+			}
+			break;
+		case MessageDataEvent.AESKeyShare:
+			const parsed: Array<any> = JSON.parse(messageData.body);
+			aesKeys[aesAccess] = [new Uint8Array(parsed[0]), await window.crypto.subtle.importKey(
+				'raw',
+				await window.crypto.subtle.decrypt(
+					{ name: 'RSA-OAEP' },
+					(await keyPair).privateKey,
+					new Uint8Array(parsed[1]),
+				),
+				'AES-CBC',
+				true,
+				['encrypt', 'decrypt'],
+			)];
+			break;
+		case MessageDataEvent.Typing:
+			paragraph.innerHTML = 'Typing...';
+			paragraph.className = 'typing';
+			if (el.lastChild && (el.lastChild as Element).className === 'typing')
+				return;
+			paragraph.id = messageData.id;
+			el.insertAdjacentElement('beforeend', paragraph);
+			break;
+		case MessageDataEvent.StopTyping:
+			if (el.lastChild && (el.lastChild as Element).className === 'typing')
+				el.removeChild(el.lastChild);
+			break;
+		case MessageDataEvent.Delivered:
+			let i: number;
+			for (i = el.children.length - 1; i >= 0; i--)
+				if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+					break;
+			el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
+			break;
+		case MessageDataEvent.Edit:
+			(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+				{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+				aesKeys[aesAccess][1],
+				new Uint8Array(JSON.parse(messageData.body)),
+			))
+				} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.body)),
+					new Uint8Array(JSON.parse(messageData.time)),
 				))
-					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-						aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.time)),
-					))
-					}</i></small></small></small>`;
-				if (el.lastChild && (el.lastChild as Element).className === 'typing')
-					el.removeChild(el.lastChild);
-				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = messageData.from.split(',');
-					const trueFrom2: string = split2[i];
-					split2 = split2.splice(i, 1);
-					split2.unshift(peer.id);
-					send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: messageData.id,
-						event: MessageDataEvent.Delivered,
-					});
-				}
-				break;
-			default:
-				paragraph.innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+				}</i></small></small></small>`;
+			if (el.lastChild && (el.lastChild as Element).className === 'typing')
+				el.removeChild(el.lastChild);
+			for (let i: number = 0; i < split.length; i++) {
+				let split2: Array<string> = messageData.from.split(',');
+				const trueFrom2: string = split2[i];
+				split2 = split2.splice(i, 1);
+				split2.unshift(peer.id);
+				send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: messageData.id,
+					event: MessageDataEvent.Delivered,
+				});
+			}
+			break;
+		default:
+			paragraph.innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+				{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+				aesKeys[aesAccess][1],
+				new Uint8Array(JSON.parse(messageData.body)),
+			))
+				} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 					aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.body)),
+					new Uint8Array(JSON.parse(messageData.time)),
 				))
-					} <small><small><small><i>${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-						aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.time)),
-					))
-					}</i></small></small></small>`;
-				paragraph.className = 'received';
-				if (messageData.prev)
-					console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-						aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.prev)),
-					))
-						}'`);
-				if (el.lastChild && (el.lastChild as Element).className === 'typing')
-					el.removeChild(el.lastChild);
-				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = messageData.from.split(',');
-					const trueFrom2: string = split2[i];
-					split2 = split2.splice(i, 1);
-					split2.unshift(peer.id);
-					send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: messageData.id,
-						event: MessageDataEvent.Delivered,
-					});
-				}
-				paragraph.id = messageData.id;
-				el.insertAdjacentElement('beforeend', paragraph);
-				break;
-		}
-	});
-});
+				}</i></small></small></small>`;
+			paragraph.className = 'received';
+			if (messageData.prev)
+				console.log(`Received a reply to '${new TextDecoder().decode(await window.crypto.subtle.decrypt(
+					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+					aesKeys[aesAccess][1],
+					new Uint8Array(JSON.parse(messageData.prev)),
+				))
+					}'`);
+			if (el.lastChild && (el.lastChild as Element).className === 'typing')
+				el.removeChild(el.lastChild);
+			for (let i: number = 0; i < split.length; i++) {
+				let split2: Array<string> = messageData.from.split(',');
+				const trueFrom2: string = split2[i];
+				split2 = split2.splice(i, 1);
+				split2.unshift(peer.id);
+				send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: messageData.id,
+					event: MessageDataEvent.Delivered,
+				});
+			}
+			paragraph.id = messageData.id;
+			el.insertAdjacentElement('beforeend', paragraph);
+			break;
+	}
+}));
 
 /**
  * Creates a new conversation with the provded `string` ID of a client.
