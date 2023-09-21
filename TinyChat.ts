@@ -299,7 +299,8 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			for (i = el.children.length - 1; i >= 0; i--)
 				if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 					break;
-			el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
+			if (el.children[i])
+				el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 			break;
 		case MessageDataEvent.Edit:
 			(document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
@@ -410,36 +411,25 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					new Uint8Array(new TextEncoder().encode(replying)),
 				))));
 
+			const messageID: string = editing ? editing : window.crypto.randomUUID();
+			const messagetime: string = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
+				{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+				aesKeys[aesAccess][1],
+				new Uint8Array(new TextEncoder().encode((editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
+			))));
 			for (let i: number = 0; i < split.length; i++) {
-				let split2: Array<string> = [...split];
+				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
 				split2.splice(i, 1);
 				split2.unshift(peer.id);
-				if (editing)
-					send(trueFrom2, {
-						from: split2.join(','),
-						body: sendBar.value,
-						time: JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
-							{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-							aesKeys[aesAccess][1],
-							new Uint8Array(new TextEncoder().encode('edited at ' + new Date().toLocaleTimeString())),
-						)))),
-						id: editing,
-						event: MessageDataEvent.Edit,
-						prev: replying,
-					});
-				else
-					send(trueFrom2, {
-						from: split2.join(','),
-						body: sendBar.value,
-						time: JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
-							{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-							aesKeys[aesAccess][1],
-							new Uint8Array(new TextEncoder().encode(new Date().toLocaleTimeString())),
-						)))),
-						id: window.crypto.randomUUID(),
-						prev: replying,
-					});
+				send(trueFrom2, {
+					from: split2.join(','),
+					body: sendBar.value,
+					time: messagetime,
+					id: messageID,
+					event: editing ? MessageDataEvent.Edit : undefined,
+					prev: replying,
+				});
 			}
 
 			if (replying)
@@ -493,9 +483,10 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
  * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
  */
 const send: (to: string, messageData: MessageData) => void = (to: string, messageData: MessageData): void => {
-	const split: Array<string> = to.split(',');
+	const split: Array<string> = messageData.from.split(',');
+	split[0] = to;
 	const aesAccess: string = split.toSorted().join(',');
-	const conn: DataConnection = peer.connect(split[0]);
+	const conn: DataConnection = peer.connect(to);
 	conn.on('open', async (): Promise<void> => {
 		const data: string = JSON.stringify(messageData);
 		conn.send(data);
@@ -561,6 +552,8 @@ const send: (to: string, messageData: MessageData) => void = (to: string, messag
 					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 				}
 				const el: HTMLSpanElement = document.getElementById(aesAccess) as HTMLSpanElement;
+				if (document.getElementById(paragraph.id))
+					break;
 				if (el.lastChild && (el.lastChild as Element).className === 'typing')
 					el.insertBefore(paragraph, el.lastChild);
 				else
