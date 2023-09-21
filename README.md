@@ -70,13 +70,13 @@ Each conversation will have a unique AES-256 key with that key being shared usin
       - [x] ~~Private~~
     - [x] ~~Share AES Key Encrypted with RSA~~
     - [x] ~~Send Encrypted Messages~~
-- [ ] Replies
+- [x] ~~Replies~~
   - [x] ~~Backend~~
     - [x] ~~Create Replies~~
     - [x] ~~Send Replies~~
-  - [ ] Frontend
+  - [x] ~~Frontend~~
     - [x] ~~Create Replies~~
-    - [ ] Reply Indication in UI
+    - [x] ~~Reply Indication in UI~~
 - [ ] Effects
   - [ ] Backend
     - [ ] Create Effects
