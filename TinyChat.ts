@@ -464,7 +464,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					}'`);
 			replying = undefined;
 		} else if (sendBar.value.length === 0 && event.key != 'Backspace')
-			for (let i: number = 1; i < split.length; i++) {
+			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
 				split2.splice(i, 1);
@@ -478,7 +478,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				});
 			}
 		else if (sendBar.value.length === 1 && event.key === 'Backspace' && !editing)
-			for (let i: number = 1; i < split.length; i++) {
+			for (let i: number = 0; i < split.length; i++) {
 				let split2: Array<string> = to.split(',');
 				const trueFrom2: string = split2[i];
 				split2.splice(i, 1);
