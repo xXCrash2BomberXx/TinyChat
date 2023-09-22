@@ -207,7 +207,22 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 	const paragraph: HTMLParagraphElement = document.createElement('p');
 	paragraph.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
-			replying = paragraph.id;
+			if (editing) {
+				const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+				editing = undefined;
+			} else if (replying) {
+				const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+			}
+			if (replying != paragraph.id) {
+				replying = paragraph.id;
+				if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+					paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
+				else
+					throw new Error('Cannot Reply to Non-Delivered Message.');
+			} else
+				replying = undefined;
 			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 		};
 	switch (messageData.event) {
@@ -318,7 +333,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 					aesKeys[aesAccess][1],
 					new Uint8Array(JSON.parse(messageData.time)),
 				))
-				}</i></small></small></small>`;
+				}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
 			send(trueFrom, {
@@ -340,7 +355,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 					aesKeys[aesAccess][1],
 					new Uint8Array(JSON.parse(messageData.time)),
 				))
-				}</i></small></small></small>`;
+				}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 			paragraph.className = 'received';
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
@@ -421,12 +436,15 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 				aesKeys[aesAccess][1],
 				new Uint8Array(new TextEncoder().encode(sendBar.value)),
 			))));
-			if (replying)
+			if (replying) {
+				const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
 				replying = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
 					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
 					aesKeys[aesAccess][1],
 					new Uint8Array(new TextEncoder().encode(replying)),
 				))));
+			}
 
 			const messageID: string = editing ? editing : window.crypto.randomUUID();
 			const messagetime: string = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
@@ -545,14 +563,27 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 							const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
 							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
 							editing = undefined;
+						} else if (replying) {
+							const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
 						}
-						replying = paragraph.id;
+						if (replying != paragraph.id) {
+							replying = paragraph.id;
+							if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+								paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
+							else
+								throw new Error('Cannot Reply to Non-Delivered Message.');
+						} else
+							replying = undefined;
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
 					paragraph.ondblclick = (ev: MouseEvent): void => {
 						ev.preventDefault();
-						replying = undefined;
-						if (editing) {
+						if (replying) {
+							const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+							replying = undefined;
+						} else if (editing) {
 							const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
 							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
 						}
