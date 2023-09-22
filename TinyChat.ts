@@ -547,7 +547,16 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
 							editing = undefined;
 						}
+						if (replying) {
+							const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+						}
 						replying = paragraph.id;
+						if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>')) {
+							paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
+							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
+						} else
+							throw new Error('Cannot Edit Non-Delivered Message.');
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
 					paragraph.ondblclick = (ev: MouseEvent): void => {
