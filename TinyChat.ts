@@ -4,6 +4,7 @@
  * - {@link Typing} - Indicates a user has started typing.
  * - {@link StopTyping} - Indicates a user has stopped typing without sending.
  * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
+ * - {@link Unsend} - Indicates a user has unsent the message with ID {@link MessageData.id}.
  * - {@link Delivered} - Indicates a message has been recieved.
  * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
  * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
@@ -27,6 +28,11 @@ enum MessageDataEvent {
 	 * @name MessageDataEvent.Edit
 	 */
 	Edit,
+	/**
+	 * Indicates a user has unsent the message with ID {@link MessageData.id}.
+	 * @name MessageDataEvent.Unsend
+	 */
+	Unsend,
 	/**
 	 * Indicates a message has been recieved.
 	 * @name MessageDataEvent.Delivered
@@ -344,6 +350,12 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 				event: MessageDataEvent.Delivered,
 			});
 			break;
+		case MessageDataEvent.Unsend:
+			const temp: HTMLParagraphElement = document.getElementById(messageData.id) as HTMLParagraphElement;
+			while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
+				temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
+			temp.parentElement?.removeChild(temp as ChildNode);
+			break;
 		default:
 			paragraph.innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 				{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
@@ -430,12 +442,13 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	sendBar.type = 'text';
 	sendBar.className = 'sendBar';
 	sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
-		if (event.key === 'Enter') {
-			sendBar.value = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
-				{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
-				aesKeys[aesAccess][1],
-				new Uint8Array(new TextEncoder().encode(sendBar.value)),
-			))));
+		if (event.key === 'Enter' && (sendBar.value || editing)) {
+			if (sendBar.value)
+				sendBar.value = JSON.stringify(Array.from(new Uint8Array(await window.crypto.subtle.encrypt(
+					{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
+					aesKeys[aesAccess][1],
+					new Uint8Array(new TextEncoder().encode(sendBar.value)),
+				))));
 			if (replying) {
 				const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
 				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
@@ -462,7 +475,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 					body: sendBar.value,
 					time: messagetime,
 					id: messageID,
-					event: editing ? MessageDataEvent.Edit : undefined,
+					event: editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined,
 					prev: replying,
 				}, i === 0);
 			}
@@ -527,7 +540,7 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 				case MessageDataEvent.StopTyping:
 				case MessageDataEvent.GroupRSAKeyRequest:
 				case MessageDataEvent.GroupRSAKeyShare:
-					return;
+					break;
 				case MessageDataEvent.Edit:
 					(document.getElementById(localEdit as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await window.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: aesKeys[aesAccess][0] },
@@ -540,6 +553,12 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 							new Uint8Array(JSON.parse(messageData.time)),
 						))
 						}</i></small></small></small>`;
+					break;
+				case MessageDataEvent.Unsend:
+					const temp: HTMLParagraphElement = document.getElementById(messageData.id) as HTMLParagraphElement;
+					while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
+						temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
+					temp.parentElement?.removeChild(temp as ChildNode);
 					break;
 				case MessageDataEvent.Delivered:
 				default:
