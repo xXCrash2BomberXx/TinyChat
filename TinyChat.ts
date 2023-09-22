@@ -207,7 +207,19 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 	const paragraph: HTMLParagraphElement = document.createElement('p');
 	paragraph.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
+			if (editing) {
+				const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+				editing = undefined;
+			} else if (replying) {
+				const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+			}
 			replying = paragraph.id;
+			if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+				paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
+			else
+				throw new Error('Cannot Reply to Non-Delivered Message.');
 			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 		};
 	switch (messageData.event) {
@@ -318,7 +330,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 					aesKeys[aesAccess][1],
 					new Uint8Array(JSON.parse(messageData.time)),
 				))
-				}</i></small></small></small>`;
+				}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
 			send(trueFrom, {
@@ -340,7 +352,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 					aesKeys[aesAccess][1],
 					new Uint8Array(JSON.parse(messageData.time)),
 				))
-				}</i></small></small></small>`;
+				}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 			paragraph.className = 'received';
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				el.removeChild(el.lastChild);
