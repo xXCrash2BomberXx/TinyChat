@@ -402,7 +402,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	el.innerHTML = `<u>${aesAccess}</u>`;
 	collapsible.insertAdjacentElement('beforeend', el);
 
-	if (establishKey) {
+	if (establishKey)
 		send(trueFrom, {
 			from: split.join(','),
 			body: await exportRSAKey((await keyPair).publicKey),
@@ -410,7 +410,6 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 			id: '',
 			event: MessageDataEvent.RSAKeyShare,
 		});
-	}
 
 	const sendBar: HTMLInputElement = document.createElement('input');
 	sendBar.type = 'text';
@@ -502,7 +501,7 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 		const data: string = JSON.stringify(messageData);
 		conn.send(data);
 		console.log(`SENT: ${data}`);
-		if (!isFirst)
+		if (isFirst)
 			switch (messageData.event) {
 				case MessageDataEvent.RSAKeyShare:
 				case MessageDataEvent.AESKeyShare:
