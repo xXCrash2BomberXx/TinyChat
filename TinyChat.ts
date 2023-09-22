@@ -542,6 +542,11 @@ const send: (to: string, messageData: MessageData, isFirst?: boolean) => void = 
 					paragraph.id = messageData.id;
 					paragraph.onclick = (ev: MouseEvent): void => {
 						ev.preventDefault();
+						if (editing) {
+							const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+							prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+							editing = undefined;
+						}
 						replying = paragraph.id;
 						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 					}
