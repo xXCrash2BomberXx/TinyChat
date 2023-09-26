@@ -197,3 +197,42 @@ graph TB;
   class F,G,H,I,J,P,S,T,U,X,Y,C c2;
   class B,M,Z user;
 ```
+
+```mermaid
+graph TB;
+    subgraph "Client#2"
+    I;
+    end
+    subgraph "Client#+"
+    M;
+    N;
+    end
+  subgraph "Client#1"
+  A>Creates an RSA Key] --> B>Creates a new Conversation];
+  B --> C>Add Conversation to UI];
+  B --> D>Sends RSA Public Key];
+  D --> J>Waits for AES Symmetric Key];
+  I --> J;
+  J --> K>Decrypts Encrypted Key with RSA Private Key];
+  end
+  subgraph "Client#2"
+  E>Creates an RSA Key] --> F>Waits for RSA Public Key];
+  D --> F;
+  F --> G>Creates an AES Symmetric Key];
+  G -->H>Encrypts the AES Key with Client #1s RSA Public Key];
+  H -->I>Sends Encrypted Key to Cient #1];
+  F --> O>Sends RSA Public Key Request to all other members];
+  O --> M;
+  N --> P>Receives RSA Public Keys];
+  G --> Q;
+  P --> Q>Encrypts the AES Key with Client #+s RSA Public Key];
+  Q --> R>Sends Encrypted Key to Cient #+];
+  end
+  subgraph "Client#+"
+  L>Creates an RSA Key] --> M>Waits for RSA Public Key Request];
+  M --> N>Sends RSA Public Key];
+  N --> S> Waits for AES Symmetric Key];
+  R --> S;
+  S --> T>Decrypts Encrypted Key with RSA Private Key];
+  end
+```
