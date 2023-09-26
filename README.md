@@ -118,7 +118,7 @@ graph TB;
     N;
     end
   subgraph "Client#1"
-  A>Creates an RSA Key] --> B>Creates a new Conversation];
+  A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Creates a new Conversation];
   B --> C>The Conversation is Added to the UI];
   B --> D>Sends RSA Public Key];
   D --> J>Waits for AES Symmetric Key];
@@ -126,7 +126,7 @@ graph TB;
   J --> K>Decrypts Encrypted Key with RSA Private Key];
   end
   subgraph "Client#2"
-  E>Creates an RSA Key] --> F>Waits for RSA Public Key];
+  E>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| F>Waits for RSA Public Key];
   D --> F;
   F --> G>Creates an AES Symmetric Key];
   G -->H>Encrypts the AES Key with Client #1s RSA Public Key];
@@ -140,7 +140,7 @@ graph TB;
   F --> U>The Conversation is Added to the UI];
   end
   subgraph "Client#+"
-  L>Creates an RSA Key] --> M>Waits for RSA Public Key Request];
+  L>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| M>Waits for RSA Public Key Request];
   M --> N>Sends RSA Public Key];
   N --> S> Waits for AES Symmetric Key];
   R --> S;
