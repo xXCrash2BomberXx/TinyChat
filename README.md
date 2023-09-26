@@ -77,6 +77,15 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [x] ~~Frontend~~
     - [x] ~~Create Replies~~
     - [x] ~~Reply Indication in UI~~
+- [x] ~~Unsend/Delete~~
+  - [x] ~~Backend~~
+    - [x] ~~Create Deletion Request~~
+    - [x] ~~Handle Deletion Request for Sender~~
+    - [x] ~~Handle Deletion Request for Receiver~~
+  - [x] ~~Frontend~~
+    - [x] ~~Create Deletion Request~~
+    - [x] ~~Delete Message from Sender~~
+    - [x] ~~Delete Message from Receiver~~
 - [ ] Effects
   - [ ] Backend
     - [ ] Create Effects
@@ -84,15 +93,6 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [ ] Frontend
     - [ ] Create Effects
     - [ ] Reaction Indication in UI
-- [ ] Unsend/Delete
-  - [ ] Backend
-    - [ ] Create Deletion Request
-    - [ ] Handle Deletion Request for Sender
-    - [ ] Handle Deletion Request for Receiver
-  - [ ] Frontend
-    - [ ] Create Deletion Request
-    - [ ] Delete Message from Sender
-    - [ ] Delete Message from Receiver
 - [ ] Reactions
   - [ ] Backend
     - [ ] Create Reactions
