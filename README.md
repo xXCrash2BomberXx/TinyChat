@@ -110,54 +110,6 @@ Additionally, because everything is end-to-end encrypted, the server holding the
 
 ```mermaid
 graph TB;
-  subgraph Client_#1_Key_Share
-  A>Client #1 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| B>Client #1 Creates a new Conversation with Client #2];
-  B --> D>The Conversation is Added to the Conversation Screen for Client #1];
-  B --> E>Client #1 Sends their RSA Public Key to Client #2];
-  end
-  subgraph Client_#2_Key_Share
-  F>Client #2 Creates an RSA Key] --> |This is done each time the page is opened or refreshed| G>Client #2 Waits for the RSA Public Key from Client #1];
-  E --> G;
-  G --> H>Client #2 Creates an AES Symmetric Key];
-  H -->I>Client #2 Encrypts the AES Key with Client #1s RSA Public Key];
-  I -->J>Client #2 Sends the Encrypted Key to Cient #1];
-  end
-  subgraph Client_#1_Key_Share
-  E --> K>Client #1 Waits for AES Symmetric Key from Client #2];
-  J --> K;
-  K --> L>Client #1 Decrypts the Encrypted Key with RSA Private Key];
-  end
-  L --> |The following could be either client, but Client #1 will be the sender for this example| M>A Message is Typed by Client #1];
-  subgraph Client_#1_Messaging
-  M --> W>A Typing Indicator is sent to Client #2];
-  end
-  subgraph Client_#2_Messaging
-  W --> X>Client #2 Receives the Typing Indicator];
-  X --> Y>The Typing Indicator is Added to the Conversation Screen for Client #2];
-  end
-  subgraph Client_#1_Messaging
-  M --> Z>Client #1 Sends the Typed Message];
-  Z --> N>The message is Encrypted with the AES Symmetric Key Established];
-  N --> O>The Encrypted Message is Sent to Client #2];
-  Z --> Q>The Message is Added to the Conversation Screen for Client #1];
-  Q --> R>Client #1 Waits for Delivery Receipt from Client #1];
-  R --> V>A Delivery Indicator is Added to the Conversation Screen];
-  end
-  subgraph Client_#2_Messaging
-  O --> P>Client #2 Receives the message];
-  P --> S>Client #2 Decrypts the Message];
-  S --> C>The Typing Indicator is removed from the Conversation Screen for Client #2];
-  C --> T>The Message is Added to the Conversation Screen for Client #2];
-  P --> U>Client #2 Sends a Delivery Receipts to Client #1];
-  U --> R;
-  end
-
-  classDef user fill:#fff,color:#000
-  class B,M,Z user;
-```
-
-```mermaid
-graph TB;
     subgraph "Client#2"
     I;
     end
@@ -167,7 +119,7 @@ graph TB;
     end
   subgraph "Client#1"
   A>Creates an RSA Key] --> B>Creates a new Conversation];
-  B --> C>Add Conversation to UI];
+  B --> C>The Conversation is Added to the UI];
   B --> D>Sends RSA Public Key];
   D --> J>Waits for AES Symmetric Key];
   I --> J;
@@ -185,6 +137,7 @@ graph TB;
   G --> Q;
   P --> Q>Encrypts the AES Key with Client #+s RSA Public Key];
   Q --> R>Sends Encrypted Key to Cient #+];
+  F --> U>The Conversation is Added to the UI];
   end
   subgraph "Client#+"
   L>Creates an RSA Key] --> M>Waits for RSA Public Key Request];
@@ -192,7 +145,11 @@ graph TB;
   N --> S> Waits for AES Symmetric Key];
   R --> S;
   S --> T>Decrypts Encrypted Key with RSA Private Key];
+  M --> V>The Conversation is Added to the UI];
   end
+  
+  classDef user fill:#fff,color:#000
+  class B user;
 ```
 
 ```mermaid
@@ -219,4 +176,7 @@ graph TB;
     H --> K>A Delivery Receipt is Sent to the Sender];
     K --> M;
   end
+
+  classDef user fill:#fff,color:#000
+  class A,E user;
 ```
