@@ -103,10 +103,12 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 
 ## Mermaid Diagram
 
-Below shows the process of two clients intiating a conversation and sending a message.
-The red blocks represent processes ran on the client who created the chat, the green blocks represent processes ran on the client who is joining the chat after creation, and the blue blocks represent user actions.
-As you can see, from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
+Below shows the process of 2+ clients intiating a conversation.
+`Client#1` is the client initiating the conversation, `Client#2` is the first client listed in the sender box, and `Client#+` are any clients after.
+As you can see from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
 Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
+The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
+Since one of the recipients is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
 
 ```mermaid
 graph TB;
@@ -151,6 +153,11 @@ graph TB;
   classDef user fill:#fff,color:#000
   class B user;
 ```
+
+Further, below shows the process of a message being sent in a group conversation.
+As much of the security has already been established, there is no need to put as much processing on any client in particular and the distribution of the workload can be kept to where it is exclusively necessary.
+Because of this, all `Receivers` have the same processes and the `Sender` is the one responsible for ensuring security of their own message (although this is done on the backend meaning the actual user has to do nothing with it).
+A `delivery receipt` is only processed once to ensure that the message is being sent to any client and are no longer processed after the first is received.
 
 ```mermaid
 graph TB;
