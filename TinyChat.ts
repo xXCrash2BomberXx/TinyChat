@@ -426,7 +426,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
 	el.id = aesAccess;
-	el.innerHTML = `<u>${aesAccess}</u>`;
+	//el.innerHTML = `<u>${aesAccess}</u>`;
 	collapsible.insertAdjacentElement('beforeend', el);
 
 	if (establishKey)
