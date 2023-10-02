@@ -187,3 +187,20 @@ graph TB;
   classDef user fill:#fff,color:#000
   class A,E user;
 ```
+
+## State Diagram
+
+'''mermaid
+stateDiagram
+    Startup --> DisplayingUserID: Open TinyChat
+    DisplayingUserID --> AwaitingConnection: Share User ID
+    AwaitingConnection --> Connected: Connect with Peer
+    Connected --> EncryptedCommunication: Establish Encryption
+    EncryptedCommunication --> Closed: Close Chat
+    state EncryptedCommunication {
+        MessageExchange
+        EncryptionDecryption
+        MessageExchange --> EncryptionDecryption: Process Message
+        EncryptionDecryption --> MessageExchange: Continue Exchange
+    }
+'''
