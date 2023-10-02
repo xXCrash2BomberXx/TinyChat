@@ -197,7 +197,7 @@ Upon establishing the encrypted connection, the system enters the `Encrypted Com
 
 ### MessageExchange
 
-Represents the action of both sending and receiving encrypted messages between `Client#1`, `Client#2`, and `Client#+`.
+Within the confines of `Encrypted Communication`, the `MessageExchange` state exemplifies the action of both sending and receiving encrypted messages involving `Client#1`, `Client#2`, and `Client#+`. Every participant, be it the initiator `Client#1` or any other client, can share messages. These messages, whether they're replies or new threads, are ensured to reach all participants, thereby promoting a coherent group chat environment. Moreover, upon message receipt, clients can dispatch a "read receipt" to the sender, signifying successful message reception.
 
 ### EncryptionDecryption
 
