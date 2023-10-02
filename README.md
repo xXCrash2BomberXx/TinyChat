@@ -1,7 +1,7 @@
 # TinyChat
 
 > [!NOTE]
-> Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.
+> Although this project is usable in the ways described below, this is _not_ complete and progress can be seen [here](#features) as well as planned improvements for the future.
 
 TinyChat works through the usage of [PeerJS](https://peerjs.com/).
 When you open a TinyChat web page, a User ID will be shown in the top right bar.
@@ -13,14 +13,14 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > Although the messages themselves are encrypted, many other metadata items are not.
 > Further explanation of how this is done can be seen [here](#mermaid-diagram).
 >
-> What the attacker *cannot* read:
+> What the attacker _cannot_ read:
 >
 > - The message body
 > - The time the message was sent
 > - The message ID being replied to (should the message be a reply)
 > - The effect being applied to the message (confetti, spotlight, etc.)
 >
-> What the attacker *can* read:
+> What the attacker _can_ read:
 >
 > - The User ID that sent the message
 > - The message ID (This is a randomly generated GUID)
@@ -149,7 +149,7 @@ graph TB;
   S --> T>Decrypts Encrypted Key with RSA Private Key];
   M --> V>The Conversation is Added to the UI];
   end
-  
+
   classDef user fill:#fff,color:#000
   class B user;
 ```
@@ -190,7 +190,7 @@ graph TB;
 
 ## State Diagram
 
-'''mermaid
+```mermaid
 stateDiagram
     Startup --> DisplayingUserID: Open TinyChat
     DisplayingUserID --> AwaitingConnection: Share User ID
