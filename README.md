@@ -149,7 +149,7 @@ graph TB;
   S --> T>Decrypts Encrypted Key with RSA Private Key];
   M --> V>The Conversation is Added to the UI];
   end
-  
+
   classDef user fill:#fff,color:#000
   class B user;
 ```
@@ -190,7 +190,34 @@ graph TB;
 
 ## State Diagram
 
-'''mermaid
+`Startup` is the initial state where the TinyChat application is launched.
+As the conversation initiator, `Client#1` moves to the `Displaying User ID` state upon opening TinyChat, which represents the unique User ID being shown to the user.
+`Client#1` shares this User ID to `Client#2` and any additional clients (`Client#+`).
+This action transitions the system to the `Awaiting Connection` state, where TinyChat is now waiting for a connection from the recipients.
+Once `Client#2` connects using the shared User ID, the system moves to the `Connected` state.
+Here, `Client#2`, being the primary recipient, is responsible for initiating the encryption process.
+This design is intended to prevent the malicious creation of a conversation by `Client#1`.
+Upon establishing the encrypted connection, the system enters the `Encrypted Communication` state.
+
+### MessageExchange
+
+Within the confines of `Encrypted Communication`, the `MessageExchange` state exemplifies the action of both sending and receiving encrypted messages involving `Client#1`, `Client#2`, and `Client#+`.
+Every participant, be it the initiator `Client#1` or any other client, can share messages.
+These messages, whether they're replies or new threads, are ensured to reach all participants, thereby promoting a coherent group chat environment.
+Moreover, upon message receipt, clients can dispatch a "read receipt" to the sender, signifying successful message reception.
+
+### EncryptionDecryption
+
+Denotes the process where messages are either encrypted for sending or decrypted upon receiving.
+As the conversation progresses, messages are continually processed (encrypted or decrypted) and exchanged between the clients.
+This loop ensures that all participants can communicate securely.
+Finally, when the conversation is concluded, the state transitions to `Closed`, marking the end of the encrypted communication.
+As you can see from the graph, the processes the users perform themselves are quite minimal, allowing for an overall easy-to-use messaging client.
+Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
+The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
+Since one of the recipients (`Client#2`) is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
+
+```mermaid
 stateDiagram
     Startup --> DisplayingUserID: Open TinyChat
     DisplayingUserID --> AwaitingConnection: Share User ID
