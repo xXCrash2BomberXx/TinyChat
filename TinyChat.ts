@@ -1,3 +1,6 @@
+if (!Array.prototype.toSorted)
+	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); }
+
 /**
  * Message event used in {@link MessageData.event}.
  * @readonly
