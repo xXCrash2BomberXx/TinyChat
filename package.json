@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/bleesman21/TinyChat#readme",
   "devDependencies": {
-    "tsc": "^2.0.4"
+    "tsc": "^2.0.4",
+    "typescript": "^5.2.2"
   }
 }
