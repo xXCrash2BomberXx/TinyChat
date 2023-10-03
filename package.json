@@ -1,0 +1,22 @@
+{
+  "name": "tinychat",
+  "version": "1.0.0",
+  "description": "> [!NOTE]\r > Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.",
+  "main": "TinyChat.ts",
+  "scripts": {
+    "test": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bleesman21/TinyChat.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bleesman21/TinyChat/issues"
+  },
+  "homepage": "https://github.com/bleesman21/TinyChat#readme",
+  "devDependencies": {
+    "tsc": "^2.0.4"
+  }
+}
