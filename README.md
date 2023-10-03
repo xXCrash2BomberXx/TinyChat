@@ -101,6 +101,20 @@ Each conversation will have a unique AES-256 key with that key being shared usin
     - [ ] Create Reactions
     - [ ] Reaction Indication in UI
 
+## Building
+
+Building this project for development purposes requires either `npm` or `tsc` to be installed.
+
+<u>NPM Method</u>
+If using `npm`, run `npm install` which will install `tsc` locally.
+The project can then be built with `npx tsc` which will compile the TypeScript files for usage.
+`tsc` can also be manually installed with `npm install -g typescript` and `npm install -g tsc` to remove the need to use `npx`.
+
+<u>TSC Method</u>
+If `tsc` has already been installed through either `npm` with the `-g` flag or through other methods, compiling is as simple as running `tsc`.
+
+After the prject has been compiled, simply open `TinyChat.html` with your desired web browser and chat away!
+
 ## Mermaid Diagram
 
 Below shows the process of 2+ clients intiating a conversation.
