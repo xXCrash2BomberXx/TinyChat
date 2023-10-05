@@ -212,25 +212,25 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 		el = await createChat(messageData.from, false);
 	const paragraph: HTMLParagraphElement = document.createElement('p');
 	paragraph.onclick = (ev: MouseEvent): void => {
-			ev.preventDefault();
-			if (editing) {
-				const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
-				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
-				editing = undefined;
-			} else if (replying) {
-				const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
-				prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
-			}
-			if (replying != paragraph.id) {
-				replying = paragraph.id;
-				if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
-					paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
-				else
-					throw new Error('Cannot Reply to Non-Delivered Message.');
-			} else
-				replying = undefined;
-			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-		};
+		ev.preventDefault();
+		if (editing) {
+			const prev: HTMLSpanElement = document.getElementById(editing) as HTMLSpanElement;
+			prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+			editing = undefined;
+		} else if (replying) {
+			const prev: HTMLSpanElement = document.getElementById(replying) as HTMLSpanElement;
+			prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+		}
+		if (replying != paragraph.id) {
+			replying = paragraph.id;
+			if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+				paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
+			else
+				throw new Error('Cannot Reply to Non-Delivered Message.');
+		} else
+			replying = undefined;
+		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+	};
 	switch (messageData.event) {
 		case MessageDataEvent.GroupRSAKeyRequest:
 			send(trueFrom, {
