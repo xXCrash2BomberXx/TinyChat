@@ -9,7 +9,7 @@ This User ID is how people can contact you, but this will change every time you 
 TinyChat aims to give end-to-end encrypted communication through RSA-OAEP and AES-CBC encryption.
 Each conversation will have a unique AES-256 key with that key being shared using your RSA public key to allow the peer to produce a key that only the sender knows prior to encryption and that only you can decrypt as it will be encrypted with your RSA public key.
 
-> [!WARNING]
+> [!IMPORTANT]
 > Although the messages themselves are encrypted, many other metadata items are not.
 > Further explanation of how this is done can be seen [here](#mermaid-diagram).
 >
@@ -25,6 +25,12 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > - The User ID that sent the message
 > - The message ID (This is a randomly generated GUID)
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
+
+> [!WARNING]
+> The largest vulnerability to this web application is the initial AES keyshare.
+> On slower network connections, an attack can theoretically read the public RSA key and send a malicious AES key with a fake signature.
+> This attack would be undetectable as it classifies as a "Man in the Middle Attack".
+> Although this would be quite difficult to achieve in general usage, it is theoretically possible and worth consideration.
 
 ## Features
 
