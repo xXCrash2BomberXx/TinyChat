@@ -427,6 +427,41 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	const summary: HTMLUnknownElement = document.createElement('summary');
 	summary.innerHTML = aesAccess;
 	collapsible.insertAdjacentElement('afterbegin', summary);
+	const chatButtons: HTMLDivElement = document.createElement('div');
+	chatButtons.className = 'chatButtonsContainer';
+	const clearChatLocal: HTMLInputElement = document.createElement('input');
+	clearChatLocal.value = 'Clear Chat Locally';
+	clearChatLocal.type = 'button';
+	clearChatLocal.className = 'chatButtons';
+	clearChatLocal.onclick = (ev: MouseEvent): void => {
+		ev.preventDefault();
+		clearChatLocal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => { clearChatLocal.parentElement?.nextSibling?.removeChild(value); });
+	}
+	chatButtons.insertAdjacentElement('beforeend', clearChatLocal);
+	const clearChatGlobal: HTMLInputElement = document.createElement('input');
+	clearChatGlobal.value = 'Clear Chat Globally';
+	clearChatGlobal.type = 'button';
+	clearChatGlobal.className = 'chatButtons';
+	clearChatGlobal.onclick = (ev: MouseEvent): void => {
+		ev.preventDefault();
+		clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => {
+			for (let i: number = 0; i < split.length; i++) {
+				let split2: Array<string> = to.split(',');
+				const trueFrom2: string = split2[i];
+				split2.splice(i, 1);
+				split2.unshift(peer.id);
+				send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: (value as HTMLParagraphElement).id,
+					event: MessageDataEvent.Unsend
+				}, i === 0);
+			}
+		});
+	}
+	chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
+	collapsible.insertAdjacentElement('beforeend', chatButtons);
 	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
 	el.id = aesAccess;

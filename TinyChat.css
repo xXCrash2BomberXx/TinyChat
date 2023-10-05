@@ -47,12 +47,23 @@ details {
 }
 
 .message,
-.sendBar {
+.sendBar,
+.chatButtons {
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
 	width: 75%;
 	margin-left: 5%;
+}
+
+.chatButtonsContainer {
+	display: flex;
+	padding-right: 10%;
+}
+
+.chatButtons {
+	flex: 1;
+	width: 25%;
 }
 
 p {
@@ -79,6 +90,7 @@ p {
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.chatButtons,
 	summary {
 		color: black;
 		border-color: gray;
@@ -97,6 +109,7 @@ p {
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.chatButtons,
 	summary {
 		color: white;
 		border-color: darkgray;
