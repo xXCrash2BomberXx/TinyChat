@@ -237,6 +237,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 	};
 	switch (messageData.event) {
 		case MessageDataEvent.GroupRSAKeyRequest:
+			delete aesKeys[aesAccess];
 			send(trueFrom, {
 				from: split.join(),
 				body: await exportRSAKey((await keyPair).publicKey),
@@ -299,6 +300,8 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			}
 			break;
 		case MessageDataEvent.AESKeyShare:
+			if (aesKeys[aesAccess])
+				break;
 			const parsed: Array<any> = JSON.parse(messageData.body);
 			aesKeys[aesAccess] = [new Uint8Array(parsed[0]), await window.crypto.subtle.importKey(
 				'raw',
@@ -467,7 +470,8 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	el.id = aesAccess;
 	collapsible.insertAdjacentElement('beforeend', el);
 
-	if (establishKey)
+	if (establishKey) {
+		delete aesKeys[aesAccess];
 		send(trueFrom, {
 			from: split.join(','),
 			body: await exportRSAKey((await keyPair).publicKey),
@@ -475,6 +479,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 			id: '',
 			event: MessageDataEvent.RSAKeyShare,
 		});
+	}
 
 	const sendBar: HTMLInputElement = document.createElement('input');
 	sendBar.type = 'text';
