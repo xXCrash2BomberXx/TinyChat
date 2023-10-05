@@ -427,8 +427,6 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	const summary: HTMLUnknownElement = document.createElement('summary');
 	summary.innerHTML = aesAccess;
 	collapsible.insertAdjacentElement('afterbegin', summary);
-	const clearChat: HTMLInputElement = document.createElement('input');
-	collapsible.insertAdjacentElement('afterbegin', clearChat);
 	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
 	el.id = aesAccess;
