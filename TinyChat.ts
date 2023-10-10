@@ -1,4 +1,3 @@
-import './Global';
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -316,7 +315,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			)];
 			break;
 		case MessageDataEvent.Typing:
-			paragraph.innerHTML = 'Typing...';
+			paragraph.innerHTML = ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...';
 			paragraph.className = 'typing';
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				return;
