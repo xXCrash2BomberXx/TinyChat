@@ -316,7 +316,7 @@ peer.on('connection', (dataConnection: DataConnection): void => dataConnection.o
 			)];
 			break;
 		case MessageDataEvent.Typing:
-			paragraph.innerHTML = 'Typing...';
+			paragraph.innerHTML = ((split.length > 1) ? trueFrom + ' ' : '') + 'Typing...';
 			paragraph.className = 'typing';
 			if (el.lastChild && (el.lastChild as Element).className === 'typing')
 				return;
