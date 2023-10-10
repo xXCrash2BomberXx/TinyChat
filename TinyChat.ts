@@ -431,6 +431,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	collapsible.insertAdjacentElement('afterbegin', summary);
 	const chatButtons: HTMLDivElement = document.createElement('div');
 	chatButtons.className = 'chatButtonsContainer';
+
 	const clearChatLocal: HTMLInputElement = document.createElement('input');
 	clearChatLocal.value = 'Clear Chat Locally';
 	clearChatLocal.type = 'button';
@@ -440,6 +441,7 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 		clearChatLocal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => { clearChatLocal.parentElement?.nextSibling?.removeChild(value); });
 	}
 	chatButtons.insertAdjacentElement('beforeend', clearChatLocal);
+
 	const clearChatGlobal: HTMLInputElement = document.createElement('input');
 	clearChatGlobal.value = 'Clear Chat Globally';
 	clearChatGlobal.type = 'button';
@@ -463,6 +465,24 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 		});
 	}
 	chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
+
+	const generateNewAESKeyButton: HTMLInputElement = document.createElement('input');
+	generateNewAESKeyButton.value = 'Generate New AES Key';
+	generateNewAESKeyButton.type = 'button';
+	generateNewAESKeyButton.className = 'chatButtons';
+	generateNewAESKeyButton.onclick = async (ev: MouseEvent): Promise<void> => {
+		ev.preventDefault();
+		delete aesKeys[aesAccess];
+		send(trueFrom, {
+			from: split.join(','),
+			body: await exportRSAKey((await keyPair).publicKey),
+			time: '',
+			id: '',
+			event: MessageDataEvent.RSAKeyShare,
+		});
+	};
+	chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
+
 	collapsible.insertAdjacentElement('beforeend', chatButtons);
 	const el: HTMLSpanElement = document.createElement('span');
 	el.className = 'message';
