@@ -429,8 +429,12 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 	const summary: HTMLUnknownElement = document.createElement('summary');
 	summary.innerHTML = aesAccess;
 	collapsible.insertAdjacentElement('afterbegin', summary);
+
+	///container for chat buttons 
 	const chatButtons: HTMLDivElement = document.createElement('div');
 	chatButtons.className = 'chatButtonsContainer';
+
+	//create a button to clear chat locally 
 	const clearChatLocal: HTMLInputElement = document.createElement('input');
 	clearChatLocal.value = 'Clear Chat Locally';
 	clearChatLocal.type = 'button';
@@ -440,6 +444,54 @@ const createChat: (to: string, establishKey: boolean) => Promise<HTMLSpanElement
 		clearChatLocal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => { clearChatLocal.parentElement?.nextSibling?.removeChild(value); });
 	}
 	chatButtons.insertAdjacentElement('beforeend', clearChatLocal);
+
+	//new generate aes key nutton 
+	const generateNewAESKeyButton: HTMLInputElement = document.createElement('input');
+
+	generateNewAESKeyButton.value = 'Generate New AES Key';
+	generateNewAESKeyButton.type = 'button';
+	generateNewAESKeyButton.className = 'chatButtons';
+
+	async function generateNewAesKey() {
+		try {
+			const aesKey = await window.crypto.subtle.generateKey(
+				{
+					name: 'AES-GCM',
+					length: 256,
+				},
+				true,
+				['encrypt', 'decrypt']
+			);
+			return aesKey;
+		} catch (error) {
+			console.error('Error generateing AES key:', error);
+			throw error;
+		}
+	}
+
+	generateNewAESKeyButton.onclick = async (ev: MouseEvent): Promise<void> => {
+		ev.preventDefault();
+
+		try {
+			const newAESKey = await generateNewAesKey();
+
+			const newRSAPublicKey = await exportRSAKey((await keyPair).publicKey);
+			send(trueFrom, {
+				from: split.join(','),
+				body: newRSAPublicKey,
+				time: '',
+				id: '',
+				event: MessageDataEvent.RSAKeyShare,
+			});
+		} catch (error) {
+			console.error('Error generating key', error);
+		}
+	};
+
+	chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
+	collapsible.insertAdjacentElement('beforeend', chatButtons);
+
+
 	const clearChatGlobal: HTMLInputElement = document.createElement('input');
 	clearChatGlobal.value = 'Clear Chat Globally';
 	clearChatGlobal.type = 'button';
