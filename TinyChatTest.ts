@@ -33,14 +33,15 @@ class Client {
 	}
 }
 
-let tests: Array<() => boolean> = [
-	((): boolean => {
+let tests: {[key: string]: () => boolean} = {
+	'Example': ((): boolean => {
 		return true;
 	}),
-];
+};
 
-for (let i: number = 0; i < tests.length; i++)
-	if (!tests[i]()) {
-		console.error(`Failed task: ${i}`);
+for (const test in tests)
+	if (!tests[test]()) {
+		console.error(`Failed Test: ${test}`);
 		process.exit(1);
-	}
+	} else
+		console.log(`Passes Test: ${test}`);
