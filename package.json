@@ -4,7 +4,7 @@
   "description": "> [!NOTE]\r > Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.",
   "main": "TinyChat.ts",
   "scripts": {
-    "test": "tsc"
+    "test": "npx tsc && node TinyChatTest.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/bleesman21/TinyChat#readme",
   "devDependencies": {
-    "tsc": "^2.0.4",
+    "jsdom": "^22.1.0",
     "typescript": "^5.2.2"
   }
 }
