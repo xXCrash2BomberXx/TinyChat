@@ -32,3 +32,15 @@ class Client {
 		return this.dom.window.document.body.children[1].innerHTML.slice('User ID: '.length)
 	}
 }
+
+let tests: Array<() => boolean> = [
+	((): boolean => {
+		return true;
+	}),
+];
+
+for (let i: number = 0; i < tests.length; i++)
+	if (!tests[i]()) {
+		console.error(`Failed task: ${i}`);
+		process.exit(1);
+	}
