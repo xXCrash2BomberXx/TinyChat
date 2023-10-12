@@ -1,10 +1,4 @@
 const { JSDOM } = require("jsdom");
-JSDOM.defaultDocumentFeatures = {
-	FetchExternalResources   : ['script'], 
-	ProcessExternalResources : ['script'],
-	MutationEvents           : '2.0',
-	QuerySelector            : false
-  }
 
 class Client {
 	private dom: { window: Window };
