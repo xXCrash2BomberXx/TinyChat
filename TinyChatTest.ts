@@ -1,27 +1,32 @@
 const { JSDOM } = require("jsdom");
+JSDOM.defaultDocumentFeatures = {
+	FetchExternalResources   : ['script'], 
+	ProcessExternalResources : ['script'],
+	MutationEvents           : '2.0',
+	QuerySelector            : false
+  }
 
 class Client {
-	private document: Document;
+	private dom: { window: Window };
 	constructor() {
-		this.document = null as unknown as Document;
+		this.dom = null as unknown as { window: Window };
 		return JSDOM.fromFile('TinyChat.html', {
 			runScripts: 'dangerously',
 			resources: 'usable',
-			pretendToBeVisual: true,
 			includeNodeLocations: true
 		}).then((dom: any): this => {
-			this.document = dom.window.document;
+			this.dom = dom;
 			return this;
 		});
 	}
 
 	send(message: string, to?: string): void {
 		if (to) {
-			const createChat: HTMLInputElement = this.document.getElementById('to') as HTMLInputElement;
+			const createChat: HTMLInputElement = this.dom.window.document.getElementById('to') as HTMLInputElement;
 			createChat.value = to;
 			createChat.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, }));
 		}
-		const messages = this.document.getElementsByClassName('message');
+		const messages = this.dom.window.document.getElementsByClassName('message');
 		const send = messages[messages.length-1].nextElementSibling as HTMLInputElement;
 		send.value = message;
 		send.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, }));
@@ -29,17 +34,17 @@ class Client {
 
 	getMessages(from?: string): HTMLSpanElement {
 		if (from)
-			return this.document.getElementById(from) as HTMLSpanElement;
-		return (this.document.body.lastChild as HTMLDetailsElement).children[2] as HTMLSpanElement;
+			return this.dom.window.document.getElementById(from) as HTMLSpanElement;
+		return (this.dom.window.document.body.lastChild as HTMLDetailsElement).children[2] as HTMLSpanElement;
 	}
 
 	getId(): string {
-		const check: () => void = (): void => {
-			if (!this.document.body.children[1].innerHTML.slice('User ID: '.length))
-				setTimeout(check, 50);
+		if (!this.dom.window.document.body.children[1]) {
+			console.error('Failed to load DOM');
+			process.exit(1);
 		}
-		check();
-		return this.document.body.children[1].innerHTML.slice('User ID: '.length);
+		while (!this.dom.window.document.body.children[1].innerHTML.slice('User ID: '.length)) {}
+		return this.dom.window.document.body.children[1].innerHTML.slice('User ID: '.length);
 	}
 }
 
