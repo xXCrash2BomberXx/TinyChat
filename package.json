@@ -18,7 +18,6 @@
   "homepage": "https://github.com/bleesman21/TinyChat#readme",
   "devDependencies": {
     "@types/node": "^20.8.4",
-    "jsdom": "^22.1.0",
     "typescript": "^5.2.2"
   }
 }
