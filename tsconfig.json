@@ -15,7 +15,6 @@
 		".\\Global.d.ts",
 		".\\PeerJS.d.ts",
         ".\\TinyChat.ts",
-        ".\\TinyChatTest.ts"
     ],
 	"exclude": [
 		"node_modules"
