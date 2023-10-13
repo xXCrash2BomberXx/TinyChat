@@ -1,53 +1,22 @@
 const { JSDOM } = require("jsdom");
+require('./TinyChat');
 
-class Client {
-	private dom: { window: Window };
-	constructor() {
-		this.dom = null as unknown as { window: Window };
-		return JSDOM.fromFile('TinyChat.html', {
+const createDocument: () => Promise<Window> = async (): Promise<Window> => {
+	return new Promise((resolve: (value: (Window | Promise<Window>)) => void, reject: (reason?: any) => void): void => {
+		JSDOM.fromFile('TinyChat.html', {
 			runScripts: 'dangerously',
 			resources: 'usable',
 			includeNodeLocations: true
-		}).then((dom: any): this => {
-			this.dom = dom;
-			return this;
-		});
-	}
-
-	send(message: string, to?: string): void {
-		if (to) {
-			const createChat: HTMLInputElement = this.dom.window.document.getElementById('to') as HTMLInputElement;
-			createChat.value = to;
-			createChat.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, }));
-		}
-		const messages = this.dom.window.document.getElementsByClassName('message');
-		const send = messages[messages.length-1].nextElementSibling as HTMLInputElement;
-		send.value = message;
-		send.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, }));
-	}
-
-	getMessages(from?: string): HTMLSpanElement {
-		if (from)
-			return this.dom.window.document.getElementById(from) as HTMLSpanElement;
-		return (this.dom.window.document.body.lastChild as HTMLDetailsElement).children[2] as HTMLSpanElement;
-	}
-
-	getId(): string {
-		if (!this.dom.window.document.body.children[1]) {
-			console.error('Failed to load DOM');
-			process.exit(1);
-		}
-		while (!this.dom.window.document.body.children[1].innerHTML.slice('User ID: '.length)) {}
-		return this.dom.window.document.body.children[1].innerHTML.slice('User ID: '.length);
-	}
-}
+		}).then((dom: any): void => resolve(dom.window));
+	});
+};
 
 let tests: {[key: string]: () => Promise<boolean>} = {
 	'Send Message': (async (): Promise<boolean> => {
-		const sender: Client = await new Client();
-		const receiver: Client = await new Client();
-		sender.send('test message', receiver.getId());
-		return (receiver.getMessages(sender.getId()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
+		const sender: Client = await new Client(await createDocument());
+		const receiver: Client = await new Client(await createDocument());
+		sender.sendMessage(receiver.getID(), 'test message');
+		return (receiver.getMessages(sender.getID()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
 	}),
 };
 
