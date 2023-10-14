@@ -729,6 +729,7 @@ class Client {
 	}
 
 	public getID(): string {
+		while (!this.peer.id) {}
 		return this.peer.id;
 	}
 

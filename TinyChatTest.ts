@@ -21,6 +21,7 @@ let tests: { [key: string]: () => Promise<boolean> } = {
 		const sender: Client = await new Client(await createDocument(), new Crypto());
 		const receiver: Client = await new Client(await createDocument(), new Crypto());
 		await sender.sendMessage(receiver.getID(), 'test message');
+		console.log('SENT');
 		return (receiver.getMessages(sender.getID()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
 	}),
 };
