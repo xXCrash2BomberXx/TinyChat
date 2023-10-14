@@ -752,6 +752,8 @@ class Client {
 
 	public async sendMessage(to: string, message: string): Promise<void> {
 		to = (to.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
+		if (!this.window.document.getElementById(to))
+			await this.createChat(to);
 		return this.send(to, {
 			from: this.peer.id,
 			body: JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
