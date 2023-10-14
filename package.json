@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/bleesman21/TinyChat#readme",
   "devDependencies": {
+    "@peculiar/webcrypto": "^1.4.3",
     "@types/node": "^20.8.4",
     "jsdom": "^22.1.0",
     "peerjs": "^1.5.1",
