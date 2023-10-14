@@ -9,8 +9,6 @@ global.navigator = Object.create({}, {
 	}
 });
 //@ts-ignore: 2451
-const { Peer } = require('peerjs');
-//@ts-ignore: 2451
 const { Client } = require('./TinyChat.js');
 const createDocument: () => Promise<Window> = async (): Promise<Window> => {
 	return new Promise((resolve: (value: (Window | Promise<Window>)) => void, reject: (reason?: any) => void): void => {

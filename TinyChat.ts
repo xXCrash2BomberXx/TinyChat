@@ -1,6 +1,20 @@
-if (!Peer)
+var polyfills: {
+	fetch?: any;
+	WebSocket?: any;
+	WebRTC?: any;
+	FileReader?: any;
+};
+if (!Peer) {
 	//@ts-ignore: 2300
 	var { Peer } = require('peerjs');
+	polyfills = {
+		fetch: require('node-fetch'),
+		WebSocket: require('ws'),
+		WebRTC: require('wrtc'),
+		FileReader: require('filereader')
+	};
+} else
+	polyfills = {};
 
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
@@ -202,7 +216,7 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	private peer: Peer = new Peer();
+	private peer: Peer = new Peer({ polyfills });
 
 	private window: Window;
 	private crypto: Crypto;
