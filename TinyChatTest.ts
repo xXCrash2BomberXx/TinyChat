@@ -1,17 +1,21 @@
 const { JSDOM } = require("jsdom");
-require('./TinyChat');
-
+global.navigator = Object.create({}, {
+	platform: {
+		value: 'Node.js',
+		enumerable: true,
+		writable: false,
+		configurable: true
+	}
+});
+const { Peer } = require('peerjs');
+const { Client } = require('./TinyChat.js');
 const createDocument: () => Promise<Window> = async (): Promise<Window> => {
 	return new Promise((resolve: (value: (Window | Promise<Window>)) => void, reject: (reason?: any) => void): void => {
-		JSDOM.fromFile('TinyChat.html', {
-			runScripts: 'dangerously',
-			resources: 'usable',
-			includeNodeLocations: true
-		}).then((dom: any): void => resolve(dom.window));
+		JSDOM.fromFile('TinyChat.html', {}).then((dom: any): void => resolve(dom.window));
 	});
 };
 
-let tests: {[key: string]: () => Promise<boolean>} = {
+let tests: { [key: string]: () => Promise<boolean> } = {
 	'Send Message': (async (): Promise<boolean> => {
 		const sender: Client = await new Client(await createDocument());
 		const receiver: Client = await new Client(await createDocument());

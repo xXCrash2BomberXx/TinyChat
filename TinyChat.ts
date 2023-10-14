@@ -1,3 +1,6 @@
+if (!Peer)
+	var { Peer } = require('peerjs');
+
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -199,10 +202,10 @@ class Client {
 	 */
 	private peer: Peer = new Peer();
 
-	private window: Window = window;
+	private window: Window;
 
-	constructor(w: Window = window) {
-		this.window = window;
+	constructor(w: Window) {
+		this.window = w;
 		this.keyPair = this.window.crypto.subtle.generateKey(
 			{
 				name: 'RSA-OAEP',
@@ -753,4 +756,5 @@ class Client {
 	}
 }
 
-const client: Client = new Client();
+if (module)
+	module.exports = { Client };
