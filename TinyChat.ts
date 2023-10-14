@@ -1,4 +1,5 @@
 if (!Peer)
+	//@ts-ignore: 2300
 	var { Peer } = require('peerjs');
 
 if (!Array.prototype.toSorted)
@@ -129,6 +130,7 @@ interface MessageData {
 	effect?: MessageDataEffects,
 };
 
+//@ts-ignore: 2451
 class Client {
 	/**
 	 * Message ID of the message being edited.
@@ -729,7 +731,7 @@ class Client {
 	}
 
 	public getID(): string {
-		while (!this.peer.id) {}
+		while (!this.peer.id) { }
 		return this.peer.id;
 	}
 
@@ -759,5 +761,6 @@ class Client {
 	}
 }
 
-if (module)
+try {
 	module.exports = { Client };
+} catch (e) { }

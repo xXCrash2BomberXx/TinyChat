@@ -1,4 +1,5 @@
 const { JSDOM } = require("jsdom");
+//@ts-ignore: 2451
 const { Crypto } = require('@peculiar/webcrypto');
 global.navigator = Object.create({}, {
 	platform: {
@@ -8,7 +9,9 @@ global.navigator = Object.create({}, {
 		configurable: true
 	}
 });
+//@ts-ignore: 2300
 const { Peer } = require('peerjs');
+//@ts-ignore: 2451
 const { Client } = require('./TinyChat.js');
 const createDocument: () => Promise<Window> = async (): Promise<Window> => {
 	return new Promise((resolve: (value: (Window | Promise<Window>)) => void, reject: (reason?: any) => void): void => {
