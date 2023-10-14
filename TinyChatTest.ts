@@ -9,7 +9,7 @@ global.navigator = Object.create({}, {
 		configurable: true
 	}
 });
-//@ts-ignore: 2300
+//@ts-ignore: 2451
 const { Peer } = require('peerjs');
 //@ts-ignore: 2451
 const { Client } = require('./TinyChat.js');
