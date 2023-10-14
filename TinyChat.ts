@@ -744,9 +744,10 @@ class Client {
 		});
 	}
 
-	public getID(): string {
-		while (!this.peer.id) { }
-		return this.peer.id;
+	public async getID(): Promise<string> {
+		return new Promise((resolve: (value: (string | Promise<string>)) => void, reject: (reason?: any) => void): void => {
+			this.peer.on('open', id => resolve(id));
+		});
 	}
 
 	public async sendMessage(to: string, message: string): Promise<void> {

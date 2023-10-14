@@ -20,8 +20,8 @@ let tests: { [key: string]: () => Promise<boolean> } = {
 	'Send Message': (async (): Promise<boolean> => {
 		const sender: Client = await new Client(await createDocument(), new WebCrypto());
 		const receiver: Client = await new Client(await createDocument(), new WebCrypto());
-		await sender.sendMessage(receiver.getID(), 'test message');
-		return (receiver.getMessages(sender.getID()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
+		await sender.sendMessage(await receiver.getID(), 'test message');
+		return (receiver.getMessages(await sender.getID()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
 	}),
 };
 
