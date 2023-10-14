@@ -1,6 +1,5 @@
 const { JSDOM } = require("jsdom");
-//@ts-ignore: 2451
-const { Crypto } = require('@peculiar/webcrypto');
+const { Crypto: WebCrypto } = require('@peculiar/webcrypto');
 global.navigator = Object.create({}, {
 	platform: {
 		value: 'Node.js',
@@ -21,10 +20,9 @@ const createDocument: () => Promise<Window> = async (): Promise<Window> => {
 
 let tests: { [key: string]: () => Promise<boolean> } = {
 	'Send Message': (async (): Promise<boolean> => {
-		const sender: Client = await new Client(await createDocument(), new Crypto());
-		const receiver: Client = await new Client(await createDocument(), new Crypto());
+		const sender: Client = await new Client(await createDocument(), new WebCrypto());
+		const receiver: Client = await new Client(await createDocument(), new WebCrypto());
 		await sender.sendMessage(receiver.getID(), 'test message');
-		console.log('SENT');
 		return (receiver.getMessages(sender.getID()).lastChild as HTMLParagraphElement).innerHTML.slice(0, 12) === 'test message';
 	}),
 };
