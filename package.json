@@ -22,6 +22,7 @@
     "filereader": "^0.10.3",
     "jsdom": "^22.1.0",
     "node-fetch": "^2.7.0",
+    "node-pre-gyp": "^0.17.0",
     "peerjs": "^2.0.0-beta.3",
     "typescript": "^5.2.2",
     "wrtc": "^0.4.7",
