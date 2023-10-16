@@ -43,7 +43,7 @@ declare class util {
 
 //@ts-ignore: 2300, 2451
 declare class Peer {
-	constructor(options?: {
+	constructor(id?: string, options?: {
 		key?: string,
 		host?: string,
 		port?: number,
@@ -51,14 +51,8 @@ declare class Peer {
 		path?: string,
 		secure?: boolean,
 		config?: object,
-		polyfills?: {
-			fetch?: any;
-			WebSocket?: any;
-			WebRTC?: any;
-			FileReader?: any;
-		},
 		debug?: number,
-	}, id?: string);
+	});
 	call(id: string, stream: MediaStream, options?: {
 		metadata?: object,
 		sdpTransform?: Function,

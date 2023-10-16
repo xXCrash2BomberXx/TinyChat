@@ -1,21 +1,3 @@
-var polyfills: {
-	fetch?: any;
-	WebSocket?: any;
-	WebRTC?: any;
-	FileReader?: any;
-};
-if (!Peer) {
-	//@ts-ignore: 2300
-	var { Peer } = require('peerjs');
-	polyfills = {
-		fetch: require('node-fetch'),
-		WebSocket: require('ws'),
-		WebRTC: require('wrtc'),
-		FileReader: require('filereader')
-	};
-} else
-	polyfills = {};
-
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -216,7 +198,7 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	private peer: Peer = new Peer({ polyfills });
+	private peer: Peer = new Peer();
 
 	private window: Window;
 	private crypto: Crypto;
@@ -763,48 +745,4 @@ class Client {
 				}
 		});
 	}
-
-	public async getID(): Promise<string> {
-		return new Promise((resolve: (value: (string | Promise<string>)) => void): void => {
-			const client: Client = this;
-			function check() {
-				if (client.peer.id)
-					resolve(client.peer.id);
-				else
-					setTimeout(check, 50);
-			}
-			check();
-		});
-	}
-
-	public async sendMessage(to: string, message: string): Promise<void> {
-		to = (to.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
-		if (!this.window.document.getElementById(to))
-			await this.createChat(to);
-		return this.send(to, {
-			from: this.peer.id,
-			body: JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
-				{ name: 'AES-CBC', iv: this.aesKeys[to][0] },
-				this.aesKeys[to][1],
-				new Uint8Array(new TextEncoder().encode(message)),
-			)))),
-			time: JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
-				{ name: 'AES-CBC', iv: this.aesKeys[to][0] },
-				this.aesKeys[to][1],
-				new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
-			)))),
-			id: this.crypto.randomUUID(),
-			event: undefined,
-			prev: undefined
-		}, true);
-	}
-
-	public getMessages(from: string): HTMLSpanElement {
-		from = (from.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
-		return this.window.document.getElementById(from) as HTMLSpanElement;
-	}
 }
-
-try {
-	module.exports = { Client };
-} catch (e) { }
