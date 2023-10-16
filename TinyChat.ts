@@ -455,6 +455,24 @@ class Client {
 	}
 
 	/**
+	 * Waits for an AES key to be established with the recipient.
+	 * @param to  - The recipient ID to start a conversation with.
+	 * @returns {Promise<void>} a `Promise<void>` that resolves when an AES key has been established.
+	 */
+	private async aesKeyEstablished(to: string): Promise<void> {
+		return new Promise((resolve: (value: (void | Promise<void>)) => void): void => {
+			const client: Client = this;
+			function check() {
+				if (client.aesKeys[to])
+					resolve();
+				else
+					setTimeout(check, 50);
+			}
+			check();
+		});
+	}
+
+	/**
 	 * Creates a new conversation with the provded `string` ID of a client.
 	 * @param {string} to - The recipient ID to start a conversation with.
 	 * @param {boolean} [establishKey = true] - Whether or not to establish a new AES key.
@@ -524,6 +542,7 @@ class Client {
 				id: '',
 				event: MessageDataEvent.RSAKeyShare,
 			});
+			await this.aesKeyEstablished(aesAccess);
 		};
 		chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
 
@@ -542,6 +561,7 @@ class Client {
 				id: '',
 				event: MessageDataEvent.RSAKeyShare,
 			});
+			await this.aesKeyEstablished(aesAccess);
 		}
 
 		const sendBar: HTMLInputElement = this.window.document.createElement('input');
@@ -745,8 +765,15 @@ class Client {
 	}
 
 	public async getID(): Promise<string> {
-		return new Promise((resolve: (value: (string | Promise<string>)) => void, reject: (reason?: any) => void): void => {
-			this.peer.on('open', id => resolve(id));
+		return new Promise((resolve: (value: (string | Promise<string>)) => void): void => {
+			const client: Client = this;
+			function check() {
+				if (client.peer.id)
+					resolve(client.peer.id);
+				else
+					setTimeout(check, 50);
+			}
+			check();
 		});
 	}
 
