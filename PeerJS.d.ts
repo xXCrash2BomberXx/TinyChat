@@ -41,7 +41,6 @@ declare class util {
 	};
 }
 
-//@ts-ignore: 2300, 2451
 declare class Peer {
 	constructor(id?: string, options?: {
 		key?: string,

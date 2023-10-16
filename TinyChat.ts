@@ -126,7 +126,6 @@ interface MessageData {
 	effect?: MessageDataEffects,
 };
 
-//@ts-ignore: 2451
 class Client {
 	/**
 	 * Message ID of the message being edited.
