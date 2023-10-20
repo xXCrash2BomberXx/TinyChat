@@ -590,7 +590,7 @@ class Client {
 				sendBar.value = '';
 				this.replying = undefined;
 				this.editing = undefined;
-			} else if (sendBar.value.length === 0 && event.key !== 'Backspace')
+			} else if (sendBar.value.length === 0 && event.key.length === 1)
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = to.split(',');
 					const trueFrom2: string = split2[i];
