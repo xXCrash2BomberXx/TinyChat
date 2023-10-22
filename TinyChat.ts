@@ -252,6 +252,19 @@ class Client {
 					this.replying = undefined;
 				((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 			};
+			paragraph.oncontextmenu = (ev: MouseEvent): void => {
+				ev.preventDefault();
+				if (this.window.document.getElementById('contextmenu')?.style.display == 'block') {
+					this.reacting = undefined;
+					(this.window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
+				} else {
+					this.reacting = paragraph.id;
+					const menu: HTMLDivElement = this.window.document.getElementById('contextmenu') as HTMLDivElement;
+					menu.style.display = 'block';
+					menu.style.left = ev.pageX + 'px';
+					menu.style.top = ev.pageY + 'px';
+				}
+			};
 			switch (messageData.event) {
 				case MessageDataEvent.GroupRSAKeyRequest:
 					delete this.aesKeys[aesAccess];
@@ -780,6 +793,11 @@ class Client {
 			{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 			this.aesKeys[aesAccess][1],
 			new Uint8Array(new TextEncoder().encode(reaction)),
+		))));
+		this.reacting = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
+			{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+			this.aesKeys[aesAccess][1],
+			new Uint8Array(new TextEncoder().encode(this.reacting)),
 		))));
 		for (let i: number = 0; i < split.length; i++) {
 			let split2: Array<string> = aesAccess.split(',');
