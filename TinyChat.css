@@ -79,6 +79,25 @@ p {
 	text-align: right;
 }
 
+.context-menu {
+	display: none;
+	position: absolute;
+	text-align: center;
+	border: 0.2em solid;
+	border-radius: 2em;
+	padding: 0;
+}
+
+ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+li {
+	display: inline-block;
+	margin: 0 5px;
+}
+
 @media (prefers-color-scheme: light) {
 	body {
 		background-color: white;
@@ -91,6 +110,7 @@ p {
 	.message,
 	.sendBar,
 	.chatButtons,
+	.context-menu,
 	summary {
 		color: black;
 		border-color: gray;
@@ -110,6 +130,7 @@ p {
 	.message,
 	.sendBar,
 	.chatButtons,
+	.context-menu,
 	summary {
 		color: white;
 		border-color: darkgray;
