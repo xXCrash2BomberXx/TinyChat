@@ -347,7 +347,7 @@ class Client {
 						el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 					break;
 				case MessageDataEvent.Edit:
-					document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+					this.window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 						this.aesKeys[aesAccess][1],
 						new Uint8Array(JSON.parse(messageData.body)),
@@ -649,7 +649,7 @@ class Client {
 					case MessageDataEvent.GroupRSAKeyShare:
 						break;
 					case MessageDataEvent.Edit:
-						document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+						this.window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.body)),
