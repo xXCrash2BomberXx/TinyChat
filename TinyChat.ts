@@ -647,6 +647,7 @@ class Client {
 					case MessageDataEvent.StopTyping:
 					case MessageDataEvent.GroupRSAKeyRequest:
 					case MessageDataEvent.GroupRSAKeyShare:
+					case MessageDataEvent.Delivered:
 						break;
 					case MessageDataEvent.Edit:
 						(this.window.document.getElementById(localEdit as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
@@ -667,7 +668,6 @@ class Client {
 							temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
 						temp.parentElement?.removeChild(temp as ChildNode);
 						break;
-					case MessageDataEvent.Delivered:
 					default:
 						const paragraph: HTMLParagraphElement = this.window.document.createElement('p');
 						paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await this.crypto.subtle.decrypt(
