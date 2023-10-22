@@ -347,7 +347,7 @@ class Client {
 						el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
 					break;
 				case MessageDataEvent.Edit:
-					(this.window.document.getElementById(messageData.id) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+					document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 						this.aesKeys[aesAccess][1],
 						new Uint8Array(JSON.parse(messageData.body)),
@@ -357,7 +357,7 @@ class Client {
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.time)),
 						))
-						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
+						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`);
 					if (el.lastChild && (el.lastChild as Element).className === 'typing')
 						el.removeChild(el.lastChild);
 					this.send(trueFrom, {
@@ -649,7 +649,7 @@ class Client {
 					case MessageDataEvent.GroupRSAKeyShare:
 						break;
 					case MessageDataEvent.Edit:
-						(this.window.document.getElementById(localEdit as string) as HTMLSpanElement).innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+						document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.body)),
@@ -659,7 +659,7 @@ class Client {
 								this.aesKeys[aesAccess][1],
 								new Uint8Array(JSON.parse(messageData.time)),
 							))
-							}</i></small></small></small>`;
+							}</i></small></small></small>`);
 						break;
 					case MessageDataEvent.Unsend:
 						const temp: HTMLParagraphElement = this.window.document.getElementById(messageData.id) as HTMLParagraphElement;
