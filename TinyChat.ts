@@ -721,6 +721,17 @@ class Client {
 								throw new Error('Cannot Edit Non-Delivered Message.');
 							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 						}
+						paragraph.oncontextmenu = (ev: MouseEvent): void => {
+							ev.preventDefault();
+							if (this.window.document.getElementById('contextmenu')?.style.display == 'block')
+								(this.window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
+							else {
+								const menu: HTMLDivElement = this.window.document.getElementById('contextmenu') as HTMLDivElement;
+								menu.style.display = 'block';
+								menu.style.left = ev.pageX + 'px';
+								menu.style.top = ev.pageY + 'px';
+							}
+						};
 						let el: HTMLSpanElement | null = this.window.document.getElementById(aesAccess) as HTMLSpanElement | null;
 						if (!el)
 							el = await this.createChat(to, false);
