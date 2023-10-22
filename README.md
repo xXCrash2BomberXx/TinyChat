@@ -99,13 +99,13 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [ ] Frontend
     - [ ] Create Effects
     - [ ] Reaction Indication in UI
-- [ ] Reactions
-  - [ ] Backend
-    - [ ] Create Reactions
-    - [ ] Send Reactions
-  - [ ] Frontend
-    - [ ] Create Reactions
-    - [ ] Reaction Indication in UI
+- [x] ~~Reactions~~
+  - [x] ~~Backend~~
+    - [x] ~~Create Reactions~~
+    - [x] ~~Send Reactions~~
+  - [x] ~~Frontend~~
+    - [x] ~~Create Reactions~~
+    - [x] ~~Reaction Indication in UI~~
 
 ## Building
 
