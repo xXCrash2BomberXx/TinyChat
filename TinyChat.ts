@@ -134,10 +134,16 @@ class Client {
 	private editing: string | undefined = undefined;
 
 	/**
-	 * Message ID of the message being edited.
+	 * Message ID of the message being replied to.
 	 * @type {string?}
 	 */
 	private replying: string | undefined = undefined;
+
+	/**
+	 * Message ID of the message being reacted to.
+	 * @type {string?}
+	 */
+	private reacting: string | undefined = undefined;
 
 	/**
 	 * RSA public and private key pair.
@@ -723,9 +729,11 @@ class Client {
 						}
 						paragraph.oncontextmenu = (ev: MouseEvent): void => {
 							ev.preventDefault();
-							if (this.window.document.getElementById('contextmenu')?.style.display == 'block')
+							if (this.window.document.getElementById('contextmenu')?.style.display == 'block') {
+								this.reacting = undefined;
 								(this.window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-							else {
+							} else {
+								this.reacting = paragraph.id;
 								const menu: HTMLDivElement = this.window.document.getElementById('contextmenu') as HTMLDivElement;
 								menu.style.display = 'block';
 								menu.style.left = ev.pageX + 'px';
@@ -754,5 +762,36 @@ class Client {
 						break;
 				}
 		});
+	}
+
+	public async react(reaction: string): Promise<void> {
+		const aesAccess: string = ((((this.window.document.getElementById(this.reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
+		const split: Array<string> = aesAccess.split(',');
+		const messageID: string = this.crypto.randomUUID();
+		const messagetime: string = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
+			{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+			this.aesKeys[aesAccess][1],
+			new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
+		))));
+		reaction = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
+			{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+			this.aesKeys[aesAccess][1],
+			new Uint8Array(new TextEncoder().encode(reaction)),
+		))));
+		for (let i: number = 0; i < split.length; i++) {
+			let split2: Array<string> = aesAccess.split(',');
+			const trueFrom2: string = split2[i];
+			split2.splice(i, 1);
+			split2.unshift(this.peer.id);
+			this.send(trueFrom2, {
+				from: split2.join(','),
+				body: reaction,
+				time: messagetime,
+				id: messageID,
+				event: undefined,
+				prev: this.reacting,
+			}, i === 0);
+		}
+		this.reacting = undefined;
 	}
 }
