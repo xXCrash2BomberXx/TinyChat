@@ -17,7 +17,7 @@
 		To:
 		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') { client.createChat(this.value); this.value = ''; }" placeholder="...">
 	</span>
-	<span id="id" class="control"></span>
+	<span id="id" class="control" onclick="navigator.clipboard.writeText(document.getElementById('id').innerHTML.substring('User ID: '.length))"></span>
 	<script type="text/javascript" src="./TinyChat.js"></script>
 	<script type="text/javascript">
 		const client = new Client(window);
