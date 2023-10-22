@@ -13,13 +13,15 @@
 </head>
 
 <body onclick="document.getElementById('contextmenu').style.display = 'none';">
-	<div id="contextmenu" class="context-menu" style="display:none;">
-		<li><a onclick="client.react('🩷');">🩷</a></li>
-		<li><a onclick="client.react('👍');">👍</a></li>
-		<li><a onclick="client.react('👎');">👎</a></li>
-		<li><a onclick="client.react('😂');">😂</a></li>
-		<li><a onclick="client.react('!!!');">!!!</a></li>
-		<li><a onclick="client.react('???');">???</a></li>
+	<div id="contextmenu" class="context-menu">
+		<ul>
+			<li><a onclick="client.react('🩷');">🩷</a></li>
+			<li><a onclick="client.react('👍');">👍</a></li>
+			<li><a onclick="client.react('👎');">👎</a></li>
+			<li><a onclick="client.react('😂');">😂</a></li>
+			<li><a onclick="client.react('!!!');">!!!</a></li>
+			<li><a onclick="client.react('???');">???</a></li>
+		</ul>
 	</div>
 	<span class="control">
 		To:

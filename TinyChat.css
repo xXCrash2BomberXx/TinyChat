@@ -117,10 +117,18 @@ p {
 	}
 }
 
-.context-menu { 
-	position: absolute; 
-	text-align: center; 
-	background: lightgray; 
-	border: 1px solid black; 
+.context-menu {
+	display: none;
+	position: absolute;
+	text-align: center;
+}
+
+ul {
 	list-style-type: none;
+	padding: 0;
+}
+
+li {
+	display: inline-block;
+	margin-right: 10px;
 }
