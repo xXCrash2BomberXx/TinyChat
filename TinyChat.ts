@@ -224,8 +224,8 @@ class Client {
 		this.peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
-			let split: Array<string> = messageData.from.split(',');
-			const aesAccess: string = (split as any).toSorted().join(',');
+			let split: Array<string> = messageData.from.split(',').map((x: string): string => x.trim());
+			const aesAccess: string = split.toSorted().join(',');
 			const trueFrom: string = split[0];
 			split[0] = this.peer.id;
 			let el: HTMLSpanElement | null = this.window.document.getElementById(aesAccess) as HTMLSpanElement | null;
@@ -510,6 +510,22 @@ class Client {
 		});
 	}
 
+	public async startConversation(to: string): Promise<void> {
+		let split: Array<string> = to.split(',').map((x: string): string => x.trim());
+		const aesAccess: string = split.toSorted().join(',');
+		const trueFrom: string = split[0];
+		split[0] = this.peer.id;
+		if (!this.window.document.getElementById(aesAccess))
+			await this.send(trueFrom, {
+				from: split.join(','),
+				body: await this.exportRSAKey((await this.keyPair).publicKey),
+				time: '',
+				id: '',
+				event: MessageDataEvent.RSAKeyShare,
+			});
+		await this.aesKeyEstablished(aesAccess);
+	}
+
 	/**
 	 * Creates a new conversation with the provded `string` ID of a client.
 	 * @param {string} to - The recipient ID to start a conversation with.
@@ -517,13 +533,12 @@ class Client {
 	 * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
 	 */
 	private async createChat(to: string, establishKey: boolean = true): Promise<HTMLSpanElement> {
-		to = (to.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
-		let split: Array<string> = to.split(',');
-		const aesAccess: string = to;
+		let split: Array<string> = to.split(',').map((x: string): string => x.trim());
+		const aesAccess: string = split.toSorted().join(',');
 		const trueFrom: string = split[0];
 		split[0] = this.peer.id;
 
-		const duplicateCheck: HTMLSpanElement | undefined = document.getElementById(aesAccess) as HTMLSpanElement | undefined;
+		const duplicateCheck: HTMLSpanElement | undefined = this.window.document.getElementById(aesAccess) as HTMLSpanElement | undefined;
 		if (duplicateCheck) {
 			(duplicateCheck.nextSibling as HTMLInputElement).focus();
 			return duplicateCheck;
@@ -556,7 +571,7 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -637,7 +652,7 @@ class Client {
 					new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
 				))));
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -657,7 +672,7 @@ class Client {
 				this.editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -671,7 +686,7 @@ class Client {
 				}
 			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.editing)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -700,7 +715,7 @@ class Client {
 			const localEdit: string | undefined = this.editing;
 			const split: Array<string> = messageData.from.split(',');
 			split[0] = to;
-			const aesAccess: string = (split as any).toSorted().join(',');
+			const aesAccess: string = split.toSorted().join(',');
 			const conn: DataConnection = this.peer.connect(to);
 			conn.on('open', async (): Promise<void> => {
 				const data: string = JSON.stringify(messageData);
