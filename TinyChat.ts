@@ -510,22 +510,6 @@ class Client {
 		});
 	}
 
-	public async startConversation(to: string): Promise<void> {
-		let split: Array<string> = to.split(',').map((x: string): string => x.trim());
-		const aesAccess: string = split.toSorted().join(',');
-		const trueFrom: string = split[0];
-		split[0] = this.peer.id;
-		if (!this.window.document.getElementById(aesAccess))
-			await this.send(trueFrom, {
-				from: split.join(','),
-				body: await this.exportRSAKey((await this.keyPair).publicKey),
-				time: '',
-				id: '',
-				event: MessageDataEvent.RSAKeyShare,
-			});
-		await this.aesKeyEstablished(aesAccess);
-	}
-
 	/**
 	 * Creates a new conversation with the provded `string` ID of a client.
 	 * @param {string} to - The recipient ID to start a conversation with.
@@ -611,18 +595,6 @@ class Client {
 		el.id = aesAccess;
 		collapsible.insertAdjacentElement('beforeend', el);
 
-		if (establishKey) {
-			delete this.aesKeys[aesAccess];
-			await this.send(trueFrom, {
-				from: split.join(','),
-				body: await this.exportRSAKey((await this.keyPair).publicKey),
-				time: '',
-				id: '',
-				event: MessageDataEvent.RSAKeyShare,
-			});
-			await this.aesKeyEstablished(aesAccess);
-		}
-
 		const sendBar: HTMLInputElement = this.window.document.createElement('input');
 		sendBar.type = 'text';
 		sendBar.className = 'sendBar';
@@ -700,6 +672,22 @@ class Client {
 				}
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
+		
+
+		if (establishKey) {
+			sendBar.readOnly = true;
+			delete this.aesKeys[aesAccess];
+			await this.send(trueFrom, {
+				from: split.join(','),
+				body: await this.exportRSAKey((await this.keyPair).publicKey),
+				time: '',
+				id: '',
+				event: MessageDataEvent.RSAKeyShare,
+			});
+			await this.aesKeyEstablished(aesAccess);
+			sendBar.readOnly = false;
+		}
+
 		sendBar.focus();
 		return el;
 	}
@@ -719,8 +707,6 @@ class Client {
 			const conn: DataConnection = this.peer.connect(to);
 			conn.on('open', async (): Promise<void> => {
 				const data: string = JSON.stringify(messageData);
-				conn.send(data);
-				console.log(`SENT: ${data}`);
 				if (isFirst)
 					switch (messageData.event) {
 						case MessageDataEvent.RSAKeyShare:
@@ -857,7 +843,9 @@ class Client {
 								el.insertAdjacentElement('beforeend', paragraph);
 							break;
 					}
-					resolve();
+				conn.send(data);
+				console.log(`SENT: ${data}`);
+				resolve();
 			});
 		});
 	}
