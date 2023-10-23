@@ -468,7 +468,13 @@ class Client {
 						} else
 							el.insertAdjacentElement('beforeend', reply);
 					}
-					el.insertAdjacentElement('beforeend', paragraph);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+							iter = iter.previousSibling as HTMLParagraphElement;
+						el.insertBefore(paragraph, iter);
+					} else
+						el.insertAdjacentElement('beforeend', paragraph);
 					break;
 			}
 		}));
