@@ -770,7 +770,7 @@ class Client {
 									this.replying = undefined;
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 							}
-							paragraph.ondblclick = (ev: MouseEvent): void => {
+							paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
 								ev.preventDefault();
 								if (this.replying) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
@@ -787,6 +787,19 @@ class Client {
 								} else
 									throw new Error('Cannot Edit Non-Delivered Message.');
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+								for (let i: number = 0; i < split.length; i++) {
+									let split2: Array<string> = aesAccess.split(',');
+									const trueFrom2: string = split2[i];
+									split2.splice(i, 1);
+									split2.unshift(this.peer.id);
+									await this.send(trueFrom2, {
+										from: split2.join(','),
+										body: '',
+										time: '',
+										id: '',
+										event: MessageDataEvent.Typing,
+									}, i === 0);
+								}
 							}
 							paragraph.oncontextmenu = (ev: MouseEvent): void => {
 								ev.preventDefault();
