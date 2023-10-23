@@ -350,25 +350,23 @@ class Client {
 					paragraph.innerHTML = ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...';
 					paragraph.className = 'typing';
 					iter = el.lastChild as HTMLParagraphElement;
-					while (iter.className === 'typing') {
+					while (iter && iter.className === 'typing')
 						if (iter.innerHTML === paragraph.innerHTML)
 							return;
 						else
 							iter = iter.previousSibling as HTMLParagraphElement;
-					}
 					paragraph.id = messageData.id;
 					el.insertAdjacentElement('beforeend', paragraph);
 					break;
 				case MessageDataEvent.StopTyping:
-					if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
-						while (iter.className === 'typing') {
+						while (iter && iter.className === 'typing')
 							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
 								el.removeChild(iter);
 								break;
 							} else
 								iter = iter.previousSibling as HTMLParagraphElement;
-						}
 					}
 					break;
 				case MessageDataEvent.Delivered:
@@ -391,15 +389,14 @@ class Client {
 							new Uint8Array(JSON.parse(messageData.time)),
 						))
 						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`);
-					if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
-						while (iter.className === 'typing') {
+						while (iter && iter.className === 'typing')
 							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
 								el.removeChild(iter);
 								break;
 							} else
 								iter = iter.previousSibling as HTMLParagraphElement;
-						}
 					}
 					await this.send(trueFrom, {
 						from: split.join(','),
@@ -428,15 +425,14 @@ class Client {
 						))
 						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 					paragraph.className = 'received';
-					if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
-						while (iter.className === 'typing') {
+						while (iter && iter.className === 'typing')
 							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
 								el.removeChild(iter);
 								break;
 							} else
 								iter = iter.previousSibling as HTMLParagraphElement;
-						}
 					}
 					await this.send(trueFrom, {
 						from: split.join(','),
@@ -449,11 +445,10 @@ class Client {
 					if (split.length > 1) {
 						const from: HTMLParagraphElement = this.window.document.createElement('p');
 						from.innerHTML = `<small><small>From: ${trueFrom}</small></small>`;
-						if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+						if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 							iter = el.lastChild as HTMLParagraphElement;
-							while (iter.previousSibling && (iter.previousSibling as HTMLSpanElement).className === 'typing') {
+							while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
 								iter = iter.previousSibling as HTMLParagraphElement;
-							}
 							el.insertBefore(from, iter);
 						} else
 							el.insertAdjacentElement('beforeend', from);
@@ -465,11 +460,10 @@ class Client {
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.prev)),
 						))) as HTMLElement).outerHTML}</small></small>`;
-						if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+						if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 							iter = el.lastChild as HTMLParagraphElement;
-							while (iter.previousSibling && (iter.previousSibling as HTMLSpanElement).className === 'typing') {
+							while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
 								iter = iter.previousSibling as HTMLParagraphElement;
-							}
 							el.insertBefore(reply, iter);
 						} else
 							el.insertAdjacentElement('beforeend', reply);
@@ -811,20 +805,18 @@ class Client {
 									this.aesKeys[aesAccess][1],
 									new Uint8Array(JSON.parse(messageData.prev)),
 								))) as HTMLElement).outerHTML}</small></small>`;
-								if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+								if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 									let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
-									while (iter.previousSibling && (iter.previousSibling as HTMLSpanElement).className === 'typing') {
+									while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
 										iter = iter.previousSibling as HTMLParagraphElement;
-									}
 									el.insertBefore(reply, iter);
 								} else
 									el.insertAdjacentElement('beforeend', reply);
 							}
-							if (el.lastChild && (el.lastChild as Element).className === 'typing') {
+							if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 								let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
-								while (iter.previousSibling && (iter.previousSibling as HTMLSpanElement).className === 'typing') {
+								while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
 									iter = iter.previousSibling as HTMLParagraphElement;
-								}
 								el.insertBefore(paragraph, iter);
 							}
 							else
