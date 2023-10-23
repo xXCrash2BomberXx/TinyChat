@@ -655,6 +655,7 @@ class Client {
 	 * Send a new message to the provided `string` ID of a client.
 	 * @param {string} to - The recipient ID to send the message to.
 	 * @param {MessageData} messageData - {@link MessageData} object to send to the recipient.
+	 * @param {boolean} [isFirst = true] - If a message needs to be added to the UI after sending.
 	 */
 	public async send(to: string, messageData: MessageData, isFirst: boolean = true): Promise<void> {
 		return new Promise((resolve: (value: (void | Promise<void>)) => void): void => {
