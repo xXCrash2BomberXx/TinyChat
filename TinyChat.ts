@@ -485,6 +485,12 @@ class Client {
 		const trueFrom: string = split[0];
 		split[0] = this.peer.id;
 
+		const duplicateCheck: HTMLSpanElement | undefined = document.getElementById(aesAccess) as HTMLSpanElement | undefined;
+		if (duplicateCheck) {
+			(duplicateCheck.nextSibling as HTMLInputElement).focus();
+			return duplicateCheck;
+		}
+
 		const collapsible: HTMLDetailsElement = this.window.document.createElement('details');
 		collapsible.open = true;
 		this.window.document.body.insertAdjacentElement('beforeend', collapsible);
@@ -568,7 +574,8 @@ class Client {
 		sendBar.type = 'text';
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
-			if (event.key === 'Enter' && (sendBar.value || this.editing)) {
+			if (event.key === 'Enter' && (sendBar.value || this.editing) && !sendBar.readOnly) {
+				sendBar.readOnly = true;
 				if (sendBar.value)
 					sendBar.value = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
 						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
@@ -607,6 +614,7 @@ class Client {
 				}
 
 				sendBar.value = '';
+				sendBar.readOnly = false;
 				this.replying = undefined;
 				this.editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
