@@ -411,6 +411,15 @@ class Client {
 					while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
 						temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
 					temp.parentElement?.removeChild(temp as ChildNode);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
 					break;
 				default:
 					paragraph.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
