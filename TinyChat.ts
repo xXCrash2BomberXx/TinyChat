@@ -224,8 +224,8 @@ class Client {
 		this.peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
-			let split: Array<string> = messageData.from.split(',');
-			const aesAccess: string = (split as any).toSorted().join(',');
+			let split: Array<string> = messageData.from.split(',').map((x: string): string => x.trim());
+			const aesAccess: string = split.toSorted().join(',');
 			const trueFrom: string = split[0];
 			split[0] = this.peer.id;
 			let el: HTMLSpanElement | null = this.window.document.getElementById(aesAccess) as HTMLSpanElement | null;
@@ -265,6 +265,7 @@ class Client {
 					menu.style.top = ev.pageY + 'px';
 				}
 			};
+			let iter: HTMLParagraphElement;
 			switch (messageData.event) {
 				case MessageDataEvent.GroupRSAKeyRequest:
 					delete this.aesKeys[aesAccess];
@@ -348,14 +349,25 @@ class Client {
 				case MessageDataEvent.Typing:
 					paragraph.innerHTML = ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...';
 					paragraph.className = 'typing';
-					if (el.lastChild && (el.lastChild as Element).className === 'typing')
-						return;
+					iter = el.lastChild as HTMLParagraphElement;
+					while (iter && iter.className === 'typing')
+						if (iter.innerHTML === paragraph.innerHTML)
+							return;
+						else
+							iter = iter.previousSibling as HTMLParagraphElement;
 					paragraph.id = messageData.id;
 					el.insertAdjacentElement('beforeend', paragraph);
 					break;
 				case MessageDataEvent.StopTyping:
-					if (el.lastChild && (el.lastChild as Element).className === 'typing')
-						el.removeChild(el.lastChild);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
 					break;
 				case MessageDataEvent.Delivered:
 					let i: number;
@@ -377,8 +389,15 @@ class Client {
 							new Uint8Array(JSON.parse(messageData.time)),
 						))
 						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`);
-					if (el.lastChild && (el.lastChild as Element).className === 'typing')
-						el.removeChild(el.lastChild);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
 					await this.send(trueFrom, {
 						from: split.join(','),
 						body: '',
@@ -392,6 +411,15 @@ class Client {
 					while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
 						temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
 					temp.parentElement?.removeChild(temp as ChildNode);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
 					break;
 				default:
 					paragraph.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
@@ -406,8 +434,15 @@ class Client {
 						))
 						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`;
 					paragraph.className = 'received';
-					if (el.lastChild && (el.lastChild as Element).className === 'typing')
-						el.removeChild(el.lastChild);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
 					await this.send(trueFrom, {
 						from: split.join(','),
 						body: '',
@@ -419,9 +454,12 @@ class Client {
 					if (split.length > 1) {
 						const from: HTMLParagraphElement = this.window.document.createElement('p');
 						from.innerHTML = `<small><small>From: ${trueFrom}</small></small>`;
-						if (el.lastChild && (el.lastChild as Element).className === 'typing')
-							el.insertBefore(from, el.lastChild);
-						else
+						if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+							iter = el.lastChild as HTMLParagraphElement;
+							while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+								iter = iter.previousSibling as HTMLParagraphElement;
+							el.insertBefore(from, iter);
+						} else
 							el.insertAdjacentElement('beforeend', from);
 					}
 					if (messageData.prev) {
@@ -431,12 +469,21 @@ class Client {
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.prev)),
 						))) as HTMLElement).outerHTML}</small></small>`;
-						if (el.lastChild && (el.lastChild as Element).className === 'typing')
-							el.insertBefore(reply, el.lastChild);
-						else
+						if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+							iter = el.lastChild as HTMLParagraphElement;
+							while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+								iter = iter.previousSibling as HTMLParagraphElement;
+							el.insertBefore(reply, iter);
+						} else
 							el.insertAdjacentElement('beforeend', reply);
 					}
-					el.insertAdjacentElement('beforeend', paragraph);
+					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+							iter = iter.previousSibling as HTMLParagraphElement;
+						el.insertBefore(paragraph, iter);
+					} else
+						el.insertAdjacentElement('beforeend', paragraph);
 					break;
 			}
 		}));
@@ -479,13 +526,12 @@ class Client {
 	 * @returns {Promise<HTMLSpanElement>} a `Promise<HTMLSpanElement>` that resolves to the newly created `HTMLSpanElement` for the conversation.
 	 */
 	private async createChat(to: string, establishKey: boolean = true): Promise<HTMLSpanElement> {
-		to = (to.split(',') as any).toSorted().map((x: string): string => x.trim()).join(',');
-		let split: Array<string> = to.split(',');
-		const aesAccess: string = to;
+		let split: Array<string> = to.split(',').map((x: string): string => x.trim());
+		const aesAccess: string = split.toSorted().join(',');
 		const trueFrom: string = split[0];
 		split[0] = this.peer.id;
 
-		const duplicateCheck: HTMLSpanElement | undefined = document.getElementById(aesAccess) as HTMLSpanElement | undefined;
+		const duplicateCheck: HTMLSpanElement | undefined = this.window.document.getElementById(aesAccess) as HTMLSpanElement | undefined;
 		if (duplicateCheck) {
 			(duplicateCheck.nextSibling as HTMLInputElement).focus();
 			return duplicateCheck;
@@ -518,7 +564,7 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -540,6 +586,7 @@ class Client {
 		generateNewAESKeyButton.className = 'chatButtons';
 		generateNewAESKeyButton.onclick = async (ev: MouseEvent): Promise<void> => {
 			ev.preventDefault();
+			sendBar.readOnly = true;
 			delete this.aesKeys[aesAccess];
 			await this.send(trueFrom, {
 				from: split.join(','),
@@ -549,6 +596,7 @@ class Client {
 				event: MessageDataEvent.RSAKeyShare,
 			});
 			await this.aesKeyEstablished(aesAccess);
+			sendBar.readOnly = false;
 		};
 		chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
 
@@ -557,18 +605,6 @@ class Client {
 		el.className = 'message';
 		el.id = aesAccess;
 		collapsible.insertAdjacentElement('beforeend', el);
-
-		if (establishKey) {
-			delete this.aesKeys[aesAccess];
-			await this.send(trueFrom, {
-				from: split.join(','),
-				body: await this.exportRSAKey((await this.keyPair).publicKey),
-				time: '',
-				id: '',
-				event: MessageDataEvent.RSAKeyShare,
-			});
-			await this.aesKeyEstablished(aesAccess);
-		}
 
 		const sendBar: HTMLInputElement = this.window.document.createElement('input');
 		sendBar.type = 'text';
@@ -599,7 +635,7 @@ class Client {
 					new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
 				))));
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -619,7 +655,7 @@ class Client {
 				this.editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -633,7 +669,7 @@ class Client {
 				}
 			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.editing)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = to.split(',');
+					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.peer.id);
@@ -647,6 +683,22 @@ class Client {
 				}
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
+		
+
+		if (establishKey) {
+			sendBar.readOnly = true;
+			delete this.aesKeys[aesAccess];
+			await this.send(trueFrom, {
+				from: split.join(','),
+				body: await this.exportRSAKey((await this.keyPair).publicKey),
+				time: '',
+				id: '',
+				event: MessageDataEvent.RSAKeyShare,
+			});
+			await this.aesKeyEstablished(aesAccess);
+			sendBar.readOnly = false;
+		}
+
 		sendBar.focus();
 		return el;
 	}
@@ -662,12 +714,10 @@ class Client {
 			const localEdit: string | undefined = this.editing;
 			const split: Array<string> = messageData.from.split(',');
 			split[0] = to;
-			const aesAccess: string = (split as any).toSorted().join(',');
+			const aesAccess: string = split.toSorted().join(',');
 			const conn: DataConnection = this.peer.connect(to);
 			conn.on('open', async (): Promise<void> => {
 				const data: string = JSON.stringify(messageData);
-				conn.send(data);
-				console.log(`SENT: ${data}`);
 				if (isFirst)
 					switch (messageData.event) {
 						case MessageDataEvent.RSAKeyShare:
@@ -732,7 +782,7 @@ class Client {
 									this.replying = undefined;
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 							}
-							paragraph.ondblclick = (ev: MouseEvent): void => {
+							paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
 								ev.preventDefault();
 								if (this.replying) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
@@ -749,6 +799,19 @@ class Client {
 								} else
 									throw new Error('Cannot Edit Non-Delivered Message.');
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+								for (let i: number = 0; i < split.length; i++) {
+									let split2: Array<string> = aesAccess.split(',');
+									const trueFrom2: string = split2[i];
+									split2.splice(i, 1);
+									split2.unshift(this.peer.id);
+									await this.send(trueFrom2, {
+										from: split2.join(','),
+										body: '',
+										time: '',
+										id: '',
+										event: MessageDataEvent.Typing,
+									}, i === 0);
+								}
 							}
 							paragraph.oncontextmenu = (ev: MouseEvent): void => {
 								ev.preventDefault();
@@ -773,18 +836,27 @@ class Client {
 									this.aesKeys[aesAccess][1],
 									new Uint8Array(JSON.parse(messageData.prev)),
 								))) as HTMLElement).outerHTML}</small></small>`;
-								if (el.lastChild && (el.lastChild as Element).className === 'typing')
-									el.insertBefore(reply, el.lastChild);
-								else
+								if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+									let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
+									while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+										iter = iter.previousSibling as HTMLParagraphElement;
+									el.insertBefore(reply, iter);
+								} else
 									el.insertAdjacentElement('beforeend', reply);
 							}
-							if (el.lastChild && (el.lastChild as Element).className === 'typing')
-								el.insertBefore(paragraph, el.lastChild);
+							if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+								let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
+								while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+									iter = iter.previousSibling as HTMLParagraphElement;
+								el.insertBefore(paragraph, iter);
+							}
 							else
 								el.insertAdjacentElement('beforeend', paragraph);
 							break;
 					}
-					resolve();
+				conn.send(data);
+				console.log(`SENT: ${data}`);
+				resolve();
 			});
 		});
 	}
