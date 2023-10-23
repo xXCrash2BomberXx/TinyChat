@@ -586,6 +586,7 @@ class Client {
 		generateNewAESKeyButton.className = 'chatButtons';
 		generateNewAESKeyButton.onclick = async (ev: MouseEvent): Promise<void> => {
 			ev.preventDefault();
+			sendBar.readOnly = true;
 			delete this.aesKeys[aesAccess];
 			await this.send(trueFrom, {
 				from: split.join(','),
@@ -595,6 +596,7 @@ class Client {
 				event: MessageDataEvent.RSAKeyShare,
 			});
 			await this.aesKeyEstablished(aesAccess);
+			sendBar.readOnly = false;
 		};
 		chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
 
