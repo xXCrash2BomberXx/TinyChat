@@ -683,7 +683,6 @@ class Client {
 				}
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
-		
 
 		if (establishKey) {
 			sendBar.readOnly = true;
