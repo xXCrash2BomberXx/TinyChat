@@ -65,6 +65,20 @@ details {
 	width: 25%;
 }
 
+.sent,
+.received,
+.typing {
+	--r: 25px;
+	--t: 30px;
+	max-width: 300px;
+	padding: calc(2*var(--r)/3);
+	-webkit-mask:
+		radial-gradient(var(--t) at var(--_d) 0, #0000 98%, #000 102%) var(--_d) 100%/calc(100% - var(--r)) var(--t) no-repeat,
+		conic-gradient(at var(--r) var(--r), #000 75%, #0000 0) calc(var(--r)/-2) calc(var(--r)/-2) padding-box,
+		radial-gradient(50% 50%, #000 98%, #0000 101%) 0 0/var(--r) var(--r) space padding-box;
+}
+
+.typing,
 .sentReply,
 .receivedReply,
 .sent,
@@ -108,12 +122,20 @@ details {
 
 .received,
 .typing {
+	--_d: 0%;
+	border-left: var(--t) solid #dddddd;
+	margin-right: var(--t);
+	place-self: start;
 	text-align: left;
 	background-color: #dddddd;
 	margin-right: 45%;
 }
 
 .sent {
+	--_d: 100%;
+	border-right: var(--t) solid #0074d9;
+	margin-left: var(--t);
+	place-self: end;
 	text-align: right;
 	background-color: #0074d9;
 	margin-left: 45%;
