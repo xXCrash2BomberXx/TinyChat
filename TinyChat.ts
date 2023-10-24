@@ -448,8 +448,14 @@ class Client {
 		const localEdit: string | undefined = this.#editing;
 		const split: Array<string> = messageData.from.split(',');
 		const trueFrom: string = split[0];
-		split[0] = to;
-		const aesAccess: string = split.toSorted().join(',');
+		let aesAccess: string;
+		if (to !== this.#peer.id) {
+			split[0] = to;
+			aesAccess = split.toSorted().join(',');
+		} else {
+			aesAccess = split.toSorted().join(',');
+			split[0] = to;
+		}
 		let el: HTMLSpanElement | null = this.#window.document.getElementById(aesAccess) as HTMLSpanElement | null;
 		if (!el)
 			el = await this.createChat(messageData.from, false);
