@@ -381,7 +381,6 @@ class Client {
 					for (i = el.children.length - 1; i >= 0; i--)
 						if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 							break;
-					console.log(el.children[i].innerHTML);
 					if (el.children[i])
 						el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 					break;
@@ -644,6 +643,11 @@ class Client {
 					this.aesKeys[aesAccess][1],
 					new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
 				))));
+				if (this.editing) {
+					const elem: HTMLParagraphElement = this.window.document.getElementById(this.editing as string) as HTMLParagraphElement;
+					this.replying = this.editing && (elem.firstChild as HTMLElement).tagName == elem.tagName ? (elem.firstChild as HTMLParagraphElement).id : this.replying;
+					console.log(this.replying);
+				}
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -829,9 +833,9 @@ class Client {
 								}
 								this.editing = paragraph.id;
 								if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+									((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = (((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? paragraph.firstChild?.nextSibling : paragraph.firstChild) as Text).data.slice(0, -1);
 									paragraph.removeChild(paragraph.lastChild);
-										paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
-									((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
+									paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 								} else
 									throw new Error('Cannot Edit Non-Delivered Message.');
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
