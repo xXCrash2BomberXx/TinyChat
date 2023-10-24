@@ -122,21 +122,17 @@ details {
 .received,
 .typing {
 	--_d: 0%;
-	border-left: var(--t) solid #dddddd;
 	margin-right: var(--t);
 	place-self: start;
 	text-align: left;
-	background-color: #dddddd;
 	margin-right: 40%;
 }
 
 .sent {
 	--_d: 100%;
-	border-right: var(--t) solid #0074d9;
 	margin-left: var(--t);
 	place-self: end;
 	text-align: right;
-	background-color: #0074d9;
 	margin-left: 40%;
 }
 
@@ -177,6 +173,17 @@ li {
 		border-color: gray;
 		background-color: lightgray;
 	}
+
+	.received,
+	.typing {
+		border-left: var(--t) solid #dddddd;
+		background-color: #dddddd;
+	}
+
+	.sent {
+		border-right: var(--t) solid #0074d9;
+		background-color: #0074d9;
+	}
 }
 
 @media (prefers-color-scheme: dark) {
@@ -196,5 +203,16 @@ li {
 		color: white;
 		border-color: darkgray;
 		background-color: gray;
+	}
+
+	.received,
+	.typing {
+		border-left: var(--t) solid #dddddd;
+		background-color: #dddddd;
+	}
+
+	.sent {
+		border-right: var(--t) solid #0074d9;
+		background-color: #0074d9;
 	}
 }
