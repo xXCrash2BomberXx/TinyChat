@@ -473,6 +473,8 @@ class Client {
 						reply.className = prev.className + 'Reply';
 						reply.id = prev.id;
 						reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+						if ((reply.firstChild?.firstChild?.firstChild as HTMLElement).tagName == reply.tagName)
+							reply.firstChild?.firstChild?.removeChild(reply.firstChild?.firstChild?.firstChild as HTMLParagraphElement);
 						paragraph.insertAdjacentElement('afterbegin', reply);
 					}
 					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
@@ -863,6 +865,8 @@ class Client {
 								reply.className = prev.className + 'Reply';
 								reply.id = prev.id;
 								reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+								if ((reply.firstChild?.firstChild?.firstChild as HTMLElement).tagName == reply.tagName)
+									reply.firstChild?.firstChild?.removeChild(reply.firstChild?.firstChild?.firstChild as HTMLParagraphElement);
 								paragraph.insertAdjacentElement('afterbegin', reply);
 							}
 							if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {

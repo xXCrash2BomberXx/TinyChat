@@ -65,7 +65,10 @@ details {
 	width: 25%;
 }
 
-p {
+.sentReply,
+.receivedReply,
+.sent,
+.received {
 	padding: 1em;
 	border-radius: 1em;
 	width: 50%;
@@ -83,8 +86,14 @@ p {
 	width: 100%;
 }
 
-p:has(.sentReply),
-p:has(.receivedReply) {
+.sentReply:has(.sentReply),
+.receivedReply:has(.sentReply),
+.sent:has(.sentReply),
+.received:has(.sentReply),
+.sentReply:has(.receivedReply),
+.receivedReply:has(.receivedReply),
+.sent:has(.receivedReply),
+.received:has(.receivedReply) {
 	padding-top: 0;
 	margin-top: 0;
 }
