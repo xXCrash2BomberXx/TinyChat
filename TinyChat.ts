@@ -470,7 +470,7 @@ class Client {
 							new Uint8Array(JSON.parse(messageData.prev)),
 						))) as HTMLParagraphElement;
 						const reply: HTMLParagraphElement = this.window.document.createElement('p');
-						reply.className = 'receivedReply';
+						reply.className = prev.className + 'Reply';
 						reply.id = prev.id;
 						reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 						paragraph.insertAdjacentElement('afterbegin', reply);
@@ -860,7 +860,7 @@ class Client {
 									new Uint8Array(JSON.parse(messageData.prev)),
 								))) as HTMLParagraphElement;
 								const reply: HTMLParagraphElement = this.window.document.createElement('p');
-								reply.className = "sentReply";
+								reply.className = prev.className + 'Reply';
 								reply.id = prev.id;
 								reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 								paragraph.insertAdjacentElement('afterbegin', reply);
