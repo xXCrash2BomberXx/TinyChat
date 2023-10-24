@@ -10,6 +10,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Test
-      run: |
-        npm install
+    
+    - name: Install
+      run: npm install
+    
+    - name: Build
+      run: npx tsc
