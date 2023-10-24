@@ -829,19 +829,16 @@ class Client {
 							if (!el)
 								el = await this.createChat(to, false);
 							if (messageData.prev) {
-								const reply: HTMLParagraphElement = this.window.document.createElement('p');
-								reply.innerHTML = `<small><small>${(this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
+								const prev: HTMLParagraphElement = this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
 									{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 									this.aesKeys[aesAccess][1],
 									new Uint8Array(JSON.parse(messageData.prev)),
-								))) as HTMLElement).outerHTML}</small></small>`;
-								if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-									let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
-									while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
-										iter = iter.previousSibling as HTMLParagraphElement;
-									el.insertBefore(reply, iter);
-								} else
-									el.insertAdjacentElement('beforeend', reply);
+								))) as HTMLParagraphElement;
+								const reply: HTMLParagraphElement = this.window.document.createElement('p');
+								reply.className = "sentReply";
+								reply.id = prev.id;
+								reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+								paragraph.insertAdjacentElement('afterbegin', reply);
 							}
 							if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 								let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;

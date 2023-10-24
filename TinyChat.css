@@ -66,16 +66,35 @@ details {
 }
 
 p {
-	margin: 0px;
+	padding: 10px;
+	margin: 10px;
+}
+
+p:has(.sentReply),
+p:has(.receivedReply) {
+	padding-top: 0;
+	margin-top: 0;
+}
+
+.sentReply,
+.receivedReply {
+	padding: 0;
+	margin: 0;
+	padding-top: 10px;
 }
 
 .received,
 .typing {
 	text-align: left;
+	background-color: #ddd;
+	border-radius: 10px;
 }
 
 .sent {
 	text-align: right;
+	background-color: #0074d9;
+	color: #fff;
+	border-radius: 10px;
 }
 
 .context-menu {
