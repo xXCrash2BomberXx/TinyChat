@@ -68,6 +68,7 @@ details {
 p {
 	padding: 10px;
 	margin: 10px;
+	border-radius: 10px;
 }
 
 p:has(.sentReply),
@@ -87,14 +88,11 @@ p:has(.receivedReply) {
 .typing {
 	text-align: left;
 	background-color: #ddd;
-	border-radius: 10px;
 }
 
 .sent {
 	text-align: right;
 	background-color: #0074d9;
-	color: #fff;
-	border-radius: 10px;
 }
 
 .context-menu {
