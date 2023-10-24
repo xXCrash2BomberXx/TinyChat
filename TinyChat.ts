@@ -236,17 +236,24 @@ class Client {
 				ev.preventDefault();
 				if (this.editing) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.editing) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 					this.editing = undefined;
 				} else if (this.replying) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 				}
 				if (this.replying != paragraph.id) {
 					this.replying = paragraph.id;
-					if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
-						paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
-					else
+					if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+						paragraph.removeChild(paragraph.lastChild);
+						paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+					} else
 						throw new Error('Cannot Reply to Non-Delivered Message.');
 				} else
 					this.replying = undefined;
@@ -620,7 +627,10 @@ class Client {
 					))));
 				if (this.replying) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 					this.replying = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
 						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 						this.aesKeys[aesAccess][1],
