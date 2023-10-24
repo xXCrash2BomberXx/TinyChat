@@ -577,8 +577,6 @@ class Client {
 				}
 				break;
 			case MessageDataEvent.Delivered:
-				if (to !== this.#peer.id)
-					break;
 				let i: number;
 				for (i = el.children.length - 1; i >= 0; i--)
 					if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
@@ -625,26 +623,15 @@ class Client {
 						new Uint8Array(JSON.parse(messageData.time)),
 					)) : messageData.time
 					}</i></small></small></small>`;
-				if (to !== this.#peer.id)
-					paragraph.className = 'sent';
-				else {
-					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-						iter = el.lastChild as HTMLParagraphElement;
-						while (iter && iter.className === 'typing')
-							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
-								el.removeChild(iter);
-								break;
-							} else
-								iter = iter.previousSibling as HTMLParagraphElement;
-					}
-					await this.#send(trueFrom, {
-						from: split.join(','),
-						body: '',
-						time: '',
-						id: messageData.id,
-						event: MessageDataEvent.Delivered,
-					});
-					paragraph.className = 'received';
+				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
+				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+					iter = el.lastChild as HTMLParagraphElement;
+					while (iter && iter.className === 'typing')
+						if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+							el.removeChild(iter);
+							break;
+						} else
+							iter = iter.previousSibling as HTMLParagraphElement;
 				}
 				paragraph.id = messageData.id;
 				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
@@ -761,6 +748,15 @@ class Client {
 				}
 				else
 					el.insertAdjacentElement('beforeend', paragraph);
+
+				if (to === this.#peer.id)
+					await this.#send(trueFrom, {
+						from: split.join(','),
+						body: '',
+						time: '',
+						id: messageData.id,
+						event: MessageDataEvent.Delivered,
+					});
 				break;
 		}
 	}
