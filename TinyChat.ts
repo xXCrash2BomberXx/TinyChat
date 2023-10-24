@@ -385,17 +385,25 @@ class Client {
 						el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 					break;
 				case MessageDataEvent.Edit:
-					this.window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
-						this.aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.body)),
-					))
-						} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+					this.window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<void> => {
+						if ((el.firstChild as HTMLElement).tagName == el.tagName)
+							while (el.firstChild.nextSibling)
+								el.removeChild(el.firstChild.nextSibling);
+						else
+							while (el.firstChild)
+								el.removeChild(el.firstChild);
+						el.insertAdjacentHTML('beforeend', `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 							this.aesKeys[aesAccess][1],
-							new Uint8Array(JSON.parse(messageData.time)),
+							new Uint8Array(JSON.parse(messageData.body)),
 						))
-						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`);
+							} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+								{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+								this.aesKeys[aesAccess][1],
+								new Uint8Array(JSON.parse(messageData.time)),
+							))
+							}</i></small></small></small>`);
+					});
 					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
 						while (iter && iter.className === 'typing')
