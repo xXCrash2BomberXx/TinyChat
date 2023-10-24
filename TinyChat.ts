@@ -643,11 +643,6 @@ class Client {
 					this.aesKeys[aesAccess][1],
 					new Uint8Array(new TextEncoder().encode((this.editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
 				))));
-				if (this.editing) {
-					const elem: HTMLParagraphElement = this.window.document.getElementById(this.editing as string) as HTMLParagraphElement;
-					this.replying = this.editing && (elem.firstChild as HTMLElement).tagName == elem.tagName ? (elem.firstChild as HTMLParagraphElement).id : this.replying;
-					console.log(this.replying);
-				}
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -742,17 +737,25 @@ class Client {
 						case MessageDataEvent.Delivered:
 							break;
 						case MessageDataEvent.Edit:
-							this.window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
-								{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
-								this.aesKeys[aesAccess][1],
-								new Uint8Array(JSON.parse(messageData.body)),
-							))
-								} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+							this.window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<void> => {
+								if ((el.firstChild as HTMLElement).tagName == el.tagName)
+									while (el.firstChild.nextSibling)
+										el.removeChild(el.firstChild.nextSibling);
+								else
+									while (el.firstChild)
+										el.removeChild(el.firstChild);
+								el.insertAdjacentHTML('beforeend', `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 									{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 									this.aesKeys[aesAccess][1],
-									new Uint8Array(JSON.parse(messageData.time)),
+									new Uint8Array(JSON.parse(messageData.body)),
 								))
-								}</i></small></small></small>`);
+									} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+										{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+										this.aesKeys[aesAccess][1],
+										new Uint8Array(JSON.parse(messageData.time)),
+									))
+									}</i></small></small></small>`);
+							});
 							break;
 						case MessageDataEvent.Unsend:
 							const temp: HTMLParagraphElement = this.window.document.getElementById(messageData.id) as HTMLParagraphElement;
