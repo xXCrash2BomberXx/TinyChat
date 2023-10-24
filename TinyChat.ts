@@ -236,17 +236,24 @@ class Client {
 				ev.preventDefault();
 				if (this.editing) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.editing) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 					this.editing = undefined;
 				} else if (this.replying) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 				}
 				if (this.replying != paragraph.id) {
 					this.replying = paragraph.id;
-					if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
-						paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
-					else
+					if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+						paragraph.removeChild(paragraph.lastChild);
+						paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+					} else
 						throw new Error('Cannot Reply to Non-Delivered Message.');
 				} else
 					this.replying = undefined;
@@ -375,20 +382,28 @@ class Client {
 						if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 							break;
 					if (el.children[i])
-						el.children[i].innerHTML += ' <small><small><small><i>✓</i></small></small></small>';
+						el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 					break;
 				case MessageDataEvent.Edit:
-					this.window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
-						this.aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.body)),
-					))
-						} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+					this.window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<void> => {
+						if ((el.firstChild as HTMLElement).tagName == el.tagName)
+							while (el.firstChild.nextSibling)
+								el.removeChild(el.firstChild.nextSibling);
+						else
+							while (el.firstChild)
+								el.removeChild(el.firstChild);
+						el.insertAdjacentHTML('beforeend', `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 							this.aesKeys[aesAccess][1],
-							new Uint8Array(JSON.parse(messageData.time)),
+							new Uint8Array(JSON.parse(messageData.body)),
 						))
-						}</i></small></small></small> <small><small><small><i>✓</i></small></small></small>`);
+							} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+								{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+								this.aesKeys[aesAccess][1],
+								new Uint8Array(JSON.parse(messageData.time)),
+							))
+							}</i></small></small></small>`);
+					});
 					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
 						while (iter && iter.className === 'typing')
@@ -463,19 +478,18 @@ class Client {
 							el.insertAdjacentElement('beforeend', from);
 					}
 					if (messageData.prev) {
-						const reply: HTMLParagraphElement = this.window.document.createElement('p');
-						reply.innerHTML = `<small><small>${(this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
+						const prev: HTMLParagraphElement = this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
 							{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 							this.aesKeys[aesAccess][1],
 							new Uint8Array(JSON.parse(messageData.prev)),
-						))) as HTMLElement).outerHTML}</small></small>`;
-						if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-							iter = el.lastChild as HTMLParagraphElement;
-							while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
-								iter = iter.previousSibling as HTMLParagraphElement;
-							el.insertBefore(reply, iter);
-						} else
-							el.insertAdjacentElement('beforeend', reply);
+						))) as HTMLParagraphElement;
+						const reply: HTMLParagraphElement = this.window.document.createElement('p');
+						reply.className = prev.className + 'Reply';
+						reply.id = prev.id;
+						reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+						if ((reply.firstChild?.firstChild?.firstChild as HTMLElement).tagName == reply.tagName)
+							reply.firstChild?.firstChild?.removeChild(reply.firstChild?.firstChild?.firstChild as HTMLParagraphElement);
+						paragraph.insertAdjacentElement('afterbegin', reply);
 					}
 					if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 						iter = el.lastChild as HTMLParagraphElement;
@@ -620,7 +634,10 @@ class Client {
 					))));
 				if (this.replying) {
 					const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-					prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
 					this.replying = JSON.stringify(Array.from(new Uint8Array(await this.crypto.subtle.encrypt(
 						{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 						this.aesKeys[aesAccess][1],
@@ -728,17 +745,25 @@ class Client {
 						case MessageDataEvent.Delivered:
 							break;
 						case MessageDataEvent.Edit:
-							this.window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<string> => el.innerHTML = `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
-								{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
-								this.aesKeys[aesAccess][1],
-								new Uint8Array(JSON.parse(messageData.body)),
-							))
-								} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+							this.window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<void> => {
+								if ((el.firstChild as HTMLElement).tagName == el.tagName)
+									while (el.firstChild.nextSibling)
+										el.removeChild(el.firstChild.nextSibling);
+								else
+									while (el.firstChild)
+										el.removeChild(el.firstChild);
+								el.insertAdjacentHTML('beforeend', `${new TextDecoder().decode(await this.crypto.subtle.decrypt(
 									{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 									this.aesKeys[aesAccess][1],
-									new Uint8Array(JSON.parse(messageData.time)),
+									new Uint8Array(JSON.parse(messageData.body)),
 								))
-								}</i></small></small></small>`);
+									} <small><small><small><i>${new TextDecoder().decode(await this.crypto.subtle.decrypt(
+										{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
+										this.aesKeys[aesAccess][1],
+										new Uint8Array(JSON.parse(messageData.time)),
+									))
+									}</i></small></small></small>`);
+							});
 							break;
 						case MessageDataEvent.Unsend:
 							const temp: HTMLParagraphElement = this.window.document.getElementById(messageData.id) as HTMLParagraphElement;
@@ -761,40 +786,67 @@ class Client {
 								}</i></small></small></small>`;
 							paragraph.className = 'sent';
 							paragraph.id = messageData.id;
-							paragraph.onclick = (ev: MouseEvent): void => {
+							paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
 								ev.preventDefault();
 								if (this.editing) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.editing) as HTMLSpanElement;
-									prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+									if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+										prev.removeChild(prev.lastChild);
+										prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+									}
 									this.editing = undefined;
 								} else if (this.replying) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-									prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+									if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+										prev.removeChild(prev.lastChild);
+										prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+									}
 								}
 								if (this.replying != paragraph.id) {
 									this.replying = paragraph.id;
-									if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
-										paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>⏎</i></small></small></small>');
-									else
+									if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+										paragraph.removeChild(paragraph.lastChild);
+										paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+									} else
 										throw new Error('Cannot Reply to Non-Delivered Message.');
 								} else
 									this.replying = undefined;
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+								for (let i: number = 0; i < split.length; i++) {
+									let split2: Array<string> = aesAccess.split(',');
+									const trueFrom2: string = split2[i];
+									split2.splice(i, 1);
+									split2.unshift(this.peer.id);
+									await this.send(trueFrom2, {
+										from: split2.join(','),
+										body: '',
+										time: '',
+										id: '',
+										event: MessageDataEvent.StopTyping,
+									}, i === 0);
+								}
 							}
 							paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
 								ev.preventDefault();
 								if (this.replying) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.replying) as HTMLSpanElement;
-									prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>⏎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+									if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+										prev.removeChild(prev.lastChild);
+										prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+									}
 									this.replying = undefined;
 								} else if (this.editing) {
 									const prev: HTMLSpanElement = this.window.document.getElementById(this.editing) as HTMLSpanElement;
-									prev.innerHTML = prev.innerHTML.replace(/ (<small>){3}<i>✎<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✓</i></small></small></small>');
+									if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+										prev.removeChild(prev.lastChild);
+										prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+									}
 								}
 								this.editing = paragraph.id;
-								if (paragraph.innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>')) {
-									paragraph.innerHTML = paragraph.innerHTML.replace(/ (<small>){3}<i>✓<\/i>(<\/small>){3}$/g, ' <small><small><small><i>✎</i></small></small></small>');
-									((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = paragraph.innerHTML.replace(/( (<small>){3}<i>.*<\/i>(<\/small>){3})+$/g, '');
+								if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+									((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = (((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? paragraph.firstChild?.nextSibling : paragraph.firstChild) as Text).data.slice(0, -1);
+									paragraph.removeChild(paragraph.lastChild);
+									paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 								} else
 									throw new Error('Cannot Edit Non-Delivered Message.');
 								((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
@@ -829,19 +881,18 @@ class Client {
 							if (!el)
 								el = await this.createChat(to, false);
 							if (messageData.prev) {
-								const reply: HTMLParagraphElement = this.window.document.createElement('p');
-								reply.innerHTML = `<small><small>${(this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
+								const prev: HTMLParagraphElement = this.window.document.getElementById(new TextDecoder().decode(await this.crypto.subtle.decrypt(
 									{ name: 'AES-CBC', iv: this.aesKeys[aesAccess][0] },
 									this.aesKeys[aesAccess][1],
 									new Uint8Array(JSON.parse(messageData.prev)),
-								))) as HTMLElement).outerHTML}</small></small>`;
-								if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-									let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
-									while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
-										iter = iter.previousSibling as HTMLParagraphElement;
-									el.insertBefore(reply, iter);
-								} else
-									el.insertAdjacentElement('beforeend', reply);
+								))) as HTMLParagraphElement;
+								const reply: HTMLParagraphElement = this.window.document.createElement('p');
+								reply.className = prev.className + 'Reply';
+								reply.id = prev.id;
+								reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+								if ((reply.firstChild?.firstChild?.firstChild as HTMLElement).tagName == reply.tagName)
+									reply.firstChild?.firstChild?.removeChild(reply.firstChild?.firstChild?.firstChild as HTMLParagraphElement);
+								paragraph.insertAdjacentElement('afterbegin', reply);
 							}
 							if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 								let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
