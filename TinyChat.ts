@@ -585,7 +585,7 @@ class Client {
 					el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 				break;
 			case MessageDataEvent.Edit:
-				this.#window.document.querySelectorAll(`[id='${localEdit}']`).forEach(async (el: any): Promise<void> => {
+				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
 					if ((el.firstChild as HTMLElement).tagName == el.tagName)
 						while (el.firstChild.nextSibling)
 							el.removeChild(el.firstChild.nextSibling);
@@ -604,12 +604,41 @@ class Client {
 						))
 						}</i></small></small></small>`);
 				});
+
+				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+					iter = el.lastChild as HTMLParagraphElement;
+					while (iter && iter.className === 'typing')
+						if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+							el.removeChild(iter);
+							break;
+						} else
+							iter = iter.previousSibling as HTMLParagraphElement;
+				}
+
+				if (to === this.#peer.id)
+					await this.#send(trueFrom, {
+						from: split.join(','),
+						body: '',
+						time: '',
+						id: messageData.id,
+						event: MessageDataEvent.Delivered,
+					});
 				break;
 			case MessageDataEvent.Unsend:
 				const temp: HTMLParagraphElement = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
 				while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
 					temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
 				temp.parentElement?.removeChild(temp as ChildNode);
+				
+				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+					iter = el.lastChild as HTMLParagraphElement;
+					while (iter && iter.className === 'typing')
+						if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+							el.removeChild(iter);
+							break;
+						} else
+							iter = iter.previousSibling as HTMLParagraphElement;
+				}
 				break;
 			default:
 				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await this.#crypto.subtle.decrypt(
