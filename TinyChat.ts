@@ -178,9 +178,8 @@ class Client {
 	#str2ab(str: string): ArrayBuffer {
 		const buf: ArrayBuffer = new ArrayBuffer(str.length);
 		const bufView: Uint8Array = new Uint8Array(buf);
-		for (let i: number = 0, strLen = str.length; i < strLen; i++) {
+		for (let i: number = 0, strLen = str.length; i < strLen; i++)
 			bufView[i] = str.charCodeAt(i);
-		}
 		return buf;
 	}
 
