@@ -1,6 +1,10 @@
 try {
 	//@ts-ignore: 2300
-	var Peer = require('peerjs').Peer;
+	var Peer = class {
+		id: string = '';
+		connect (id: string, options?: any): void {}
+		on (event: string, callback: (param?: any) => void) {}
+	};
 } catch { }
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
@@ -208,7 +212,18 @@ class Client {
 	 */
 	#peer: Peer;
 
+	/**
+	 * Window container to modify the DOM of
+	 * @type {Window}
+	 * @readonly
+	 */
 	#window: Window;
+
+	/**
+	 * Crypto library to use for encryption/decryption
+	 * @type {Crypto}
+	 * @readonly
+	 */
 	#crypto: Crypto;
 
 	constructor(w: Window, crypto?: Crypto, id?: string, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
