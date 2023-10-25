@@ -26,5 +26,8 @@ jobs:
     - name: Artifact JS
       uses: actions/upload-artifact@v3
       with:
-        name: TinyChat.js
-        path: TinyChat.js
+        name: TinyChat
+        path: |
+          TinyChat.js
+          TinyChat.html
+          TinyChat.css
