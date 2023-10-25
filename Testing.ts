@@ -3,21 +3,47 @@ const { JSDOM } = require('jsdom');
 const localCrypto = new (require("@peculiar/webcrypto").Crypto)();
 const { readFileSync } = require('fs');
 
-const polyfills: any = {
-	fetch: import('node-fetch'),
-	WebSocket: require('ws'),
-	WebRTC: require('wrtc'),
-	FileReader: require('filereader')
-};
-
-const generateClient: () => typeof Client = () => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto, localCrypto.randomUUID(), polyfills);
+const generateClient: () => typeof Client = () => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto);
 
 Promise.all(Object.entries({
 	'createChatTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
-		const UID: string = localCrypto.randomUUID();
-		await client.createChat(UID, false);
-		return client.getDocument().getElementById(UID).parentElement.outerHTML === `<details open=""><summary>${UID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UID}"></span><input type="text" class="sendBar"></details>`;
+		const UUID: string = localCrypto.randomUUID();
+		await client.createChat(UUID, false);
+		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UUID}"></span><input type="text" class="sendBar"></details>`;
+	},
+	'renderTest': async (): Promise<boolean> => {
+		const client: typeof Client = generateClient();
+		const UUID: string = localCrypto.randomUUID();
+		await client.createChat(UUID, false);
+		client.aesKeys[UUID] = [localCrypto.getRandomValues(new Uint8Array(16)), await localCrypto.subtle.generateKey(
+			{
+				name: 'AES-CBC',
+				length: 256,
+			},
+			true,
+			['encrypt', 'decrypt'],
+		)];
+		const messageBody: string = 'test message';
+		const messageTime: string = new Date().toLocaleTimeString();
+		const messageID: string = localCrypto.randomUUID();
+		await client.render(UUID, {
+			from: client.id,
+			body: JSON.stringify(Array.from(new Uint8Array(await localCrypto.subtle.encrypt(
+				{ name: 'AES-CBC', iv: client.aesKeys[UUID][0] },
+				client.aesKeys[UUID][1],
+				new Uint8Array(new TextEncoder().encode(messageBody)),
+			)))),
+			time: JSON.stringify(Array.from(new Uint8Array(await localCrypto.subtle.encrypt(
+				{ name: 'AES-CBC', iv: client.aesKeys[UUID][0] },
+				client.aesKeys[UUID][1],
+				new Uint8Array(new TextEncoder().encode(messageTime)),
+			)))),
+			id: messageID,
+			event: undefined,
+			prev: undefined
+		});
+		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small></p></span><input type="text" class="sendBar"></details>`;
 	}
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {

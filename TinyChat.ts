@@ -1,7 +1,9 @@
-try {
+if (!Peer)
 	//@ts-ignore: 2300
-	var Peer = require('peerjs').Peer;
-} catch { }
+	var Peer = class {
+		id: string = '';
+		on(event: string, callback: (param?: any) => void) { }
+	};
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -206,15 +208,25 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	#peer: Peer;
+	#peer: Peer = new Peer();
 
+	/**
+	 * Window container to modify the DOM of
+	 * @type {Window}
+	 * @readonly
+	 */
 	#window: Window;
+
+	/**
+	 * Crypto library to use for encryption/decryption
+	 * @type {Crypto}
+	 * @readonly
+	 */
 	#crypto: Crypto;
 
-	constructor(w: Window, crypto?: Crypto, id?: string, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
+	constructor(w: Window, crypto?: Crypto) {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
-		this.#peer = id ? new Peer(id, { polyfills }) : new Peer({ polyfills });
 		this.#keyPair = this.#crypto.subtle.generateKey(
 			{
 				name: 'RSA-OAEP',
@@ -814,6 +826,10 @@ class Client {
 		});
 	}
 
+	/**
+	 * Send a new reaction.
+	 * @param {reaction} to - The reaction to send to the client.
+	 */
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
@@ -850,8 +866,28 @@ class Client {
 		this.#reacting = undefined;
 	}
 
-	getDocument(): Document {
-		return this.#window.document;
+	get window(): Window {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Window in secure context.');
+		return this.#window;
+	}
+
+	get aesKeys(): { [id: string]: [Uint8Array, CryptoKey]; } {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get AES Keys in secure context.');
+		return this.#aesKeys;
+	}
+
+	get id(): string {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Peer ID in secure context.');
+		return this.#peer.id;
+	}
+
+	get render(): (to: string, messageData: MessageData) => Promise<void> {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Render in secure context.');
+		return this.#render;
 	}
 }
 

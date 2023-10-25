@@ -20,14 +20,8 @@
   "devDependencies": {
     "@peculiar/webcrypto": "^1.4.3",
     "@types/node": "^20.8.8",
-    "filereader": "^0.10.3",
     "fs": "^0.0.1-security",
-    "jsdom": "^22.1.0",
-    "node-fetch": "^3.3.2",
-    "node-pre-gyp": "^0.17.0",
-    "peerjs": "^2.0.0-beta.3",
-    "wrtc": "^0.4.7",
-    "ws": "^8.14.2"
+    "jsdom": "^22.1.0"
   },
   "dependencies": {
     "typescript": "^5.2.2"
