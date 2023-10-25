@@ -17,6 +17,12 @@ jobs:
     - name: Build Main Website
       run: npx tsc
     
+    - name: Artifact JS
+      uses: actions/upload-artifact@v3
+      with:
+        name: TinyChat.js
+        path: TinyChat.js
+    
     - name: Build Tests
       run: npx tsc -p test.tsconfig.json
     
