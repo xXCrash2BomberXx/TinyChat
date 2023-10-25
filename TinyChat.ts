@@ -1,11 +1,9 @@
-try {
+if (!Peer)
 	//@ts-ignore: 2300
 	var Peer = class {
 		id: string = '';
-		connect (id: string, options?: any): void {}
-		on (event: string, callback: (param?: any) => void) {}
+		on(event: string, callback: (param?: any) => void) { }
 	};
-} catch { }
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -865,7 +863,27 @@ class Client {
 	}
 
 	getDocument(): Document {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get document in secure context.');
 		return this.#window.document;
+	}
+
+	getAESKeys(): { [id: string]: [Uint8Array, CryptoKey]; } {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get AES Keys in secure context.');
+		return this.#aesKeys;
+	}
+
+	getID(): string {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Peer ID in secure context.');
+		return this.#peer.id;
+	}
+
+	async render(to: string, messageData: MessageData): Promise<void> {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot call Render in secure context.');
+		return this.#render(to, messageData);
 	}
 }
 
