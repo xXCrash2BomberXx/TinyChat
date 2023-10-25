@@ -210,7 +210,7 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	#peer: Peer;
+	#peer: Peer = new Peer();
 
 	/**
 	 * Window container to modify the DOM of
@@ -226,10 +226,9 @@ class Client {
 	 */
 	#crypto: Crypto;
 
-	constructor(w: Window, crypto?: Crypto, id?: string, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
+	constructor(w: Window, crypto?: Crypto) {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
-		this.#peer = id ? new Peer(id, { polyfills }) : new Peer({ polyfills });
 		this.#keyPair = this.#crypto.subtle.generateKey(
 			{
 				name: 'RSA-OAEP',
