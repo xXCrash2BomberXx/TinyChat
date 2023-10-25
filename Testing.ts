@@ -18,7 +18,7 @@ Promise.all(Object.entries({
 		await client.createChat(UUID);
 		const messageBody: string = 'test message';
 		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = localCrypto.randomUUID();
+		const messageID: string = client.randomUUID();
 		await client.render(UUID, {
 			from: client.id,
 			body: await client.encryptAES(UUID, messageBody),
