@@ -1,3 +1,7 @@
+try {
+	//@ts-ignore: 2300
+	var Peer = require('peerjs').Peer;
+} catch { }
 if (!Array.prototype.toSorted)
 	Array.prototype.toSorted = function (compareFn?: ((a: any, b: any) => number) | undefined): Array<any> { return [...this].sort(compareFn); };
 
@@ -203,14 +207,15 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	#peer: Peer = new Peer();
+	#peer: Peer;
 
 	#window: Window;
 	#crypto: Crypto;
 
-	constructor(w: Window, crypto?: Crypto) {
+	constructor(w: Window, crypto?: Crypto, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
+		this.#peer = new Peer({ polyfills });
 		this.#keyPair = this.#crypto.subtle.generateKey(
 			{
 				name: 'RSA-OAEP',
@@ -629,7 +634,7 @@ class Client {
 				while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
 					temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
 				temp.parentElement?.removeChild(temp as ChildNode);
-				
+
 				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					iter = el.lastChild as HTMLParagraphElement;
 					while (iter && iter.className === 'typing')
@@ -846,3 +851,9 @@ class Client {
 		this.#reacting = undefined;
 	}
 }
+
+try {
+	module.exports = {
+		Client
+	};
+} catch (e) { }
