@@ -15,7 +15,7 @@ jobs:
       run: npm install
     
     - name: Build Main Website
-      run: npx tsc -p tsconfig.json
+      run: npx tsc
     
     - name: Build Tests
       run: npx tsc -p test.tsconfig.json
