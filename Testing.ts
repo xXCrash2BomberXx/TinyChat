@@ -3,7 +3,7 @@ const { JSDOM } = require('jsdom');
 const localCrypto = new (require("@peculiar/webcrypto").Crypto)();
 const { readFileSync } = require('fs');
 
-var polyfills: any = {
+const polyfills: any = {
 	fetch: import('node-fetch'),
 	WebSocket: require('ws'),
 	WebRTC: require('wrtc'),
