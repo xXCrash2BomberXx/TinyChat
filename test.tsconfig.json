@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "outDir": ".\\",
+        "target": "esnext",
+        "lib": ["esnext", "dom"],
+        "module": "nodenext",
+		"moduleResolution": "nodenext",
+        "strict": true,
+        "allowSyntheticDefaultImports": false,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+		"forceConsistentCasingInFileNames": true
+    },
+    "files": [
+		".\\Testing.ts"
+    ],
+	"exclude": [
+		"node_modules"
+	]
+}
