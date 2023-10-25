@@ -8,13 +8,13 @@ const generateClient: () => typeof Client = () => new Client(new JSDOM(readFileS
 Promise.all(Object.entries({
 	'createChatTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
-		const UUID: string = localCrypto.randomUUID();
+		const UUID: string = client.randomUUID();
 		await client.createChat(UUID);
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UUID}"></span><input type="text" class="sendBar"></details>`;
 	},
 	'renderTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
-		const UUID: string = localCrypto.randomUUID();
+		const UUID: string = client.randomUUID();
 		await client.createChat(UUID);
 		const messageBody: string = 'test message';
 		const messageTime: string = new Date().toLocaleTimeString();

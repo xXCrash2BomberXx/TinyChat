@@ -369,7 +369,7 @@ class Client {
 					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
 
-				const messageID: string = this.#editing ? this.#editing : this.#crypto.randomUUID();
+				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
 				const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
@@ -762,7 +762,7 @@ class Client {
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
-		const messageID: string = this.#crypto.randomUUID();
+		const messageID: string = this.#randomUUID();
 		const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
@@ -781,6 +781,17 @@ class Client {
 			}, i === 0);
 		}
 		this.#reacting = undefined;
+	}
+
+	/**
+	 * Generate a random UUID not in use.
+	 */
+	#randomUUID(): string {
+		let UUID: string;
+		do {
+			UUID = this.#crypto.randomUUID();
+		} while (this.#window.document.getElementById(UUID));
+		return UUID;
 	}
 
 	/**
@@ -885,6 +896,12 @@ class Client {
 		if ('connect' in Peer.prototype)
 			throw new Error('Cannot get Render in secure context.');
 		return this.#render;
+	}
+
+	get randomUUID(): () => string {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Random UUID in secure context.');
+		return this.#randomUUID;
 	}
 
 	get encryptAES(): (aesAccess: string, message: string) => Promise<string> {
