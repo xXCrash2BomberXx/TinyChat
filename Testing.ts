@@ -9,7 +9,7 @@ var polyfills: any = {
 	FileReader: require('filereader')
 };
 
-const generateClient: () => typeof Client = () => new Client(JSDOM.fromFile('./TinyChat.html').window, localCrypto, polyfills);
+const generateClient: () => typeof Client = () => new Client(JSDOM.fromFile('./TinyChat.html').window, localCrypto, localCrypto.randomUUID(), polyfills);
 
 for (const [key, value] of Object.entries({
 	createChatTest: (): boolean => {

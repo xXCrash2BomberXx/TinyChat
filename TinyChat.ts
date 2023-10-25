@@ -211,10 +211,10 @@ class Client {
 	#window: Window;
 	#crypto: Crypto;
 
-	constructor(w: Window, crypto?: Crypto, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
+	constructor(w: Window, crypto?: Crypto, id?: string, polyfills: { fetch?: any, WebSocket?: any, WebRTC?: any, FileReader?: any } = {}) {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
-		this.#peer = new Peer({ polyfills });
+		this.#peer = id ? new Peer(id, { polyfills }) : new Peer({ polyfills });
 		this.#keyPair = this.#crypto.subtle.generateKey(
 			{
 				name: 'RSA-OAEP',
