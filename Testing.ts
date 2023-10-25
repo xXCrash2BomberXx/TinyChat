@@ -43,7 +43,7 @@ Promise.all(Object.entries({
 			event: undefined,
 			prev: undefined
 		});
-		return true;
+		return client.getDocument().getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small></p></span><input type="text" class="sendBar"></details>`;
 	}
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {
