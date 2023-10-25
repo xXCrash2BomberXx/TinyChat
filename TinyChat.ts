@@ -849,6 +849,10 @@ class Client {
 		}
 		this.#reacting = undefined;
 	}
+
+	getDocument(): Document {
+		return this.#window.document;
+	}
 }
 
 try {
