@@ -853,6 +853,7 @@ class Client {
 }
 
 try {
+	//@ts-ignore: 2580
 	module.exports = {
 		Client
 	};
