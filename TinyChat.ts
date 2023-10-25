@@ -826,6 +826,10 @@ class Client {
 		});
 	}
 
+	/**
+	 * Send a new reaction.
+	 * @param {reaction} to - The reaction to send to the client.
+	 */
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
@@ -862,28 +866,28 @@ class Client {
 		this.#reacting = undefined;
 	}
 
-	getDocument(): Document {
+	get window(): Window {
 		if ('connect' in Peer.prototype)
-			throw new Error('Cannot get document in secure context.');
-		return this.#window.document;
+			throw new Error('Cannot get Window in secure context.');
+		return this.#window;
 	}
 
-	getAESKeys(): { [id: string]: [Uint8Array, CryptoKey]; } {
+	get aesKeys(): { [id: string]: [Uint8Array, CryptoKey]; } {
 		if ('connect' in Peer.prototype)
 			throw new Error('Cannot get AES Keys in secure context.');
 		return this.#aesKeys;
 	}
 
-	getID(): string {
+	get id(): string {
 		if ('connect' in Peer.prototype)
 			throw new Error('Cannot get Peer ID in secure context.');
 		return this.#peer.id;
 	}
 
-	async render(to: string, messageData: MessageData): Promise<void> {
+	get render(): (to: string, messageData: MessageData) => Promise<void> {
 		if ('connect' in Peer.prototype)
-			throw new Error('Cannot call Render in secure context.');
-		return this.#render(to, messageData);
+			throw new Error('Cannot get Render in secure context.');
+		return this.#render;
 	}
 }
 
