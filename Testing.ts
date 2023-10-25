@@ -9,36 +9,20 @@ Promise.all(Object.entries({
 	'createChatTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = localCrypto.randomUUID();
-		await client.createChat(UUID, false);
+		await client.createChat(UUID);
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"></div><span class="message" id="${UUID}"></span><input type="text" class="sendBar"></details>`;
 	},
 	'renderTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = localCrypto.randomUUID();
-		await client.createChat(UUID, false);
-		client.aesKeys[UUID] = [localCrypto.getRandomValues(new Uint8Array(16)), await localCrypto.subtle.generateKey(
-			{
-				name: 'AES-CBC',
-				length: 256,
-			},
-			true,
-			['encrypt', 'decrypt'],
-		)];
+		await client.createChat(UUID);
 		const messageBody: string = 'test message';
 		const messageTime: string = new Date().toLocaleTimeString();
 		const messageID: string = localCrypto.randomUUID();
 		await client.render(UUID, {
 			from: client.id,
-			body: JSON.stringify(Array.from(new Uint8Array(await localCrypto.subtle.encrypt(
-				{ name: 'AES-CBC', iv: client.aesKeys[UUID][0] },
-				client.aesKeys[UUID][1],
-				new Uint8Array(new TextEncoder().encode(messageBody)),
-			)))),
-			time: JSON.stringify(Array.from(new Uint8Array(await localCrypto.subtle.encrypt(
-				{ name: 'AES-CBC', iv: client.aesKeys[UUID][0] },
-				client.aesKeys[UUID][1],
-				new Uint8Array(new TextEncoder().encode(messageTime)),
-			)))),
+			body: await client.encryptAES(UUID, messageBody),
+			time: await client.encryptAES(UUID, messageTime),
 			id: messageID,
 			event: undefined,
 			prev: undefined

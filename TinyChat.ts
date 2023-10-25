@@ -227,16 +227,7 @@ class Client {
 	constructor(w: Window, crypto?: Crypto) {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
-		this.#keyPair = this.#crypto.subtle.generateKey(
-			{
-				name: 'RSA-OAEP',
-				modulusLength: 4096,
-				publicExponent: new Uint8Array([1, 0, 1]),
-				hash: 'SHA-256',
-			},
-			true,
-			['encrypt', 'decrypt'],
-		);
+		this.#keyPair = this.#generateRSA();
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -368,30 +359,18 @@ class Client {
 			if (event.key === 'Enter' && (sendBar.value || this.#editing) && !sendBar.readOnly) {
 				sendBar.readOnly = true;
 				if (sendBar.value)
-					sendBar.value = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new Uint8Array(new TextEncoder().encode(sendBar.value)),
-					))));
+					sendBar.value = await this.#encryptAES(aesAccess, sendBar.value);
 				if (this.#replying) {
 					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
 					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
 						prev.removeChild(prev.lastChild);
 						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 					}
-					this.#replying = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new Uint8Array(new TextEncoder().encode(this.#replying)),
-					))));
+					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
 
 				const messageID: string = this.#editing ? this.#editing : this.#crypto.randomUUID();
-				const messagetime: string = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-					{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-					this.#aesKeys[aesAccess][1],
-					new Uint8Array(new TextEncoder().encode((this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
-				))));
+				const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -442,19 +421,21 @@ class Client {
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
 
-		if (establishKey) {
-			sendBar.readOnly = true;
-			delete this.#aesKeys[aesAccess];
-			await this.#send(trueFrom, {
-				from: split.join(','),
-				body: await this.#exportRSAKey((await this.#keyPair).publicKey),
-				time: '',
-				id: '',
-				event: MessageDataEvent.RSAKeyShare,
-			});
-			await this.#aesKeyEstablished(aesAccess);
-			sendBar.readOnly = false;
-		}
+		if (establishKey)
+			if ('connect' in Peer.prototype) {
+				sendBar.readOnly = true;
+				delete this.#aesKeys[aesAccess];
+				await this.#send(trueFrom, {
+					from: split.join(','),
+					body: await this.#exportRSAKey((await this.#keyPair).publicKey),
+					time: '',
+					id: '',
+					event: MessageDataEvent.RSAKeyShare,
+				});
+				await this.#aesKeyEstablished(aesAccess);
+				sendBar.readOnly = false;
+			} else
+				this.#aesKeys[aesAccess] = await this.#generateAES();
 
 		sendBar.focus();
 		return el;
@@ -495,14 +476,7 @@ class Client {
 					break;
 				await this.#send(trueFrom, {
 					from: split.join(','),
-					body: JSON.stringify([
-						Array.from(this.#aesKeys[aesAccess][0]),
-						Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-							{ name: 'RSA-OAEP' },
-							await this.#importRSAKey(messageData.body),
-							await this.#crypto.subtle.exportKey('raw', this.#aesKeys[aesAccess][1]),
-						))),
-					]),
+					body: await this.#encryptRSA(aesAccess, messageData.body),
 					time: '',
 					id: '',
 					event: MessageDataEvent.AESKeyShare,
@@ -511,24 +485,10 @@ class Client {
 			case MessageDataEvent.RSAKeyShare:
 				if (to !== this.#peer.id)
 					break;
-				this.#aesKeys[aesAccess] = [this.#crypto.getRandomValues(new Uint8Array(16)), await this.#crypto.subtle.generateKey(
-					{
-						name: 'AES-CBC',
-						length: 256,
-					},
-					true,
-					['encrypt', 'decrypt'],
-				)];
+				this.#aesKeys[aesAccess] = await this.#generateAES();
 				await this.#send(trueFrom, {
 					from: split.join(','),
-					body: JSON.stringify([
-						Array.from(this.#aesKeys[aesAccess][0]),
-						Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-							{ name: 'RSA-OAEP' },
-							await this.#importRSAKey(messageData.body),
-							await this.#crypto.subtle.exportKey('raw', this.#aesKeys[aesAccess][1]),
-						))),
-					]),
+					body: await this.#encryptRSA(aesAccess, messageData.body),
 					time: '',
 					id: '',
 					event: MessageDataEvent.AESKeyShare,
@@ -552,18 +512,7 @@ class Client {
 					break;
 				if (this.#aesKeys[aesAccess])
 					break;
-				const parsed: Array<any> = JSON.parse(messageData.body);
-				this.#aesKeys[aesAccess] = [new Uint8Array(parsed[0]), await this.#crypto.subtle.importKey(
-					'raw',
-					await this.#crypto.subtle.decrypt(
-						{ name: 'RSA-OAEP' },
-						(await this.#keyPair).privateKey,
-						new Uint8Array(parsed[1]),
-					),
-					'AES-CBC',
-					true,
-					['encrypt', 'decrypt'],
-				)];
+				this.#aesKeys[aesAccess] = await this.#decryptRSA(messageData.body);
 				break;
 			case MessageDataEvent.Typing:
 				if (to !== this.#peer.id)
@@ -608,16 +557,8 @@ class Client {
 					else
 						while (el.firstChild)
 							el.removeChild(el.firstChild);
-					el.insertAdjacentHTML('beforeend', `${new TextDecoder().decode(await this.#crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.body)),
-					))
-						} <small><small><small><i>${new TextDecoder().decode(await this.#crypto.subtle.decrypt(
-							{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-							this.#aesKeys[aesAccess][1],
-							new Uint8Array(JSON.parse(messageData.time)),
-						))
+					el.insertAdjacentHTML('beforeend', `${await this.#decryptAES(aesAccess, messageData.body)
+						} <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)
 						}</i></small></small></small>`);
 				});
 
@@ -657,16 +598,8 @@ class Client {
 				}
 				break;
 			default:
-				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await this.#crypto.subtle.decrypt(
-					{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-					this.#aesKeys[aesAccess][1],
-					new Uint8Array(JSON.parse(messageData.body)),
-				)) : messageData.body
-					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? new TextDecoder().decode(await this.#crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.time)),
-					)) : messageData.time
+				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
+					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.time) : messageData.time
 					}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
@@ -772,11 +705,7 @@ class Client {
 					}
 				};
 				if (messageData.prev) {
-					const prev: HTMLParagraphElement = this.#window.document.getElementById(new TextDecoder().decode(await this.#crypto.subtle.decrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new Uint8Array(JSON.parse(messageData.prev)),
-					))) as HTMLParagraphElement;
+					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
 					reply.className = prev.className + 'Reply';
 					reply.id = prev.id;
@@ -828,27 +757,15 @@ class Client {
 
 	/**
 	 * Send a new reaction.
-	 * @param {reaction} to - The reaction to send to the client.
+	 * @param {string} reaction - The reaction to send to the client.
 	 */
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		const messageID: string = this.#crypto.randomUUID();
-		const messagetime: string = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-			this.#aesKeys[aesAccess][1],
-			new Uint8Array(new TextEncoder().encode((this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString())),
-		))));
-		reaction = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-			this.#aesKeys[aesAccess][1],
-			new Uint8Array(new TextEncoder().encode(reaction)),
-		))));
-		this.#reacting = JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-			this.#aesKeys[aesAccess][1],
-			new Uint8Array(new TextEncoder().encode(this.#reacting)),
-		))));
+		const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+		reaction = await this.#encryptAES(aesAccess, reaction);
+		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
 		for (let i: number = 0; i < split.length; i++) {
 			let split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
@@ -866,16 +783,96 @@ class Client {
 		this.#reacting = undefined;
 	}
 
+	/**
+	 * Generate a new AES key.
+	 */
+	async #generateAES(): Promise<[Uint8Array, CryptoKey]> {
+		return [this.#crypto.getRandomValues(new Uint8Array(16)), await this.#crypto.subtle.generateKey(
+			{
+				name: 'AES-CBC',
+				length: 256,
+			},
+			true,
+			['encrypt', 'decrypt'])];
+	}
+
+	/**
+	 * Encrypt a message with an AES key.
+	 * @param {string} aesAccess - AES Key ID.
+	 * @param {string} message - Message to Encrypt.
+	 */
+	async #encryptAES(aesAccess: string, message: string): Promise<string> {
+		return JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
+			this.#aesKeys[aesAccess][1],
+			new Uint8Array(new TextEncoder().encode(message))))));
+	}
+
+	/**
+	 * Decrypt a message with an AES key.
+	 * @param {string} aesAccess - AES Key ID.
+	 * @param {string} message - Message to Decrypt.
+	 */
+	async #decryptAES(aesAccess: string, message: string): Promise<string> {
+		return new TextDecoder().decode(await this.#crypto.subtle.decrypt(
+			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
+			this.#aesKeys[aesAccess][1],
+			new Uint8Array(JSON.parse(message))));
+	}
+
+	/**
+	 * Generate a new RSA key.
+	 */
+	async #generateRSA(): Promise<CryptoKeyPair> {
+		return this.#crypto.subtle.generateKey(
+			{
+				name: 'RSA-OAEP',
+				modulusLength: 4096,
+				publicExponent: new Uint8Array([1, 0, 1]),
+				hash: 'SHA-256',
+			},
+			true,
+			['encrypt', 'decrypt']);
+	}
+
+	/**
+	 * Encrypt an AES Key with an RSA Public Key.
+	 * @param {string} aesAccess - AES Key ID to Share.
+	 * @param {string} publicKey - RSA Public Key to Encrypt with.
+	 */
+	async #encryptRSA(aesAccess: string, publicKey: string): Promise<string> {
+		return JSON.stringify([
+			Array.from(this.#aesKeys[aesAccess][0]),
+			Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+				{ name: 'RSA-OAEP' },
+				await this.#importRSAKey(publicKey),
+				await this.#crypto.subtle.exportKey('raw', this.#aesKeys[aesAccess][1]),
+			)))]);
+	}
+
+	/**
+	 * Decrypt a message with an RSA key.
+	 * @param {string} rsaAccess - RSA Key ID.
+	 * @param {string} message - Message to Decrypt.
+	 */
+	async #decryptRSA(message: string): Promise<[Uint8Array, CryptoKey]> {
+		const parsed: Array<any> = JSON.parse(message);
+		return [new Uint8Array(parsed[0]), await this.#crypto.subtle.importKey(
+			'raw',
+			await this.#crypto.subtle.decrypt(
+				{ name: 'RSA-OAEP' },
+				(await this.#keyPair).privateKey,
+				new Uint8Array(parsed[1]),
+			),
+			'AES-CBC',
+			true,
+			['encrypt', 'decrypt'])];
+	}
+
 	get window(): Window {
 		if ('connect' in Peer.prototype)
 			throw new Error('Cannot get Window in secure context.');
 		return this.#window;
-	}
-
-	get aesKeys(): { [id: string]: [Uint8Array, CryptoKey]; } {
-		if ('connect' in Peer.prototype)
-			throw new Error('Cannot get AES Keys in secure context.');
-		return this.#aesKeys;
 	}
 
 	get id(): string {
@@ -888,6 +885,12 @@ class Client {
 		if ('connect' in Peer.prototype)
 			throw new Error('Cannot get Render in secure context.');
 		return this.#render;
+	}
+
+	get encryptAES(): (aesAccess: string, message: string) => Promise<string> {
+		if ('connect' in Peer.prototype)
+			throw new Error('Cannot get Encrypt AES in secure context.');
+		return this.#encryptAES;
 	}
 }
 
