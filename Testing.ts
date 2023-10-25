@@ -1,6 +1,7 @@
 const { Client } = require('./TinyChat.js');
 const { JSDOM } = require('jsdom');
 const localCrypto = new (require("@peculiar/webcrypto").Crypto)();
+const { readFileSync } = require('fs');
 
 var polyfills: any = {
 	fetch: import('node-fetch'),
@@ -9,7 +10,7 @@ var polyfills: any = {
 	FileReader: require('filereader')
 };
 
-const generateClient: () => typeof Client = () => new Client(JSDOM.fromFile('./TinyChat.html').window, localCrypto, localCrypto.randomUUID(), polyfills);
+const generateClient: () => typeof Client = () => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto, localCrypto.randomUUID(), polyfills);
 
 for (const [key, value] of Object.entries({
 	createChatTest: (): boolean => {
