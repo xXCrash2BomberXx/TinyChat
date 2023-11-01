@@ -2,6 +2,7 @@ if (!Peer)
 	//@ts-ignore: 2300
 	var Peer = class {
 		id: string = '';
+		//@ts-ignore: 6133
 		on(event: string, callback: (param?: any) => void) { }
 	};
 if (!Array.prototype.toSorted)
@@ -21,7 +22,7 @@ if (!Array.prototype.toSorted)
  * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
  * @enum {number}
  */
-enum MessageDataEvent {
+const enum MessageDataEvent {
 	/**
 	 * Indicates a user has started typing.
 	 * @name MessageDataEvent.Typing
@@ -74,7 +75,7 @@ enum MessageDataEvent {
  * @readonly
  * @enum {number}
  */
-enum MessageDataEffects { };
+const enum MessageDataEffects { };
 
 /**
  * A message to be sent to a peer.
@@ -117,19 +118,19 @@ interface MessageData {
 	 * @type {MessageDataEvent?}
 	 * @name MessageData.event
 	 */
-	event?: MessageDataEvent,
+	event?: MessageDataEvent | undefined,
 	/**
 	 * Message being replied to.
 	 * @type {string?}
 	 * @name MessageData.prev
 	 */
-	prev?: string,
+	prev?: string | undefined,
 	/**
 	 * Message effect being applied.
 	 * @type {MessageDataEffects?}
 	 * @name MessageData.effect
 	 */
-	effect?: MessageDataEffects,
+	effect?: MessageDataEffects | undefined,
 };
 
 class Client {
