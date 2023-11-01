@@ -193,7 +193,7 @@ class Client {
 	async #importRSAKey(pem: string): Promise<CryptoKey> {
 		return this.#crypto.subtle.importKey(
 			'spki',
-			await this.#str2ab(this.#window.atob(pem)),
+			this.#str2ab(this.#window.atob(pem)),
 			{
 				name: 'RSA-OAEP',
 				hash: 'SHA-256',
@@ -862,7 +862,6 @@ class Client {
 
 	/**
 	 * Decrypt a message with an RSA key.
-	 * @param {string} rsaAccess - RSA Key ID.
 	 * @param {string} message - Message to Decrypt.
 	 */
 	async #decryptRSA(message: string): Promise<[Uint8Array, CryptoKey]> {
