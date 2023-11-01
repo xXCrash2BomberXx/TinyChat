@@ -353,7 +353,6 @@ class Client {
 		collapsible.insertAdjacentElement('beforeend', el);
 
 		const sendBar: HTMLTextAreaElement = this.#window.document.createElement('textarea');
-		//sendBar.type = 'text';
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
 			if (event.key === 'Enter' && !event.shiftKey && (sendBar.value || this.#editing) && !sendBar.readOnly) {
