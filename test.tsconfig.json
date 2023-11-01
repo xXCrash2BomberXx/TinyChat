@@ -16,8 +16,8 @@
 		"strict": true,
 		"useUnknownInCatchVariables": true,
 		"inlineSourceMap": true,
-		"allowJS": true,
-		"checkJS": true,
+		"allowJs": true,
+		"checkJs": true,
 		"forceConsistentCasingInFileNames": true
 	},
 	"files": [
