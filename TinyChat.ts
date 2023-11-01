@@ -2,6 +2,7 @@ if (!Peer)
 	//@ts-ignore: 2300
 	var Peer = class {
 		id: string = '';
+		//@ts-ignore: 6133
 		on(event: string, callback: (param?: any) => void) { }
 	};
 if (!Array.prototype.toSorted)
