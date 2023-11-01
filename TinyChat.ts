@@ -123,13 +123,13 @@ interface MessageData {
 	 * @type {string?}
 	 * @name MessageData.prev
 	 */
-	prev?: string,
+	prev?: string | undefined,
 	/**
 	 * Message effect being applied.
 	 * @type {MessageDataEffects?}
 	 * @name MessageData.effect
 	 */
-	effect?: MessageDataEffects,
+	effect?: MessageDataEffects | undefined,
 };
 
 class Client {
