@@ -21,7 +21,7 @@ if (!Array.prototype.toSorted)
  * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
  * @enum {number}
  */
-enum MessageDataEvent {
+const enum MessageDataEvent {
 	/**
 	 * Indicates a user has started typing.
 	 * @name MessageDataEvent.Typing
@@ -74,7 +74,7 @@ enum MessageDataEvent {
  * @readonly
  * @enum {number}
  */
-enum MessageDataEffects { };
+const enum MessageDataEffects { };
 
 /**
  * A message to be sent to a peer.
@@ -117,7 +117,7 @@ interface MessageData {
 	 * @type {MessageDataEvent?}
 	 * @name MessageData.event
 	 */
-	event?: MessageDataEvent,
+	event?: MessageDataEvent | undefined,
 	/**
 	 * Message being replied to.
 	 * @type {string?}
