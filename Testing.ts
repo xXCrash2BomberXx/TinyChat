@@ -1,4 +1,4 @@
-const { Client } = require('./TinyChat.js');
+import Client } from './TinyChat.js';
 const { JSDOM } = require('jsdom');
 const localCrypto = new (require("@peculiar/webcrypto").Crypto)();
 const { readFileSync } = require('fs');
