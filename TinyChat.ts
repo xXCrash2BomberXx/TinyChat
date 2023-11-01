@@ -352,14 +352,13 @@ class Client {
 		el.id = aesAccess;
 		collapsible.insertAdjacentElement('beforeend', el);
 
-		const sendBar: HTMLInputElement = this.#window.document.createElement('input');
-		sendBar.type = 'text';
+		const sendBar: HTMLTextAreaElement = this.#window.document.createElement('textarea');
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
-			if (event.key === 'Enter' && (sendBar.value || this.#editing) && !sendBar.readOnly) {
+			if (event.key === 'Enter' && !event.shiftKey && (sendBar.value || this.#editing) && !sendBar.readOnly) {
 				sendBar.readOnly = true;
 				if (sendBar.value)
-					sendBar.value = await this.#encryptAES(aesAccess, sendBar.value);
+					sendBar.value = await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>'));
 				if (this.#replying) {
 					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
 					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
@@ -671,7 +670,7 @@ class Client {
 						}
 						this.#editing = paragraph.id;
 						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = (((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? paragraph.firstChild?.nextSibling : paragraph.firstChild) as Text).data.slice(0, -1);
+							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? 1 : 0, -5).map((value: ChildNode): string => (value as HTMLElement).tagName == 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
 							paragraph.removeChild(paragraph.lastChild);
 							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 						} else
