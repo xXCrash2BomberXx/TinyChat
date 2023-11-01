@@ -15,7 +15,9 @@
 		"noUnusedParameters": true,
 		"strict": true,
 		"useUnknownInCatchVariables": true,
-		"allowSyntheticDefaultImports": false,
+		"inlineSourceMap": true,
+		"allowJS": true,
+		"checkJS": true,
 		"forceConsistentCasingInFileNames": true
 	},
 	"files": [
