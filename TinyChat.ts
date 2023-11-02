@@ -232,7 +232,8 @@ class Client {
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
-			await this.#render(this.#peer.id, messageData);
+			if (messageData.from.split(',')[0] === dataConnection.peer)
+				await this.#render(this.#peer.id, messageData);
 		}));
 
 		/**
