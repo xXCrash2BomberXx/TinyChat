@@ -113,13 +113,13 @@ Building this project for development purposes requires either `npm` or `tsc` to
 
 **NPM Method:**
 
-- **Building:** Run `npm run build` which will install `tsc` locally and build the main website. After running the command once, the project can then be rebuilt with `npx tsc` which will compile the TypeScript files for usage. Alternatively, `npm run build` can be used to rebuild the main website. `tsc` can also be manually installed with `npm install -g typescript` and `npm install -g tsc` to remove the need to use `npx`.
+- **Building:** Run `npm run build` which will install `tsc` locally and build the main website. After running the command once, the project can then be rebuilt with `npx tsc` which will compile the TypeScript files for usage. Alternatively, `npm run build` can be used to rebuild the main website. `tsc` can also be manually installed with `npm install -g typescript` to remove the need to use `npx`.
 
 - **Testing:** Run `npm run test` which will install `tsc` locally, build both the main website and the testing backend, and run the testing backend. Modifications to the main website can be recompiled with `npx tsc` and modifications to the testing backend can be recompiled with `npx tsc -p test.tsconfig.json`. Alternatively, `npm run test` can be used to rebuild both the main website and testing backend.
 
 **TSC Method:**
 
-- **Building:** If `tsc` has already been installed through either `npm` with the `-g` flag or through other methods, compiling is as simple as running `tsc` to build the main website. The project can then be rebuilt with `tsc` again.
+- **Building:** If `tsc` has already been installed through either `npm install -g typescript` or through other methods, compiling is as simple as running `tsc` to build the main website. The project can then be rebuilt with `tsc` again.
 
 - **Testing:** Testing cannot be done without `npm` installed.
 
