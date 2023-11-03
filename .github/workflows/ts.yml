@@ -24,6 +24,7 @@ jobs:
       run: node Testing.js
     
     - name: Artifact JS
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: TinyChat
