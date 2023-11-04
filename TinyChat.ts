@@ -558,7 +558,8 @@ class Client {
 					else
 						while (el.firstChild)
 							el.removeChild(el.firstChild);
-					el.insertAdjacentHTML('beforeend', `${await this.#decryptAES(aesAccess, messageData.body)
+					el.insertAdjacentHTML('beforeend', `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''
+						}${await this.#decryptAES(aesAccess, messageData.body)
 						} <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)
 						}</i></small></small></small>`);
 				});
@@ -599,7 +600,7 @@ class Client {
 				}
 				break;
 			default:
-				paragraph.innerHTML = `${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
+				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
 					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.time) : messageData.time
 					}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
@@ -711,17 +712,17 @@ class Client {
 					reply.className = prev.className + 'Reply';
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
-					if ((reply.firstChild?.firstChild?.firstChild as HTMLElement).tagName == reply.tagName)
-						reply.firstChild?.firstChild?.removeChild(reply.firstChild?.firstChild?.firstChild as HTMLParagraphElement);
+					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
+					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-					let iter: HTMLSpanElement = el.lastChild as HTMLParagraphElement;
+					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
 					while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
 						iter = iter.previousSibling as HTMLParagraphElement;
 					el.insertBefore(paragraph, iter);
-				}
-				else
+				} else
 					el.insertAdjacentElement('beforeend', paragraph);
 
 				if (to === this.#peer.id)
