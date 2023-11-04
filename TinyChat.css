@@ -28,7 +28,11 @@ summary {
 	height: 100%;
 }
 
-summary {
+summary,
+#id,
+.sent,
+.received,
+.chatButtons {
 	cursor: pointer;
 }
 
