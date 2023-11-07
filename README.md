@@ -183,41 +183,6 @@ graph TB;
   "];
 ```
 
-### Process View
-
-```mermaid
-stateDiagram
-    Startup --> DisplayingUserID: Open TinyChat
-    DisplayingUserID --> AwaitingConnection: Share User ID
-    AwaitingConnection --> Connected: Connect with Peer
-    Connected --> EncryptedCommunication: Establish Encryption
-    EncryptedCommunication --> Closed: Close Chat
-    state EncryptedCommunication {
-        GetDelivered --> SendMessage
-        SendMessage --> SendEncryptedMessage: Encrypt Message
-        SendEncryptedMessage --> GetDelivered: Wait For Delivery
-        SendEncryptedMessage --> MessageSent
-        MessageSent --> MessageReceived
-        MessageReceived --> SendDelivered: Decrypt Message
-        SendDelivered --> GetDelivered
-    }
-```
-
-### Physical View
-
-```mermaid
-graph LR
-  subgraph Client_Device["Client Device (Javascript-enabled Web Browser)"]
-    Browser[Web Browser] --> JS[Javascript];
-    Browser --> UI[User Interface];
-  end
-  subgraph Cloud_Infrastructure["Cloud Infrastructure"]
-    JS -->|HTTPS| WebServer;
-    WebServer[Web Server] --> ChatService[Chat Service]
-    ChatService --> DB[Database]
-  end
-```
-
 ### Development View
 
 ```mermaid
