@@ -128,14 +128,136 @@ After the prject has been compiled, simply open `TinyChat.html` with your desire
 > [!NOTE]
 > Any changes to TypeScript Files during development will require rebuilding the project as used prior. Modifications to any other file types (i.e. HTML, CSS) will be automatically updated when reloading the page.
 
-## Mermaid Diagram
+## 4+1 Diagram
 
-Below shows the process of 2+ clients intiating a conversation.
-`Client #1` is the client initiating the conversation, `Client #2` is the first client listed in the sender box, and `Client #+` are any clients after.
-As you can see from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
-Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-The reasoning behind `Client #2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
-Since one of the recipients is responsible for generating much of the encryption data, `Client #1` is incapable of creating conversations with invalid keys.
+### Logical View
+
+```mermaid
+graph TB;
+  A["
+  Client
+    <hr>#8226; #peer: Peer
+    #8226; #editing: string
+    #8226; #replying: string
+    #8226; #reacting: string
+    #8226; #keyPair: CryptoKeyPair
+    #8226; #aesKeys: { [id: string]: [Uint8Array, CryptoKey] }
+    #8226; #window: window
+    #8226; #crypto: Crypto
+    <hr>#8226; createChat: (to: string): HTMLSpanElement
+    #8226; #render: (to: string, messageData: MessageData): void
+    #8226; #send: (to: string, messageData: MessageData): void
+    #8226; react: (reaction: string): void
+  "] --> |Has a| B["
+  Peer
+    #8226; id: string
+    #8226; connections: object
+	#8226; disconnected: boolean
+	#8226; destroyed: boolean
+  "];
+  C["
+  MessageData
+    <hr>#8226; from: string
+    #8226; body: string
+    #8226; time: string
+    #8226; id: string
+    #8226; event: MessageDataEvent
+    #8226; prev: string
+    #8226; effect: MessageDataEffects
+  "];
+  D["
+  MessageDataEvent
+    <hr>#8226; Typing
+    #8226; StopTyping
+    #8226; Edit
+    #8226; Unsend
+    #8226; Delivered
+    #8226; GroupRSAKeyRequest
+    #8226; GroupRSAKeyShare
+    #8226; RSAKeyShare
+    #8226; AESKeyShare
+  "];
+  E["
+  MessageDataEffects
+  <hr>
+  "];
+```
+
+### Process View
+
+```mermaid
+stateDiagram
+    Startup --> DisplayingUserID: Open TinyChat
+    DisplayingUserID --> AwaitingConnection: Share User ID
+    AwaitingConnection --> Connected: Connect with Peer
+    Connected --> EncryptedCommunication: Establish Encryption
+    EncryptedCommunication --> Closed: Close Chat
+    state EncryptedCommunication {
+        GetDelivered --> SendMessage
+        SendMessage --> SendEncryptedMessage: Encrypt Message
+        SendEncryptedMessage --> GetDelivered: Wait For Delivery
+        SendEncryptedMessage --> MessageSent
+        MessageSent --> MessageReceived
+        MessageReceived --> SendDelivered: Decrypt Message
+        SendDelivered --> GetDelivered
+    }
+```
+
+### Physical View
+
+```mermaid
+graph LR
+  subgraph Client_Device["Client Device (Javascript-enabled Web Browser)"]
+    Browser[Web Browser] --> JS[Javascript];
+    Browser --> UI[User Interface];
+  end
+  subgraph Cloud_Infrastructure["Cloud Infrastructure"]
+    JS -->|HTTPS| WebServer;
+    WebServer[Web Server] --> ChatService[Chat Service]
+    ChatService --> DB[Database]
+  end
+```
+
+### Development View
+
+```mermaid
+graph TB
+  A["TinyChat.html"];
+  B["
+  PeerJS
+    <hr>#8226; https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js
+  "] --> A;
+  C["TinyChat.js"] --> A;
+  D["
+  NPM
+    <hr>#8226; typescript
+  "] --> C;
+  E["
+  TinyChat.ts
+    <hr>#8226; MessageDataEvent
+    #8226; MessageDataEffects
+    #8226; MessageData
+    #8226; Client
+  "] --> D;
+  F["TinyChat.css"] --> A;
+  G["Testing.js"];
+  H["
+  NPM
+    <hr>#8226; typescript
+    #8226; @peculiar/webcrypto
+    #8226; @types/node
+    #8226; fs
+    #8226; jsdom
+  "] --> G;
+  C --> G;
+  I["
+  Testing.ts
+  <hr>#8226; createChatTest
+  #8226; renderTest
+  "] --> H;
+```
+
+### Scenarios View
 
 ```mermaid
 graph TB;
@@ -174,78 +296,38 @@ graph TB;
   class B user;
 ```
 
-Further, below shows the process of a message being sent in a group conversation.
-As much of the security has already been established, there is no need to put as much processing on any client in particular and the distribution of the workload can be kept to where it is exclusively necessary.
-Because of this, all `Receivers` have the same processes and the `Sender` is the one responsible for ensuring security of their own message (although this is done on the backend meaning the actual user has to do nothing with it).
-A `delivery receipt` is only processed once to ensure that the message is being sent to any client and are no longer processed after the first is received.
-
 ```mermaid
-graph TB;
-    subgraph "Receivers"
-    C;
-    end
+graph LR;
   subgraph "Sender"
+    subgraph "Modifiers"
+      P>Edit] --> O;
+      Q>Reply] --> O;
+    end
+    O>XOR] --> A;
     A>A Message is Typed];
+    A --> S>Stop Typing];
+    S --> T>A Stop Typing Indicator is Sent to each Receiver];
     A --> B>A Typing Indicator is Sent to each Receiver];
-    B --> C;
     A --> E>The Message is Sent];
     E --> F>The Message is Encrypted with the AES Symmetric Key];
+    R>Reaction] --> F;
     F --> G>The Encrypted Message is Sent to each Receiver];
     E --> L>The Message is Added to the UI];
     L --> M>The Sender Waits for a Delivery Receipt];
-    M --> N>A Delivery Receipt is Added to the UI];
+    M --> |Only for First Received| N>A Delivery Receipt is Added to the UI];
   end
   subgraph "Receivers"
-    C>A Typing Indicator is Received] --> D>The Typing Indicator is Added to the UI];
+    B --> C>A Typing Indicator is Received];
+    C --> D>The Typing Indicator is Added to the UI];
     G --> H>The Encrypted Message is Received];
     H --> I>The Encrypted Message is Decrypted with the AES Symmetric Key];
     I --> J>The Decrypted Message is Added to the UI];
     H --> K>A Delivery Receipt is Sent to the Sender];
     K --> M;
+    T --> U>A Stop Typping Indicator is Received];
+    U --> V>The Typing Indicator is Removed from the UI];
   end
 
   classDef user fill:#fff,color:#000
-  class A,E user;
+  class A,E,P,Q,R,S user;
 ```
-
-## State Diagram
-
-`Startup` is the initial state where the TinyChat application is launched.
-As the conversation initiator, `Client#1` moves to the `Displaying User ID` state upon opening TinyChat, which represents the unique User ID being shown to the user.
-`Client#1` shares this User ID to `Client#2` and any additional clients (`Client#+`).
-This action transitions the system to the `Awaiting Connection` state, where TinyChat is now waiting for a connection from the recipients.
-Once `Client#2` connects using the shared User ID, the system moves to the `Connected` state.
-Here, `Client#2`, being the primary recipient, is responsible for initiating the encryption process.
-This design is intended to prevent the malicious creation of a conversation by `Client#1`.
-Upon establishing the encrypted connection, the system enters the `Encrypted Communication` state.
-
-### MessageExchange
-
-Within the confines of `Encrypted Communication`, the `MessageExchange` state exemplifies the action of both sending and receiving encrypted messages involving `Client#1`, `Client#2`, and `Client#+`.
-Every participant, be it the initiator `Client#1` or any other client, can share messages.
-These messages, whether they're replies or new threads, are ensured to reach all participants, thereby promoting a coherent group chat environment.
-Moreover, upon message receipt, clients can dispatch a "read receipt" to the sender, signifying successful message reception.
-
-### EncryptionDecryption
-
-Denotes the process where messages are either encrypted for sending or decrypted upon receiving.
-As the conversation progresses, messages are continually processed (encrypted or decrypted) and exchanged between the clients.
-This loop ensures that all participants can communicate securely.
-Finally, when the conversation is concluded, the state transitions to `Closed`, marking the end of the encrypted communication.
-As you can see from the graph, the processes the users perform themselves are quite minimal, allowing for an overall easy-to-use messaging client.
-Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
-Since one of the recipients (`Client#2`) is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
-
-```mermaid
-stateDiagram
-    Startup --> DisplayingUserID: Open TinyChat
-    DisplayingUserID --> AwaitingConnection: Share User ID
-    AwaitingConnection --> Connected: Connect with Peer
-    Connected --> EncryptedCommunication: Establish Encryption
-    state EncryptedCommunication {
-        MessageExchange --> EncryptionDecryption: Process Message
-        EncryptionDecryption --> MessageExchange: Continue Exchange
-    }
-    EncryptedCommunication --> Closed: Close Chat
-'''
