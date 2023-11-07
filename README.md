@@ -131,11 +131,11 @@ After the prject has been compiled, simply open `TinyChat.html` with your desire
 ## Mermaid Diagram
 
 Below shows the process of 2+ clients intiating a conversation.
-`Client#1` is the client initiating the conversation, `Client#2` is the first client listed in the sender box, and `Client#+` are any clients after.
+`Client #1` is the client initiating the conversation, `Client #2` is the first client listed in the sender box, and `Client #+` are any clients after.
 As you can see from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
 Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
-Since one of the recipients is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
+The reasoning behind `Client #2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
+Since one of the recipients is responsible for generating much of the encryption data, `Client #1` is incapable of creating conversations with invalid keys.
 
 ```mermaid
 graph TB;
