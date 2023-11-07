@@ -139,38 +139,31 @@ Since one of the recipients is responsible for generating much of the encryption
 
 ```mermaid
 graph TB;
-    subgraph "Client#2"
-    I;
-    end
-    subgraph "Client#+"
-    M;
-    N;
-    end
-  subgraph "Client#1"
+  subgraph "Client #1"
   A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Creates a new Conversation];
   B --> C>The Conversation is Added to the UI];
   B --> D>Sends RSA Public Key];
   D --> J>Waits for AES Symmetric Key];
-  I --> J;
   J --> K>Decrypts Encrypted Key with RSA Private Key];
   end
-  subgraph "Client#2"
+  subgraph "Client #2"
   E>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| F>Waits for RSA Public Key];
   D --> F;
   F --> G>Creates an AES Symmetric Key];
   G -->H>Encrypts the AES Key with Client #1s RSA Public Key];
   H -->I>Sends Encrypted Key to Cient #1];
+  I --> J;
   F --> O>Sends RSA Public Key Request to all other members];
-  O --> M;
-  N --> P>Receives RSA Public Keys];
   G --> Q;
   P --> Q>Encrypts the AES Key with Client #+s RSA Public Key];
   Q --> R>Sends Encrypted Key to Cient #+];
   F --> U>The Conversation is Added to the UI];
   end
-  subgraph "Client#+"
+  subgraph "Client #+"
   L>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| M>Waits for RSA Public Key Request];
   M --> N>Sends RSA Public Key];
+  O --> M;
+  N --> P>Receives RSA Public Keys];
   N --> S> Waits for AES Symmetric Key];
   R --> S;
   S --> T>Decrypts Encrypted Key with RSA Private Key];
