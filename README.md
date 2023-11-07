@@ -259,6 +259,8 @@ graph TB
 
 ### Scenarios View
 
+#### Key Establishment
+
 ```mermaid
 graph TB;
   subgraph "Client #1"
@@ -295,6 +297,8 @@ graph TB;
   classDef user fill:#fff,color:#000
   class B user;
 ```
+
+#### Messaging
 
 ```mermaid
 graph LR;
