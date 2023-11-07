@@ -250,11 +250,9 @@ stateDiagram
     DisplayingUserID --> AwaitingConnection: Share User ID
     AwaitingConnection --> Connected: Connect with Peer
     Connected --> EncryptedCommunication: Establish Encryption
-    EncryptedCommunication --> Closed: Close Chat
     state EncryptedCommunication {
-        MessageExchange
-        EncryptionDecryption
         MessageExchange --> EncryptionDecryption: Process Message
         EncryptionDecryption --> MessageExchange: Continue Exchange
     }
+    EncryptedCommunication --> Closed: Close Chat
 '''
