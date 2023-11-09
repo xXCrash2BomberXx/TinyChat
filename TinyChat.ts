@@ -651,6 +651,46 @@ class Client {
 				downloadLink.innerHTML = data[0];
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
+				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
+					ev.preventDefault();
+					if (this.#editing) {
+						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						this.#editing = undefined;
+					} else if (this.#replying) {
+						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+					}
+					if (this.#replying != paragraph.id) {
+						this.#replying = paragraph.id;
+						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+							paragraph.removeChild(paragraph.lastChild);
+							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+						} else
+							throw new Error('Cannot Reply to Non-Delivered Message.');
+					} else
+						this.#replying = undefined;
+					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+					for (let i: number = 0; i < split.length; i++) {
+						let split2: Array<string> = aesAccess.split(',');
+						const trueFrom2: string = split2[i];
+						split2.splice(i, 1);
+						split2.unshift(this.#peer.id);
+						await this.#send(trueFrom2, {
+							from: split2.join(','),
+							body: '',
+							time: '',
+							id: '',
+							event: MessageDataEvent.StopTyping,
+						}, i === 0);
+					}
+				}
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
