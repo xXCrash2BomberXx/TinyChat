@@ -644,8 +644,29 @@ class Client {
 			case MessageDataEvent.File:
 				const data = JSON.parse((await this.#decryptAES(aesAccess, messageData.body)));
 				data[1] = data[1].split(',');
-				const file: File = new File([new Blob([atob(data[1][1])], { type: 'application/octet-stream'})], data[0], {'type': data[1][0].slice(5, -7)});
-				console.log(file);
+				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream'});
+				const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
+				downloadLink.href = URL.createObjectURL(blob);
+				downloadLink.download = data[0];
+				downloadLink.innerHTML = data[0];
+				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
+				paragraph.id = messageData.id;
+				paragraph.insertAdjacentElement('beforeend', downloadLink);
+				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
+					while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+						iter = iter.previousSibling as HTMLParagraphElement;
+					el.insertBefore(paragraph, iter);
+				} else
+					el.insertAdjacentElement('beforeend', paragraph);
+				if (to === this.#peer.id)
+					await this.#send(trueFrom, {
+						from: split.join(','),
+						body: '',
+						time: '',
+						id: messageData.id,
+						event: MessageDataEvent.Delivered,
+					});
 				break;
 			default:
 				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
