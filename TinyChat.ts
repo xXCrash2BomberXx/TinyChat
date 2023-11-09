@@ -68,6 +68,11 @@ const enum MessageDataEvent {
 	 * @name MessageDataEvent.AESKeyShare
 	 */
 	AESKeyShare,
+	/**
+	 * Indicates a file is being sent.
+	 * @name MessageDataEvent.File
+	 */
+	File,
 };
 
 /**
@@ -348,6 +353,43 @@ class Client {
 		};
 		chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
 
+		const uploadFile: HTMLInputElement = this.#window.document.createElement('input');
+		uploadFile.value = 'Upload File';
+		uploadFile.type = 'button';
+		uploadFile.className = 'chatButtons';
+		uploadFile.onclick = async (ev: MouseEvent): Promise<void> => {
+			ev.preventDefault();
+			const input = this.#window.document.createElement('input');
+			input.type = 'file';
+			input.onchange = (): void => {
+				if (input.files) {
+					const reader: FileReader = new FileReader();
+					reader.readAsDataURL(input.files[0]);
+					reader.onload = async () => {
+						const message: string = await this.#encryptAES(aesAccess, JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]));
+						const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
+						const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+						for (let i: number = 0; i < split.length; i++) {
+							let split2: Array<string> = aesAccess.split(',');
+							const trueFrom2: string = split2[i];
+							split2.splice(i, 1);
+							split2.unshift(this.#peer.id);
+							await this.#send(trueFrom2, {
+								from: split2.join(','),
+								body: message,
+								time: messagetime,
+								id: messageID,
+								event: MessageDataEvent.File,
+								prev: undefined,
+							}, i === 0);
+						}
+					}
+				}
+			};
+			input.click();
+		};
+		chatButtons.insertAdjacentElement('beforeend', uploadFile);
+
 		collapsible.insertAdjacentElement('beforeend', chatButtons);
 		const el: HTMLSpanElement = this.#window.document.createElement('span');
 		el.className = 'message';
@@ -598,6 +640,12 @@ class Client {
 						} else
 							iter = iter.previousSibling as HTMLParagraphElement;
 				}
+				break;
+			case MessageDataEvent.File:
+				const data = JSON.parse((await this.#decryptAES(aesAccess, messageData.body)));
+				data[1] = data[1].split(',');
+				const file: File = new File([new Blob([atob(data[1][1])], { type: 'application/octet-stream'})], data[0], {'type': data[1][0].slice(5, -7)});
+				console.log(file);
 				break;
 			default:
 				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
