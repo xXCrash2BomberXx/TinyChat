@@ -367,8 +367,8 @@ class Client {
 					reader.readAsDataURL(input.files[0]);
 					reader.onload = async () => {
 						const message: string = await this.#encryptAES(aesAccess, JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]));
-						const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
-						const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+						const messageID: string = this.#randomUUID();
+						const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 						for (let i: number = 0; i < split.length; i++) {
 							let split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
