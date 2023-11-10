@@ -49,20 +49,15 @@ const enum MessageDataEvent {
 	 */
 	Delivered,
 	/**
-	 * Requests the RSA public key from the recipient.
-	 * @name MessageDataEvent.GroupRSAKeyRequest
-	 */
-	GroupRSAKeyRequest,
-	/**
-	 * Sends the RSA public key in reply to a key request.
-	 * @name MessageDataEvent.GroupRSAKeyShare
-	 */
-	GroupRSAKeyShare,
-	/**
 	 * Indicates an RSA public key is being sent unencrypted.
 	 * @name MessageDataEvent.RSAKeyShare
 	 */
 	RSAKeyShare,
+	/**
+	 * Indicates a Diffie-Hellman public key is being sent encrypted with the previously sent RSA Public key.
+	 * @name MessageDataEvent.RSAKeyShare
+	 */
+	DHKeyShare,
 	/**
 	 * Indicates an AES key is being sent encrypted with the previously sent RSA public key.
 	 * @name MessageDataEvent.AESKeyShare
@@ -170,6 +165,12 @@ class Client {
 	#aesKeys: { [id: string]: [Uint8Array, CryptoKey] } = {};
 
 	/**
+	 * Diffie-Hellman keys for the active conversations.
+	 * @type { { [string]: CryptoKeyPair } }
+	 */
+	#diffieKeys: { [id: string]: CryptoKeyPair } = {};
+
+	/**
 	 * Converts a `string` into an `ArrayBuffer`.
 	 * @param {string} str - `string` to convert to an `ArrayBuffer`.
 	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
@@ -180,24 +181,6 @@ class Client {
 		for (let i: number = 0, strLen = str.length; i < strLen; i++)
 			bufView[i] = str.charCodeAt(i);
 		return buf;
-	}
-
-	/**
-	 * Imports an RSA `CryptoKey` into a `Promise<CryptoKey>` from a `string` that resolves to the RSA `CryptoKey`.
-	 * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
-	 * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
-	 */
-	async #importRSAKey(pem: string): Promise<CryptoKey> {
-		return this.#crypto.subtle.importKey(
-			'spki',
-			this.#str2ab(this.#window.atob(pem)),
-			{
-				name: 'RSA-OAEP',
-				hash: 'SHA-256',
-			},
-			true,
-			['encrypt'],
-		);
 	}
 
 	/**
@@ -334,7 +317,7 @@ class Client {
 			delete this.#aesKeys[aesAccess];
 			await this.#send(trueFrom, {
 				from: split.join(','),
-				body: await this.#exportRSAKey((await this.#keyPair).publicKey),
+				body: await this.#exportRSAKey(),
 				time: '',
 				id: '',
 				event: MessageDataEvent.RSAKeyShare,
@@ -459,13 +442,20 @@ class Client {
 			if ('connect' in Peer.prototype) {
 				sendBar.readOnly = true;
 				delete this.#aesKeys[aesAccess];
-				await this.#send(trueFrom, {
-					from: split.join(','),
-					body: await this.#exportRSAKey((await this.#keyPair).publicKey),
-					time: '',
-					id: '',
-					event: MessageDataEvent.RSAKeyShare,
-				});
+				const exported: string = await this.#exportRSAKey();
+				for (let i: number = 0; i < split.length; i++) {
+					let split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: exported,
+						time: '',
+						id: '',
+						event: MessageDataEvent.RSAKeyShare,
+					}, i === 0);
+				}
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
 			} else
@@ -498,53 +488,40 @@ class Client {
 		let iter: HTMLParagraphElement;
 		const paragraph: HTMLParagraphElement = this.#window.document.createElement('p');
 		switch (messageData.event) {
-			case MessageDataEvent.GroupRSAKeyRequest:
-				if (to !== this.#peer.id)
-					break;
-				delete this.#aesKeys[aesAccess];
-				await this.#send(trueFrom, {
-					from: split.join(),
-					body: await this.#exportRSAKey((await this.#keyPair).publicKey),
-					time: '',
-					id: '',
-					event: MessageDataEvent.GroupRSAKeyShare,
-				});
-				break;
-			case MessageDataEvent.GroupRSAKeyShare:
-				if (to !== this.#peer.id)
-					break;
-				await this.#send(trueFrom, {
-					from: split.join(','),
-					body: await this.#encryptRSA(aesAccess, messageData.body),
-					time: '',
-					id: '',
-					event: MessageDataEvent.AESKeyShare,
-				});
-				break;
 			case MessageDataEvent.RSAKeyShare:
 				if (to !== this.#peer.id)
 					break;
-				this.#aesKeys[aesAccess] = await this.#generateAES();
+				this.#diffieKeys[aesAccess] = await this.#generateDH();
 				await this.#send(trueFrom, {
 					from: split.join(','),
-					body: await this.#encryptRSA(aesAccess, messageData.body),
+					body: JSON.stringify([
+						await this.#encryptRSA(await this.#importRSAKey(messageData.body), await this.#exportDHKey(aesAccess)),
+						await this.#exportRSAKey(),
+					]),
+					time: '',
+					id: '',
+					event: MessageDataEvent.DHKeyShare,
+				});
+				break;
+			case MessageDataEvent.DHKeyShare:
+				if (to !== this.#peer.id)
+					break;
+				if (this.#aesKeys[aesAccess])
+					break;
+				this.#aesKeys[aesAccess] = await this.#generateAES();
+				this.#diffieKeys[aesAccess] = await this.#generateDH();
+				const parsed: Array<string> = JSON.parse(messageData.body);
+				await this.#send(trueFrom, {
+					from: split.join(','),
+					body: JSON.stringify([
+						this.#xorAESKeys(await this.#importDHKey(await this.#decryptRSA(parsed[0])), this.#aesKeys[aesAccess][1]),
+						this.#exportDHKey(aesAccess),
+					]),
 					time: '',
 					id: '',
 					event: MessageDataEvent.AESKeyShare,
 				});
-				for (let i: number = 1; i < split.length; i++) {
-					let split2: Array<string> = messageData.from.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: '',
-						event: MessageDataEvent.GroupRSAKeyRequest,
-					});
-				}
+				delete this.#diffieKeys[aesAccess];
 				break;
 			case MessageDataEvent.AESKeyShare:
 				if (to !== this.#peer.id)
@@ -640,7 +617,7 @@ class Client {
 			case MessageDataEvent.File:
 				const data = JSON.parse((await this.#decryptAES(aesAccess, messageData.body)));
 				data[1] = data[1].split(',');
-				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream'});
+				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream' });
 				const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
 				downloadLink.href = URL.createObjectURL(blob);
 				downloadLink.download = data[0];
@@ -907,8 +884,23 @@ class Client {
 	 * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
 	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
 	 */
-	async #exportRSAKey(key: CryptoKey): Promise<string> {
-		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey("spki", key)) as unknown as Array<number>));
+	async #exportDHKey(key: string): Promise<string> {
+		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey("spki", this.#diffieKeys[key].publicKey)) as unknown as Array<number>));
+	}
+
+	/**
+	 * Imports an RSA `CryptoKey` into a `Promise<CryptoKey>` from a `string` that resolves to the RSA `CryptoKey`.
+	 * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
+	 * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
+	 */
+	async #importDHKey(pem: string): Promise<CryptoKey> {
+		return this.#crypto.subtle.importKey(
+			'spki',
+			this.#str2ab(this.#window.atob(pem)),
+			{ name: 'ECDH', namedCurve: 'P-256' },
+			true,
+			['deriveKey'],
+		);
 	}
 
 	/**
@@ -931,11 +923,26 @@ class Client {
 	 */
 	async #deriveDH(localPrivateKey: CryptoKey, remotePublicKey: CryptoKey): Promise<CryptoKey> {
 		return this.#crypto.subtle.deriveKey(
-			{ name: 'ECDH', public: remotePublicKey},
+			{ name: 'ECDH', public: remotePublicKey },
 			localPrivateKey,
 			{ name: 'AES-GCM', length: 256 },
 			true, ['encrypt', 'decrypt']
 		);
+	}
+
+	/**
+	 * XOR two AES Keys for a One-Time-Pad AES Key.
+	 * @param {CryptoKey} key1 - AES Key
+	 * @param {CryptoKey} key2 - AES Key
+	 * @returns {Promise<CryptoKey>} a `Promise<CryptoKey>` of the One-Time-Pad AES Key.
+	 */
+	async #xorAESKeys(key1: CryptoKey, key2: CryptoKey): Promise<CryptoKey> {
+		const key1Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key1));
+		const key2Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key2));
+		const resultArray: Uint8Array = new Uint8Array(key1Array.length);
+		for (let i = 0; i < key1Array.length; i++)
+			resultArray[i] = key1Array[i] ^ key2Array[i];
+		return this.#crypto.subtle.importKey("raw", resultArray, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 	}
 
 	/**
@@ -944,10 +951,7 @@ class Client {
 	 */
 	async #generateAES(): Promise<[Uint8Array, CryptoKey]> {
 		return [this.#crypto.getRandomValues(new Uint8Array(16)), await this.#crypto.subtle.generateKey(
-			{
-				name: 'AES-CBC',
-				length: 256,
-			},
+			{ name: 'AES-CBC', length: 256 },
 			true,
 			['encrypt', 'decrypt'])];
 	}
@@ -979,18 +983,26 @@ class Client {
 	}
 
 	/**
-	 * XOR two AES Keys for a One-Time-Pad AES Key.
-	 * @param {CryptoKey} key1 - AES Key
-	 * @param {CryptoKey} key2 - AES Key
-	 * @returns {Promise<CryptoKey>} a `Promise<CryptoKey>` of the One-Time-Pad AES Key.
+	 * Exports an RSA `CryptoKey` into a `Promise<string>` that resolves to a `string` representation.
+	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
 	 */
-	async xorAESKeys(key1: CryptoKey, key2: CryptoKey): Promise<CryptoKey> {
-		const key1Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key1));
-		const key2Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key2));
-		const resultArray: Uint8Array = new Uint8Array(key1Array.length);
-		for (let i = 0; i < key1Array.length; i++)
-			resultArray[i] = key1Array[i] ^ key2Array[i];
-		return this.#crypto.subtle.importKey("raw", resultArray, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+	async #exportRSAKey(): Promise<string> {
+		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey("spki", (await this.#keyPair).publicKey)) as unknown as Array<number>));
+	}
+
+	/**
+	 * Imports an RSA `CryptoKey` into a `Promise<CryptoKey>` from a `string` that resolves to the RSA `CryptoKey`.
+	 * @param {string} pem - `string` to convert to an RSA `CryptoKey`.
+	 * @returns {Promise<CryptoKey>} `Promise<CryptoKey>` that resolves to the RSA `CryptoKey` from the `string` representation.
+	 */
+	async #importRSAKey(pem: string): Promise<CryptoKey> {
+		return this.#crypto.subtle.importKey(
+			'spki',
+			this.#str2ab(this.#window.atob(pem)),
+			{ name: 'RSA-OAEP', hash: 'SHA-256' },
+			true,
+			['encrypt'],
+		);
 	}
 
 	/**
@@ -1011,18 +1023,15 @@ class Client {
 
 	/**
 	 * Encrypt an AES Key with an RSA Public Key.
-	 * @param {string} aesAccess - AES Key ID to Share.
-	 * @param {string} publicKey - RSA Public Key to Encrypt with.
+	 * @param {CryptoKey} publicKey - RSA Public Key to Encrypt with.
+	 * @param {string} message - Message to Encrypt.
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
-	async #encryptRSA(aesAccess: string, publicKey: string): Promise<string> {
-		return JSON.stringify([
-			Array.from(this.#aesKeys[aesAccess][0]),
-			Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
-				{ name: 'RSA-OAEP' },
-				await this.#importRSAKey(publicKey),
-				await this.#crypto.subtle.exportKey('raw', this.#aesKeys[aesAccess][1]),
-			)))]);
+	async #encryptRSA(publicKey: CryptoKey, message: string): Promise<string> {
+		return JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+			{ name: 'RSA-OAEP' },
+			publicKey,
+			new Uint8Array(new TextEncoder().encode(message))))));
 	}
 
 	/**
@@ -1030,18 +1039,11 @@ class Client {
 	 * @param {string} message - Message to Decrypt.
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
-	async #decryptRSA(message: string): Promise<[Uint8Array, CryptoKey]> {
-		const parsed: Array<any> = JSON.parse(message);
-		return [new Uint8Array(parsed[0]), await this.#crypto.subtle.importKey(
-			'raw',
-			await this.#crypto.subtle.decrypt(
-				{ name: 'RSA-OAEP' },
-				(await this.#keyPair).privateKey,
-				new Uint8Array(parsed[1]),
-			),
-			'AES-CBC',
-			true,
-			['encrypt', 'decrypt'])];
+	async #decryptRSA(message: string): Promise<string> {
+		return new TextDecoder().decode(await this.#crypto.subtle.decrypt(
+			{ name: 'RSA-OAEP' },
+			(await this.#keyPair).privateKey,
+			new Uint8Array(JSON.parse(message))));
 	}
 
 	get window(): Window {
