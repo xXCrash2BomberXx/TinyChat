@@ -170,15 +170,6 @@ class Client {
 	#aesKeys: { [id: string]: [Uint8Array, CryptoKey] } = {};
 
 	/**
-	 * Exports an RSA `CryptoKey` into a `Promise<string>` that resolves to a `string` representation.
-	 * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
-	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
-	 */
-	async #exportRSAKey(key: CryptoKey): Promise<string> {
-		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey("spki", key)) as unknown as Array<number>));
-	}
-
-	/**
 	 * Converts a `string` into an `ArrayBuffer`.
 	 * @param {string} str - `string` to convert to an `ArrayBuffer`.
 	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
@@ -484,6 +475,11 @@ class Client {
 		return el;
 	}
 
+	/**
+	 * 
+	 * @param to 
+	 * @param messageData 
+	 */
 	async #render(to: string, messageData: MessageData): Promise<void> {
 		const localEdit: string | undefined = this.#editing;
 		const split: Array<string> = messageData.from.split(',');
@@ -896,6 +892,7 @@ class Client {
 
 	/**
 	 * Generate a random UUID not in use.
+	 * @returns {string} a `string` of the unused UUID.
 	 */
 	#randomUUID(): string {
 		let UUID: string;
@@ -906,7 +903,44 @@ class Client {
 	}
 
 	/**
+	 * Exports an RSA `CryptoKey` into a `Promise<string>` that resolves to a `string` representation.
+	 * @param {CryptoKey} key - RSA `CryptoKey` to convert to a `string`.
+	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
+	 */
+	async #exportRSAKey(key: CryptoKey): Promise<string> {
+		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey("spki", key)) as unknown as Array<number>));
+	}
+
+	/**
+	 * Generate a new Diffie-Hellman key.
+	 * @returns {Promise<CryptoKeyPair>} a `Promise<CryptoKeyPair>` of the Diffie-Hellman Key.
+	 */
+	async #generateDH(): Promise<CryptoKeyPair> {
+		return this.#crypto.subtle.generateKey(
+			{ name: 'ECDH', namedCurve: 'P-256' },
+			true,
+			['deriveKey']
+		);
+	}
+
+	/**
+	 * Generate a new AES key from a Diffie-Hellman Key Share.
+	 * @param {CryptoKey} localPrivateKey - Local Private Diffie-Hellman Key.
+	 * @param {CryptoKey} remotePublicKey - Remote Public Diffie-Hellman Key.
+	 * @returns {Promise<CryptoKeyPair>} a `Promise<CryptoKeyPair>` of the Diffie-Hellman Key.
+	 */
+	async #deriveDH(localPrivateKey: CryptoKey, remotePublicKey: CryptoKey): Promise<CryptoKey> {
+		return this.#crypto.subtle.deriveKey(
+			{ name: 'ECDH', public: remotePublicKey},
+			localPrivateKey,
+			{ name: 'AES-GCM', length: 256 },
+			true, ['encrypt', 'decrypt']
+		);
+	}
+
+	/**
 	 * Generate a new AES key.
+	 * @returns {Promise<[Uint8Array, CryptoKey]>} a `Promise<[Uint8Array, CryptoKey]>` of the AES Key.
 	 */
 	async #generateAES(): Promise<[Uint8Array, CryptoKey]> {
 		return [this.#crypto.getRandomValues(new Uint8Array(16)), await this.#crypto.subtle.generateKey(
@@ -922,6 +956,7 @@ class Client {
 	 * Encrypt a message with an AES key.
 	 * @param {string} aesAccess - AES Key ID.
 	 * @param {string} message - Message to Encrypt.
+	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptAES(aesAccess: string, message: string): Promise<string> {
 		return JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
@@ -934,6 +969,7 @@ class Client {
 	 * Decrypt a message with an AES key.
 	 * @param {string} aesAccess - AES Key ID.
 	 * @param {string} message - Message to Decrypt.
+	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptAES(aesAccess: string, message: string): Promise<string> {
 		return new TextDecoder().decode(await this.#crypto.subtle.decrypt(
@@ -943,7 +979,23 @@ class Client {
 	}
 
 	/**
+	 * XOR two AES Keys for a One-Time-Pad AES Key.
+	 * @param {CryptoKey} key1 - AES Key
+	 * @param {CryptoKey} key2 - AES Key
+	 * @returns {Promise<CryptoKey>} a `Promise<CryptoKey>` of the One-Time-Pad AES Key.
+	 */
+	async xorAESKeys(key1: CryptoKey, key2: CryptoKey): Promise<CryptoKey> {
+		const key1Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key1));
+		const key2Array: Uint8Array = new Uint8Array(await this.#crypto.subtle.exportKey("raw", key2));
+		const resultArray: Uint8Array = new Uint8Array(key1Array.length);
+		for (let i = 0; i < key1Array.length; i++)
+			resultArray[i] = key1Array[i] ^ key2Array[i];
+		return this.#crypto.subtle.importKey("raw", resultArray, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+	}
+
+	/**
 	 * Generate a new RSA key.
+	 * @returns {Promise<CryptoKeyPair>} a `Promise<CryptoKeyPair>` of the RSA Key.
 	 */
 	async #generateRSA(): Promise<CryptoKeyPair> {
 		return this.#crypto.subtle.generateKey(
@@ -961,6 +1013,7 @@ class Client {
 	 * Encrypt an AES Key with an RSA Public Key.
 	 * @param {string} aesAccess - AES Key ID to Share.
 	 * @param {string} publicKey - RSA Public Key to Encrypt with.
+	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptRSA(aesAccess: string, publicKey: string): Promise<string> {
 		return JSON.stringify([
@@ -975,6 +1028,7 @@ class Client {
 	/**
 	 * Decrypt a message with an RSA key.
 	 * @param {string} message - Message to Decrypt.
+	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptRSA(message: string): Promise<[Uint8Array, CryptoKey]> {
 		const parsed: Array<any> = JSON.parse(message);
