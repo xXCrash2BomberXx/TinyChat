@@ -255,7 +255,6 @@ class Client {
 	async createChat(to: string, establishKey: boolean = true): Promise<HTMLSpanElement> {
 		let split: Array<string> = to.split(',').map((x: string): string => x.trim());
 		const aesAccess: string = split.toSorted().join(',');
-		const trueFrom: string = split[0];
 		split[0] = this.#peer.id;
 
 		const duplicateCheck: HTMLSpanElement | undefined = this.#window.document.getElementById(aesAccess) as HTMLSpanElement | undefined;
@@ -313,17 +312,27 @@ class Client {
 		generateNewAESKeyButton.className = 'chatButtons';
 		generateNewAESKeyButton.onclick = async (ev: MouseEvent): Promise<void> => {
 			ev.preventDefault();
-			sendBar.readOnly = true;
-			delete this.#aesKeys[aesAccess];
-			await this.#send(trueFrom, {
-				from: split.join(','),
-				body: await this.#exportRSAKey(),
-				time: '',
-				id: '',
-				event: MessageDataEvent.RSAKeyShare,
-			});
-			await this.#aesKeyEstablished(aesAccess);
-			sendBar.readOnly = false;
+			if ('connect' in Peer.prototype) {
+				sendBar.readOnly = true;
+				delete this.#aesKeys[aesAccess];
+				const exported: string = await this.#exportRSAKey();
+				for (let i: number = 0; i < split.length; i++) {
+					let split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: exported,
+						time: '',
+						id: '',
+						event: MessageDataEvent.RSAKeyShare,
+					}, i === 0);
+				}
+				await this.#aesKeyEstablished(aesAccess);
+				sendBar.readOnly = false;
+			} else
+				this.#aesKeys[aesAccess] = await this.#generateAES();
 		};
 		chatButtons.insertAdjacentElement('beforeend', generateNewAESKeyButton);
 
@@ -532,8 +541,6 @@ class Client {
 				break;
 			case MessageDataEvent.AESKeyShare:
 				if (to !== this.#peer.id)
-					break;
-				if (this.#aesKeys[aesAccess])
 					break;
 				parsed = JSON.parse(messageData.body);
 				this.#aesKeys[aesAccess] = await this.#importAESKey(await this.#decryptRSA(parsed[1]));
