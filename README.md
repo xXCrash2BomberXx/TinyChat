@@ -11,7 +11,7 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 
 > [!IMPORTANT]
 > Although the messages themselves are encrypted, many other metadata items are not.
-> Further explanation of how this is done can be seen [here](#mermaid-diagram).
+> Further explanation of how this is done can be seen [here](#Key Establishment).
 >
 > What the attacker *cannot* read:
 >
@@ -159,8 +159,8 @@ graph TB;
   Peer
     #8226; id: string
     #8226; connections: object
-	#8226; disconnected: boolean
-	#8226; destroyed: boolean
+    #8226; disconnected: boolean
+    #8226; destroyed: boolean
   "];
   C["
   MessageData
