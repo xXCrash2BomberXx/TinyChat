@@ -23,14 +23,9 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > What the attacker *can* read:
 >
 > - The User ID that sent the message
+> - User IDs in the group
 > - The message ID (This is a randomly generated GUID)
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
-
-> [!WARNING]
-> The largest vulnerability to this web application is the initial AES keyshare.
-> On slower network connections, an attack can theoretically read the public RSA key and send a malicious AES key with a fake signature.
-> This attack would be undetectable as it classifies as a "Man in the Middle Attack".
-> Although this would be quite difficult to achieve in general usage, it is theoretically possible and worth consideration.
 
 ## Features
 
