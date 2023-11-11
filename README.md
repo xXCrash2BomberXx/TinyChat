@@ -236,34 +236,26 @@ graph TB
 ```mermaid
 graph TB;
   subgraph "Client #1"
-  A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Creates a new Conversation];
-  B --> C>The Conversation is Added to the UI];
-  B --> D>Sends RSA Public Key];
-  D --> J>Waits for AES Symmetric Key];
-  J --> K>Decrypts Encrypted Key with RSA Private Key];
-  end
-  subgraph "Client #2"
-  E>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| F>Waits for RSA Public Key];
-  D --> F;
-  F --> G>Creates an AES Symmetric Key];
-  G -->H>Encrypts the AES Key with Client #1s RSA Public Key];
-  H -->I>Sends Encrypted Key to Cient #1];
-  I --> J;
-  F --> O>Sends RSA Public Key Request to all other members];
-  G --> Q;
-  P --> Q>Encrypts the AES Key with Client #+s RSA Public Key];
-  Q --> R>Sends Encrypted Key to Cient #+];
-  F --> U>The Conversation is Added to the UI];
+  A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Generate New AES Key Request];
+  B --> |This is done for each client| D>Sends RSA Public Key];
+  J --> K>Decrypt Encrypted Diffie-Hellman Public Key with RSA Private Key];
+  K --> L>"Generate Diffie-Hellman Public/Private Key"];
+  B --> F>Generate AES Key];
+  F --> M;
+  L --> M>One-Time-Pad = Diffie-Hellman Symmetric Key ^ Generated AES Key];
+  M --> N>Encrypt Generated Diffie-Hellman Public Key and One-Time-Pad with Client #+'s RSA Public Key];
+  N --> O>Send Encrypted Data to Client #+];
   end
   subgraph "Client #+"
-  L>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| M>Waits for RSA Public Key Request];
-  M --> N>Sends RSA Public Key];
-  O --> M;
-  N --> P>Receives RSA Public Keys];
-  N --> S> Waits for AES Symmetric Key];
-  R --> S;
-  S --> T>Decrypts Encrypted Key with RSA Private Key];
-  M --> V>The Conversation is Added to the UI];
+  C>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| E>Creates a new Conversation];
+  D --> E>Waits for RSA Public Key];
+  E --> G>"Generate Diffie-Hellman  Public/Private Key"];
+  G --> H>Encrypt Generated Diffie-Hellman Public Key with Client #1's RSA Public Key];
+  H --> I>Send Encrypted Data and RSA Public Key to Client #1];
+  I --> J>Receive Encrypted Data from Client #+];
+  O --> P>Receive Encrypted Data from Client #1];
+  P --> Q>Decrypt Encrypted Diffie-Hellman Public Key and One-Time-Pad with RSA Private Key];
+  Q --> R>AES Key = One-Time-Pad ^ Diffie-Hellman Symmetric Key];
   end
 
   classDef user fill:#fff,color:#000
