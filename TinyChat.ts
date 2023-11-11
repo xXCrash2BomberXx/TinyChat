@@ -899,7 +899,7 @@ class Client {
 		return this.#crypto.subtle.generateKey(
 			{ name: 'ECDH', namedCurve: 'P-256' },
 			true,
-			['deriveKey', 'deriveBits']
+			['deriveKey']
 		);
 	}
 
