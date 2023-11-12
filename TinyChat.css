@@ -160,6 +160,7 @@ details {
 	border: 0.2em solid;
 	border-radius: 2em;
 	padding: 0;
+	z-index: 1;
 }
 
 ul {
