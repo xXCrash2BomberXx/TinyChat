@@ -314,10 +314,8 @@ class Client {
 			ev.preventDefault();
 			if ('connect' in Peer.prototype) {
 				sendBar.readOnly = true;
-				clearChatLocal.disabled= true;
-				clearChatGlobal.disabled = true;
-				generateNewAESKeyButton.disabled = true;
-				uploadFile.disabled = true;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
@@ -335,10 +333,8 @@ class Client {
 				}
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
-				clearChatLocal.disabled= false;
-				clearChatGlobal.disabled = false;
-				generateNewAESKeyButton.disabled = false;
-				uploadFile.disabled = false;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = false;
 			} else
 				this.#aesKeys[aesAccess] = await this.#generateAES();
 		};
@@ -392,6 +388,8 @@ class Client {
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
 			if (event.key === 'Enter' && !event.shiftKey && (sendBar.value || this.#editing) && !sendBar.readOnly) {
 				sendBar.readOnly = true;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = true;
 				if (sendBar.value)
 					sendBar.value = await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>'));
 				if (this.#replying) {
@@ -422,6 +420,8 @@ class Client {
 
 				sendBar.value = '';
 				sendBar.readOnly = false;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = false;
 				this.#replying = undefined;
 				this.#editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
@@ -458,6 +458,8 @@ class Client {
 		if (establishKey)
 			if ('connect' in Peer.prototype) {
 				sendBar.readOnly = true;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
@@ -475,6 +477,8 @@ class Client {
 				}
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = false;
 			} else
 				this.#aesKeys[aesAccess] = await this.#generateAES();
 
