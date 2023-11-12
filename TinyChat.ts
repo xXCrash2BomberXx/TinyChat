@@ -1,3 +1,4 @@
+// delete Peer.prototype.connect;
 if (!Peer)
 	//@ts-ignore: 2300
 	var Peer = class {
@@ -729,7 +730,7 @@ class Client {
 							event: MessageDataEvent.StopTyping,
 						}, i === 0);
 					}
-				}
+				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
@@ -748,64 +749,11 @@ class Client {
 					});
 				break;
 			case MessageDataEvent.Location:
-				const decrypted: Array<string> = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
-				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}<a href="${decrypted[0]}">${decrypted[1]
+				const decrypted: string = await this.#decryptAES(aesAccess, messageData.body);
+				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}<a href="${decrypted}">${decrypted
 					}</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				}
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -888,7 +836,7 @@ class Client {
 							event: MessageDataEvent.StopTyping,
 						}, i === 0);
 					}
-				}
+				};
 				if (to !== this.#peer.id)
 					paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
 						ev.preventDefault();
@@ -927,7 +875,7 @@ class Client {
 								event: MessageDataEvent.Typing,
 							}, i === 0);
 						}
-					}
+					};
 				paragraph.oncontextmenu = (ev: MouseEvent): void => {
 					ev.preventDefault();
 					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
@@ -980,15 +928,18 @@ class Client {
 	 */
 	async #send(to: string, messageData: MessageData, isFirst: boolean = true): Promise<void> {
 		return new Promise((resolve: (value: (void | Promise<void>)) => void): void => {
-			const conn: DataConnection = this.#peer.connect(to);
-			conn.on('open', async (): Promise<void> => {
-				const data: string = JSON.stringify(messageData);
-				if (isFirst)
-					await this.#render(to, messageData);
-				conn.send(data);
-				console.log(`SENT: ${data}`);
-				resolve();
-			});
+			if ('connect' in Peer.prototype) {
+				const conn: DataConnection = this.#peer.connect(to);
+				conn.on('open', async (): Promise<void> => {
+					const data: string = JSON.stringify(messageData);
+					if (isFirst)
+						await this.#render(to, messageData);
+					conn.send(data);
+					console.log(`SENT: ${data}`);
+					resolve();
+				});
+			} else
+				this.#render(to, messageData).then((): void => resolve());
 		});
 	}
 
