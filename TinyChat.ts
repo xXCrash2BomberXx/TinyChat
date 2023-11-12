@@ -360,6 +360,14 @@ class Client {
 					reader.readAsDataURL(input.files[0]);
 					reader.onload = async () => {
 						const message: string = await this.#encryptAES(aesAccess, JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]));
+						if (this.#replying) {
+							const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+								prev.removeChild(prev.lastChild);
+								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+							}
+							this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+						}
 						const messageID: string = this.#randomUUID();
 						const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 						for (let i: number = 0; i < split.length; i++) {
@@ -373,9 +381,10 @@ class Client {
 								time: messagetime,
 								id: messageID,
 								event: MessageDataEvent.File,
-								prev: undefined,
+								prev: this.#replying,
 							}, i === 0);
 						}
+						this.#replying = undefined;
 					}
 				}
 			};
@@ -391,6 +400,14 @@ class Client {
 			ev.preventDefault();
 			navigator.geolocation.getCurrentPosition(async (position: GeolocationPosition): Promise<void> => {
 				const message: string = await this.#encryptAES(aesAccess, `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`);
+				if (this.#replying) {
+					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
+					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+				}
 				const messageID: string = this.#randomUUID();
 				const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
@@ -404,9 +421,10 @@ class Client {
 						time: messagetime,
 						id: messageID,
 						event: MessageDataEvent.Location,
-						prev: undefined,
+						prev: this.#replying,
 					}, i === 0);
 				}
+				this.#replying = undefined;
 			}, function(error) {
 				console.error("Error getting current position:", error);
 			});
@@ -436,7 +454,6 @@ class Client {
 					}
 					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
-
 				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
 				const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
@@ -453,7 +470,6 @@ class Client {
 						prev: this.#replying,
 					}, i === 0);
 				}
-
 				sendBar.value = '';
 				sendBar.readOnly = false;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
@@ -736,6 +752,30 @@ class Client {
 				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
+				paragraph.oncontextmenu = (ev: MouseEvent): void => {
+					ev.preventDefault();
+					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
+						this.#reacting = undefined;
+						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
+					} else {
+						this.#reacting = paragraph.id;
+						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
+						menu.style.display = 'block';
+						menu.style.left = ev.pageX + 'px';
+						menu.style.top = ev.pageY + 'px';
+					}
+				};
+				if (messageData.prev) {
+					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
+					reply.className = prev.className + 'Reply';
+					reply.id = prev.id;
+					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
+					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
+					paragraph.insertAdjacentElement('afterbegin', reply);
+				}
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
 					while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
@@ -802,6 +842,30 @@ class Client {
 					ev.preventDefault();
 					ev.stopPropagation();
 					this.#window.open(decrypted);
+				}
+				paragraph.oncontextmenu = (ev: MouseEvent): void => {
+					ev.preventDefault();
+					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
+						this.#reacting = undefined;
+						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
+					} else {
+						this.#reacting = paragraph.id;
+						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
+						menu.style.display = 'block';
+						menu.style.left = ev.pageX + 'px';
+						menu.style.top = ev.pageY + 'px';
+					}
+				};
+				if (messageData.prev) {
+					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
+					reply.className = prev.className + 'Reply';
+					reply.id = prev.id;
+					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
+					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
+					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
