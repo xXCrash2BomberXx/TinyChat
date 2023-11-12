@@ -691,6 +691,7 @@ class Client {
 				downloadLink.href = URL.createObjectURL(blob);
 				downloadLink.download = data[0];
 				downloadLink.innerHTML = data[0];
+				downloadLink.onclick = (ev: MouseEvent): void => ev.stopPropagation();
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
 				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
@@ -734,6 +735,7 @@ class Client {
 					}
 				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
+				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
 					while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
@@ -819,9 +821,8 @@ class Client {
 					});
 				break;
 			default:
-				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.body) : messageData.body
-					} <small><small><small><i>${messageData.event !== MessageDataEvent.Delivered ? await this.#decryptAES(aesAccess, messageData.time) : messageData.time
-					}</i></small></small></small>`;
+				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}${await this.#decryptAES(aesAccess, messageData.body)
+					} <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					iter = el.lastChild as HTMLParagraphElement;
