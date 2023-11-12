@@ -314,10 +314,10 @@ class Client {
 			ev.preventDefault();
 			if ('connect' in Peer.prototype) {
 				sendBar.readOnly = true;
-				clearChatLocal.readOnly= true;
-				clearChatGlobal.readOnly = true;
-				generateNewAESKeyButton.readOnly = true;
-				uploadFile.readOnly = true;
+				clearChatLocal.disabled= true;
+				clearChatGlobal.disabled = true;
+				generateNewAESKeyButton.disabled = true;
+				uploadFile.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
@@ -335,10 +335,10 @@ class Client {
 				}
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
-				clearChatLocal.readOnly= false;
-				clearChatGlobal.readOnly = false;
-				generateNewAESKeyButton.readOnly = false;
-				uploadFile.readOnly = false;
+				clearChatLocal.disabled= false;
+				clearChatGlobal.disabled = false;
+				generateNewAESKeyButton.disabled = false;
+				uploadFile.disabled = false;
 			} else
 				this.#aesKeys[aesAccess] = await this.#generateAES();
 		};
