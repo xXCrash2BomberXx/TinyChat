@@ -54,23 +54,28 @@ details {
 }
 
 .message,
+.sendBar {
+	width: 75%;
+	margin-left: 5%;
+}
+
+.message,
 .sendBar,
 .chatButtons {
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
-	width: 75%;
-	margin-left: 5%;
+}
+
+.chatButtons {
+	flex: 1;
+	margin-right: 0.2em;
 }
 
 .chatButtonsContainer {
 	display: flex;
 	padding-right: 10%;
-}
-
-.chatButtons {
-	flex: 1;
-	width: 25%;
+	margin-left: 5%;
 }
 
 .sent,
