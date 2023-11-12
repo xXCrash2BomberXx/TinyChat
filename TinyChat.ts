@@ -488,6 +488,8 @@ class Client {
 						event: MessageDataEvent.StopTyping,
 					}, i === 0);
 				}
+			sendBar.style.height = '';
+			sendBar.style.height = sendBar.scrollHeight + 'px';
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
 

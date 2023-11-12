@@ -49,6 +49,10 @@ details {
 	margin-top: 0.8em;
 }
 
+.sendBar {
+	overflow: hidden;
+}
+
 .message,
 .sendBar,
 .chatButtons {
