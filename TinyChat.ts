@@ -1,3 +1,4 @@
+// delete Peer.prototype.connect;
 if (!Peer)
 	//@ts-ignore: 2300
 	var Peer = class {
@@ -68,6 +69,11 @@ const enum MessageDataEvent {
 	 * @name MessageDataEvent.File
 	 */
 	File,
+	/**
+	 * Indicates the location being sent.
+	 * @name MessageDataEvent.Location
+	 */
+	Location,
 };
 
 /**
@@ -376,6 +382,36 @@ class Client {
 			input.click();
 		};
 		chatButtons.insertAdjacentElement('beforeend', uploadFile);
+		
+		const shareLocation: HTMLInputElement = this.#window.document.createElement('input');
+		shareLocation.value = 'Share Location';
+		shareLocation.type = 'button';
+		shareLocation.className = 'chatButtons';
+		shareLocation.onclick = async (ev: MouseEvent): Promise<void> => {
+			ev.preventDefault();
+			navigator.geolocation.getCurrentPosition(async (position: GeolocationPosition): Promise<void> => {
+				const message: string = await this.#encryptAES(aesAccess, `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`);
+				const messageID: string = this.#randomUUID();
+				const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
+				for (let i: number = 0; i < split.length; i++) {
+					let split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: message,
+						time: messagetime,
+						id: messageID,
+						event: MessageDataEvent.Location,
+						prev: undefined,
+					}, i === 0);
+				}
+			}, function(error) {
+				console.error("Error getting current position:", error);
+			});
+		};
+		chatButtons.insertAdjacentElement('beforeend', shareLocation);
 
 		collapsible.insertAdjacentElement('beforeend', chatButtons);
 		const el: HTMLSpanElement = this.#window.document.createElement('span');
@@ -452,6 +488,8 @@ class Client {
 						event: MessageDataEvent.StopTyping,
 					}, i === 0);
 				}
+			sendBar.style.height = '';
+			sendBar.style.height = sendBar.scrollHeight + 'px';
 		};
 		collapsible.insertAdjacentElement('beforeend', sendBar);
 
@@ -694,7 +732,7 @@ class Client {
 							event: MessageDataEvent.StopTyping,
 						}, i === 0);
 					}
-				}
+				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
@@ -703,6 +741,40 @@ class Client {
 					el.insertBefore(paragraph, iter);
 				} else
 					el.insertAdjacentElement('beforeend', paragraph);
+				if (to === this.#peer.id)
+					await this.#send(trueFrom, {
+						from: split.join(','),
+						body: '',
+						time: '',
+						id: messageData.id,
+						event: MessageDataEvent.Delivered,
+					});
+				break;
+			case MessageDataEvent.Location:
+				const decrypted: string = await this.#decryptAES(aesAccess, messageData.body);
+				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}<a href="${decrypted}">${decrypted
+					}</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
+				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
+				paragraph.id = messageData.id;
+				if (messageData.prev) {
+					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
+					reply.className = prev.className + 'Reply';
+					reply.id = prev.id;
+					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
+					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
+					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
+					paragraph.insertAdjacentElement('afterbegin', reply);
+				}
+				if (el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+					let iter: HTMLParagraphElement = el.lastChild as HTMLParagraphElement;
+					while (iter.previousSibling && (iter.previousSibling as HTMLParagraphElement).className === 'typing')
+						iter = iter.previousSibling as HTMLParagraphElement;
+					el.insertBefore(paragraph, iter);
+				} else
+					el.insertAdjacentElement('beforeend', paragraph);
+
 				if (to === this.#peer.id)
 					await this.#send(trueFrom, {
 						from: split.join(','),
@@ -766,7 +838,7 @@ class Client {
 							event: MessageDataEvent.StopTyping,
 						}, i === 0);
 					}
-				}
+				};
 				if (to !== this.#peer.id)
 					paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
 						ev.preventDefault();
@@ -805,7 +877,7 @@ class Client {
 								event: MessageDataEvent.Typing,
 							}, i === 0);
 						}
-					}
+					};
 				paragraph.oncontextmenu = (ev: MouseEvent): void => {
 					ev.preventDefault();
 					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
@@ -858,15 +930,18 @@ class Client {
 	 */
 	async #send(to: string, messageData: MessageData, isFirst: boolean = true): Promise<void> {
 		return new Promise((resolve: (value: (void | Promise<void>)) => void): void => {
-			const conn: DataConnection = this.#peer.connect(to);
-			conn.on('open', async (): Promise<void> => {
-				const data: string = JSON.stringify(messageData);
-				if (isFirst)
-					await this.#render(to, messageData);
-				conn.send(data);
-				console.log(`SENT: ${data}`);
-				resolve();
-			});
+			if ('connect' in Peer.prototype) {
+				const conn: DataConnection = this.#peer.connect(to);
+				conn.on('open', async (): Promise<void> => {
+					const data: string = JSON.stringify(messageData);
+					if (isFirst)
+						await this.#render(to, messageData);
+					conn.send(data);
+					console.log(`SENT: ${data}`);
+					resolve();
+				});
+			} else
+				this.#render(to, messageData).then((): void => resolve());
 		});
 	}
 
