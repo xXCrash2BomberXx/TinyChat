@@ -144,6 +144,7 @@ graph TB;
     #8226; #reacting: string
     #8226; #keyPair: CryptoKeyPair
     #8226; #aesKeys: { [id: string]: [Uint8Array, CryptoKey] }
+    #8226; #dhKeys: { [id: string]: { [id: string]: CryptoKeyPair } }
     #8226; #window: window
     #8226; #crypto: Crypto
     <hr>#8226; createChat: (to: string): HTMLSpanElement
