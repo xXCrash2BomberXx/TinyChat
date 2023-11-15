@@ -2,36 +2,38 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, height=device-height">
-	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-	<meta http-equiv="Pragma" content="no-cache" />
-	<meta http-equiv="Expires" content="0" />
-	<title>TinyChat</title>
-	<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-	<link rel="stylesheet" href="./TinyChat.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>TinyChat</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="./TinyChat.css">
 </head>
 
 <body onclick="document.getElementById('contextmenu').style.display = 'none';">
-	<div id="contextmenu" class="context-menu">
-		<ul>
-			<li><a onclick="client.react('🩷');">🩷</a></li>
-			<li><a onclick="client.react('👍');">👍</a></li>
-			<li><a onclick="client.react('👎');">👎</a></li>
-			<li><a onclick="client.react('😂');">😂</a></li>
-			<li><a onclick="client.react('!!!');">!!!</a></li>
-			<li><a onclick="client.react('???');">???</a></li>
-		</ul>
-	</div>
-	<span class="control">
-		To:
-		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') { client.createChat(this.value); this.value = ''; }" placeholder="...">
-	</span>
-	<span id="id" class="control" onclick="navigator.clipboard.writeText(document.getElementById('id').innerHTML.substring('User ID: '.length))"></span>
-	<script type="text/javascript" src="./TinyChat.js"></script>
-	<script type="text/javascript">
-		const client = new Client(window);
-	</script>
+    <div id="contextmenu" class="context-menu">
+        <ul>
+            <li><a onclick="client.react('🩷');">🩷</a></li>
+            <li><a onclick="client.react('👍');">👍</a></li>
+            <li><a onclick="client.react('👎');">👎</a></li>
+            <li><a onclick="client.react('😂');">😂</a></li>
+            <li><a onclick="client.react('!!!');">!!!</a></li>
+            <li><a onclick="client.react('???');">???</a></li>
+        </ul>
+    </div>
+    <span class="control">
+        To:
+        <input type="text" name="to" id="to"
+            onkeydown="if (event.key == 'Enter') { client.createChat(this.value); this.value = ''; }" placeholder="...">
+    </span>
+    <span id="id" class="control"
+        onclick="navigator.clipboard.writeText(document.getElementById('id').innerHTML.substring('User ID: '.length))"></span>
+    <script type="text/javascript" src="./TinyChat.js"></script>
+    <script type="text/javascript">
+        const client = new Client(window);
+    </script>
 </body>
 
 </html>
