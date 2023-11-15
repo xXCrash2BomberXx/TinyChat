@@ -16,7 +16,7 @@ if (!Array.prototype.toSorted)
  * - {@link StopTyping} - Indicates a user has stopped typing without sending.
  * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
  * - {@link Unsend} - Indicates a user has unsent the message with ID {@link MessageData.id}.
- * - {@link Delivered} - Indicates a message has been recieved.
+ * - {@link Delivered} - Indicates a message has been received.
  * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
  * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
  * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
@@ -45,7 +45,7 @@ const enum MessageDataEvent {
 	 */
 	Unsend,
 	/**
-	 * Indicates a message has been recieved.
+	 * Indicates a message has been received.
 	 * @name MessageDataEvent.Delivered
 	 */
 	Delivered,
@@ -179,7 +179,7 @@ class Client {
 	/**
 	 * Converts a `string` into an `ArrayBuffer`.
 	 * @param {string} str - `string` to convert to an `ArrayBuffer`.
-	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
+	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provided `string`.
 	 */
 	#str2ab(str: string): ArrayBuffer {
 		const buf: ArrayBuffer = new ArrayBuffer(str.length);
@@ -369,7 +369,7 @@ class Client {
 							this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 						}
 						const messageID: string = this.#randomUUID();
-						const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
+						const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 						for (let i: number = 0; i < split.length; i++) {
 							let split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
@@ -378,7 +378,7 @@ class Client {
 							await this.#send(trueFrom2, {
 								from: split2.join(','),
 								body: message,
-								time: messagetime,
+								time: messageTime,
 								id: messageID,
 								event: MessageDataEvent.File,
 								prev: this.#replying,
@@ -409,7 +409,7 @@ class Client {
 					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
 				const messageID: string = this.#randomUUID();
-				const messagetime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
+				const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -418,7 +418,7 @@ class Client {
 					await this.#send(trueFrom2, {
 						from: split2.join(','),
 						body: message,
-						time: messagetime,
+						time: messageTime,
 						id: messageID,
 						event: MessageDataEvent.Location,
 						prev: this.#replying,
@@ -455,7 +455,7 @@ class Client {
 					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
 				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
-				const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
 					let split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -464,7 +464,7 @@ class Client {
 					await this.#send(trueFrom2, {
 						from: split2.join(','),
 						body: sendBar.value,
-						time: messagetime,
+						time: messageTime,
 						id: messageID,
 						event: this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined,
 						prev: this.#replying,
@@ -1052,7 +1052,7 @@ class Client {
 		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		const messageID: string = this.#randomUUID();
-		const messagetime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
 		for (let i: number = 0; i < split.length; i++) {
@@ -1063,7 +1063,7 @@ class Client {
 			await this.#send(trueFrom2, {
 				from: split2.join(','),
 				body: reaction,
-				time: messagetime,
+				time: messageTime,
 				id: messageID,
 				event: undefined,
 				prev: this.#reacting,
