@@ -26,7 +26,7 @@ jobs:
             -e RUN_RULES="ALL" \
             -e LOG_LEVEL="info" \
             -v "$(pwd):/tmp/lint" \
-            oxsecurity/megalinter:latest \
+            oxsecurity/megalinter-javascript:latest \
             /tmp/lint \
             || true
 
