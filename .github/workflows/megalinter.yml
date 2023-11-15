@@ -15,10 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Pull MegaLinter
+        run: docker pull oxsecurity/megalinter-javascript:latest
+
       - name: MegaLinter
         id: ml
         run: |
-          docker pull oxsecurity/megalinter:latest
           docker run --rm \
             -e RUN_LOCAL=true \
             -e RUN_RULES="ALL" \
