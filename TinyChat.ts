@@ -16,7 +16,7 @@ if (!Array.prototype.toSorted)
  * - {@link StopTyping} - Indicates a user has stopped typing without sending.
  * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
  * - {@link Unsend} - Indicates a user has unsent the message with ID {@link MessageData.id}.
- * - {@link Delivered} - Indicates a message has been recieved.
+ * - {@link Delivered} - Indicates a message has been received.
  * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
  * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
  * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
@@ -45,7 +45,7 @@ const enum MessageDataEvent {
 	 */
 	Unsend,
 	/**
-	 * Indicates a message has been recieved.
+	 * Indicates a message has been received.
 	 * @name MessageDataEvent.Delivered
 	 */
 	Delivered,
@@ -179,7 +179,7 @@ class Client {
 	/**
 	 * Converts a `string` into an `ArrayBuffer`.
 	 * @param {string} str - `string` to convert to an `ArrayBuffer`.
-	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provded `string`.
+	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provided `string`.
 	 */
 	#str2ab(str: string): ArrayBuffer {
 		const buf: ArrayBuffer = new ArrayBuffer(str.length);
