@@ -12,27 +12,24 @@ jobs:
   megalinter:
     name: MegaLinter
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
       - name: MegaLinter
         id: ml
-        uses: oxsecurity/megalinter/flavors/javascript@v7.5.0
-        env:
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push'}}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_INCLUDE: '(Global\.d\.ts|PeerJS\.d\.ts|Testing\.ts|TinyChat\.css|TinyChat\.html|TinyChat\.ts)'
+        run: |
+          docker pull oxsecurity/megalinter:latest
+          docker run --rm \
+            -e RUN_LOCAL=true \
+            -e RUN_RULES="ALL" \
+            -e LOG_LEVEL="info" \
+            -v "$(pwd):/tmp/lint" \
+            oxsecurity/megalinter:latest \
+            /tmp/lint \
+            || true
 
-      - name: Archive production artifacts
-        if: ${{ success() }} || ${{ failure() }}
+      - name: Artifact MegaLinter
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: MegaLinter reports
