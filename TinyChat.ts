@@ -795,7 +795,7 @@ class Client {
 			case MessageDataEvent.Location:
 				const decrypted: string = await this.#decryptAES(aesAccess, messageData.body);
 				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}<a href="${decrypted
-					}">Sent their Location</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
+					}">Location</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
 				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
