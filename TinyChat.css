@@ -29,9 +29,8 @@ summary {
 }
 
 summary,
+a,
 #id,
-.sent,
-.received,
 .chatButtons {
 	cursor: pointer;
 }

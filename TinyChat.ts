@@ -140,6 +140,7 @@ interface MessageData {
 };
 
 class Client {
+	#eventID: string | undefined = undefined;
 	/**
 	 * Message ID of the message being edited.
 	 * @type {string?}
@@ -296,7 +297,7 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -325,7 +326,7 @@ class Client {
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -371,7 +372,7 @@ class Client {
 						const messageID: string = this.#randomUUID();
 						const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 						for (let i: number = 0; i < split.length; i++) {
-							let split2: Array<string> = aesAccess.split(',');
+							const split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
 							split2.splice(i, 1);
 							split2.unshift(this.#peer.id);
@@ -391,7 +392,7 @@ class Client {
 			input.click();
 		};
 		chatButtons.insertAdjacentElement('beforeend', uploadFile);
-		
+
 		const shareLocation: HTMLInputElement = this.#window.document.createElement('input');
 		shareLocation.value = 'Share Location';
 		shareLocation.type = 'button';
@@ -411,7 +412,7 @@ class Client {
 				const messageID: string = this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -425,7 +426,7 @@ class Client {
 					}, i === 0);
 				}
 				this.#replying = undefined;
-			}, function(error) {
+			}, function (error) {
 				console.error("Error getting current position:", error);
 			});
 		};
@@ -457,7 +458,7 @@ class Client {
 				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -478,7 +479,7 @@ class Client {
 				this.#editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -492,7 +493,7 @@ class Client {
 				}
 			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -517,7 +518,7 @@ class Client {
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -652,7 +653,7 @@ class Client {
 				break;
 			case MessageDataEvent.Edit:
 				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
-					if ((el.firstChild as HTMLElement).tagName == el.tagName)
+					if ((el.firstChild as HTMLElement).tagName === el.tagName)
 						while (el.firstChild.nextSibling)
 							el.removeChild(el.firstChild.nextSibling);
 					else
@@ -700,7 +701,7 @@ class Client {
 				}
 				break;
 			case MessageDataEvent.File:
-				const data = JSON.parse((await this.#decryptAES(aesAccess, messageData.body)));
+				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
 				data[1] = data[1].split(',');
 				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream' });
 				const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
@@ -710,61 +711,10 @@ class Client {
 				downloadLink.onclick = (ev: MouseEvent): void => ev.stopPropagation();
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -772,7 +722,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -798,64 +748,13 @@ class Client {
 					}">Location</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
 				(paragraph.querySelector('a') as HTMLAnchorElement).onclick = (ev: MouseEvent): void => {
 					ev.preventDefault();
 					ev.stopPropagation();
 					this.#window.open(decrypted);
 				}
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -863,7 +762,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -898,98 +797,8 @@ class Client {
 							iter = iter.previousSibling as HTMLParagraphElement;
 				}
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
-				if (to !== this.#peer.id)
-					paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
-						ev.preventDefault();
-						if (this.#replying) {
-							const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-								prev.removeChild(prev.lastChild);
-								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-							}
-							this.#replying = undefined;
-						} else if (this.#editing) {
-							const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-								prev.removeChild(prev.lastChild);
-								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-							}
-						}
-						this.#editing = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? 1 : 0, -5).map((value: ChildNode): string => (value as HTMLElement).tagName == 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Edit Non-Delivered Message.');
-						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-						for (let i: number = 0; i < split.length; i++) {
-							let split2: Array<string> = aesAccess.split(',');
-							const trueFrom2: string = split2[i];
-							split2.splice(i, 1);
-							split2.unshift(this.#peer.id);
-							await this.#send(trueFrom2, {
-								from: split2.join(','),
-								body: '',
-								time: '',
-								id: '',
-								event: MessageDataEvent.Typing,
-							}, i === 0);
-						}
-					};
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -997,7 +806,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -1049,14 +858,14 @@ class Client {
 	 * @param {string} reaction - The reaction to send to the client.
 	 */
 	async react(reaction: string): Promise<void> {
-		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
+		const aesAccess: string = (this.#window.document.getElementById(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		const messageID: string = this.#randomUUID();
 		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
 		for (let i: number = 0; i < split.length; i++) {
-			let split2: Array<string> = aesAccess.split(',');
+			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
 			split2.splice(i, 1);
 			split2.unshift(this.#peer.id);
@@ -1070,6 +879,115 @@ class Client {
 			}, i === 0);
 		}
 		this.#reacting = undefined;
+	}
+
+	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent | TouchEvent): void {
+		ev.preventDefault();
+		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('reactionMenu') as HTMLDivElement).style.display = 'none';
+
+		const opt: string = paragraph.className + 'Menu';
+		this.#eventID = paragraph.id;
+		const menu: HTMLDivElement = this.#window.document.getElementById(opt) as HTMLDivElement;
+		menu.style.display = 'block';
+		if (ev instanceof MouseEvent) {
+			menu.style.left = ev.pageX + 'px';
+			menu.style.top = ev.pageY + 'px';
+		} else {
+			menu.style.left = ev.targetTouches[ev.targetTouches.length - 1].pageX + 'px';
+			menu.style.top = ev.targetTouches[ev.targetTouches.length - 1].pageY + 'px';
+		}
+	}
+
+	openReacting(): void {
+		if (!this.#eventID)
+			return;
+		this.#reacting = this.#eventID;
+		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#window.document.getElementById(this.#eventID)?.className + 'Menu') as HTMLDivElement;
+		const menu: HTMLDivElement = this.#window.document.getElementById('reactionMenu') as HTMLDivElement;
+		menu.style.display = 'block';
+		menu.style.left = prevMenu.style.left;
+		menu.style.top = prevMenu.style.top;
+		prevMenu.style.display = 'none';
+	}
+
+	markReply(): void {
+		if (!this.#eventID)
+			return;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		if (this.#editing) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+			this.#editing = undefined;
+		} else if (this.#replying) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+		}
+		if (this.#replying != paragraph.id) {
+			this.#replying = paragraph.id;
+			if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+				paragraph.removeChild(paragraph.lastChild);
+				paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+			} else
+				throw new Error('Cannot Reply to Non-Delivered Message.');
+		} else
+			this.#replying = undefined;
+		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
+	}
+
+	markEdit(): void {
+		if (!this.#eventID)
+			return;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		if (this.#replying) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+			this.#replying = undefined;
+		} else if (this.#editing) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+		}
+		this.#editing = paragraph.id;
+		if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+			(paragraph.parentNode?.nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
+			paragraph.removeChild(paragraph.lastChild);
+			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
+		} else
+			throw new Error('Cannot Edit Non-Delivered Message.');
+		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
+	}
+
+	async unsend(): Promise<void> {
+		if (!this.#eventID)
+			return;
+		const aesAccess: string = (this.#window.document.getElementById(this.#eventID)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
+		const split: Array<string> = aesAccess.split(',');
+		for (let i: number = 0; i < split.length; i++) {
+			const split2: Array<string> = aesAccess.split(',');
+			const trueFrom2: string = split2[i];
+			split2.splice(i, 1);
+			split2.unshift(this.#peer.id);
+			await this.#send(trueFrom2, {
+				from: split2.join(','),
+				body: '',
+				time: '',
+				id: this.#eventID,
+				event: MessageDataEvent.Unsend,
+			}, i === 0);
+		}
 	}
 
 	/**
