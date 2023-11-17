@@ -855,7 +855,7 @@ class Client {
 	 * @param {string} reaction - The reaction to send to the client.
 	 */
 	async react(reaction: string): Promise<void> {
-		const aesAccess: string = ((((this.#window.document.getElementById(this.#reacting as string) as HTMLParagraphElement).parentElement as HTMLSpanElement).parentElement as HTMLDetailsElement).firstChild as HTMLElement).innerHTML;
+		const aesAccess: string = (this.#window.document.getElementById(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		const messageID: string = this.#randomUUID();
 		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
@@ -960,6 +960,26 @@ class Client {
 		} else
 			throw new Error('Cannot Edit Non-Delivered Message.');
 		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+	}
+
+	async unsend(): Promise<void> {
+		if (!this.#eventID)
+			return;
+		const aesAccess: string = (this.#window.document.getElementById(this.#eventID)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
+		const split: Array<string> = aesAccess.split(',');
+		for (let i: number = 0; i < split.length; i++) {
+			let split2: Array<string> = aesAccess.split(',');
+			const trueFrom2: string = split2[i];
+			split2.splice(i, 1);
+			split2.unshift(this.#peer.id);
+			await this.#send(trueFrom2, {
+				from: split2.join(','),
+				body: '',
+				time: '',
+				id: this.#eventID,
+				event: MessageDataEvent.Unsend,
+			}, i === 0);
+		}
 	}
 
 	/**
