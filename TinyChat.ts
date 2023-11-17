@@ -653,7 +653,7 @@ class Client {
 				break;
 			case MessageDataEvent.Edit:
 				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
-					if ((el.firstChild as HTMLElement).tagName == el.tagName)
+					if ((el.firstChild as HTMLElement).tagName === el.tagName)
 						while (el.firstChild.nextSibling)
 							el.removeChild(el.firstChild.nextSibling);
 					else
@@ -701,7 +701,7 @@ class Client {
 				}
 				break;
 			case MessageDataEvent.File:
-				const data = JSON.parse((await this.#decryptAES(aesAccess, messageData.body)));
+				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
 				data[1] = data[1].split(',');
 				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream' });
 				const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
@@ -721,7 +721,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -760,7 +760,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -803,7 +803,7 @@ class Client {
 					reply.id = prev.id;
 					reply.innerHTML = `<small><small>${prev.innerHTML}</small></small>`;
 					const nextChild: HTMLElement | undefined = reply.firstChild?.firstChild as HTMLElement | undefined;
-					if ((nextChild?.firstChild as HTMLElement).tagName == reply.tagName)
+					if ((nextChild?.firstChild as HTMLElement).tagName === reply.tagName)
 						nextChild?.removeChild(nextChild?.firstChild as HTMLElement);
 					paragraph.insertAdjacentElement('afterbegin', reply);
 				}
@@ -931,7 +931,7 @@ class Client {
 				throw new Error('Cannot Reply to Non-Delivered Message.');
 		} else
 			this.#replying = undefined;
-		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
 	}
 
 	markEdit(): void {
@@ -954,12 +954,12 @@ class Client {
 		}
 		this.#editing = paragraph.id;
 		if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? 1 : 0, -5).map((value: ChildNode): string => (value as HTMLElement).tagName == 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
+			(paragraph.parentNode?.nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
 			paragraph.removeChild(paragraph.lastChild);
 			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 		} else
 			throw new Error('Cannot Edit Non-Delivered Message.');
-		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
 	}
 
 	async unsend(): Promise<void> {
