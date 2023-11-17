@@ -296,19 +296,20 @@ class Client {
 		clearChatGlobal.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
-				for (let i: number = 0; i < split.length; i++) {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: (value as HTMLParagraphElement).id,
-						event: MessageDataEvent.Unsend
-					}, i === 0);
-				}
+				if ((value as HTMLParagraphElement).className === 'sent')
+					for (let i: number = 0; i < split.length; i++) {
+						const split2: Array<string> = aesAccess.split(',');
+						const trueFrom2: string = split2[i];
+						split2.splice(i, 1);
+						split2.unshift(this.#peer.id);
+						await this.#send(trueFrom2, {
+							from: split2.join(','),
+							body: '',
+							time: '',
+							id: (value as HTMLParagraphElement).id,
+							event: MessageDataEvent.Unsend
+						}, i === 0);
+					}
 			});
 		}
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
@@ -653,7 +654,7 @@ class Client {
 				break;
 			case MessageDataEvent.Edit:
 				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
-				if (((to === this.#peer.id) === (iter.className === 'sent')) || 
+				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
 					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 					break;
 				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
@@ -690,7 +691,7 @@ class Client {
 				break;
 			case MessageDataEvent.Unsend:
 				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
-				if (((to === this.#peer.id) === (iter.className === 'sent')) || 
+				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
 					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 					break;
 				while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
