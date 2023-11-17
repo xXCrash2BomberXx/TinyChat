@@ -140,6 +140,7 @@ interface MessageData {
 };
 
 class Client {
+	#eventID: string | undefined = undefined;
 	/**
 	 * Message ID of the message being edited.
 	 * @type {string?}
@@ -391,7 +392,7 @@ class Client {
 			input.click();
 		};
 		chatButtons.insertAdjacentElement('beforeend', uploadFile);
-		
+
 		const shareLocation: HTMLInputElement = this.#window.document.createElement('input');
 		shareLocation.value = 'Share Location';
 		shareLocation.type = 'button';
@@ -425,7 +426,7 @@ class Client {
 					}, i === 0);
 				}
 				this.#replying = undefined;
-			}, function(error) {
+			}, function (error) {
 				console.error("Error getting current position:", error);
 			});
 		};
@@ -710,61 +711,9 @@ class Client {
 				downloadLink.onclick = (ev: MouseEvent): void => ev.stopPropagation();
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -798,64 +747,12 @@ class Client {
 					}</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
 				(paragraph.querySelector('a') as HTMLAnchorElement).onclick = (ev: MouseEvent): void => {
 					ev.preventDefault();
 					ev.stopPropagation();
 					this.#window.open(decrypted);
 				}
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -898,98 +795,7 @@ class Client {
 							iter = iter.previousSibling as HTMLParagraphElement;
 				}
 				paragraph.id = messageData.id;
-				paragraph.onclick = async (ev: MouseEvent): Promise<void> => {
-					ev.preventDefault();
-					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#editing = undefined;
-					} else if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-					}
-					if (this.#replying != paragraph.id) {
-						this.#replying = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Reply to Non-Delivered Message.');
-					} else
-						this.#replying = undefined;
-					((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-					for (let i: number = 0; i < split.length; i++) {
-						let split2: Array<string> = aesAccess.split(',');
-						const trueFrom2: string = split2[i];
-						split2.splice(i, 1);
-						split2.unshift(this.#peer.id);
-						await this.#send(trueFrom2, {
-							from: split2.join(','),
-							body: '',
-							time: '',
-							id: '',
-							event: MessageDataEvent.StopTyping,
-						}, i === 0);
-					}
-				};
-				if (to !== this.#peer.id)
-					paragraph.ondblclick = async (ev: MouseEvent): Promise<void> => {
-						ev.preventDefault();
-						if (this.#replying) {
-							const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-								prev.removeChild(prev.lastChild);
-								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-							}
-							this.#replying = undefined;
-						} else if (this.#editing) {
-							const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-								prev.removeChild(prev.lastChild);
-								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-							}
-						}
-						this.#editing = paragraph.id;
-						if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-							((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? 1 : 0, -5).map((value: ChildNode): string => (value as HTMLElement).tagName == 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
-							paragraph.removeChild(paragraph.lastChild);
-							paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
-						} else
-							throw new Error('Cannot Edit Non-Delivered Message.');
-						((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
-						for (let i: number = 0; i < split.length; i++) {
-							let split2: Array<string> = aesAccess.split(',');
-							const trueFrom2: string = split2[i];
-							split2.splice(i, 1);
-							split2.unshift(this.#peer.id);
-							await this.#send(trueFrom2, {
-								from: split2.join(','),
-								body: '',
-								time: '',
-								id: '',
-								event: MessageDataEvent.Typing,
-							}, i === 0);
-						}
-					};
-				paragraph.oncontextmenu = (ev: MouseEvent): void => {
-					ev.preventDefault();
-					if (this.#window.document.getElementById('contextmenu')?.style.display == 'block') {
-						this.#reacting = undefined;
-						(this.#window.document.getElementById('contextmenu') as HTMLDivElement).style.display = 'none';
-					} else {
-						this.#reacting = paragraph.id;
-						const menu: HTMLDivElement = this.#window.document.getElementById('contextmenu') as HTMLDivElement;
-						menu.style.display = 'block';
-						menu.style.left = ev.pageX + 'px';
-						menu.style.top = ev.pageY + 'px';
-					}
-				};
+				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
@@ -1070,6 +876,90 @@ class Client {
 			}, i === 0);
 		}
 		this.#reacting = undefined;
+	}
+
+	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent): void {
+		ev.preventDefault();
+		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('reactionMenu') as HTMLDivElement).style.display = 'none';
+
+		const opt: string = paragraph.className + 'Menu';
+		this.#eventID = paragraph.id;
+		const menu: HTMLDivElement = this.#window.document.getElementById(opt) as HTMLDivElement;
+		menu.style.display = 'block';
+		menu.style.left = ev.pageX + 'px';
+		menu.style.top = ev.pageY + 'px';
+	}
+
+	openReacting(): void {
+		if (!this.#eventID)
+			return;
+		this.#reacting = this.#eventID;
+		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#window.document.getElementById(this.#eventID)?.className + 'Menu') as HTMLDivElement;
+		const menu: HTMLDivElement = this.#window.document.getElementById('reactionMenu') as HTMLDivElement;
+		menu.style.display = 'block';
+		menu.style.left = prevMenu.style.left;
+		menu.style.top = prevMenu.style.top;
+		prevMenu.style.display = 'none';
+	}
+
+	markReply(): void {
+		if (!this.#eventID)
+			return;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		if (this.#editing) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+			this.#editing = undefined;
+		} else if (this.#replying) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+		}
+		if (this.#replying != paragraph.id) {
+			this.#replying = paragraph.id;
+			if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+				paragraph.removeChild(paragraph.lastChild);
+				paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>⏎</i></small></small></small>');
+			} else
+				throw new Error('Cannot Reply to Non-Delivered Message.');
+		} else
+			this.#replying = undefined;
+		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
+	}
+
+	markEdit(): void {
+		if (!this.#eventID)
+			return;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		if (this.#replying) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+			this.#replying = undefined;
+		} else if (this.#editing) {
+			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+				prev.removeChild(prev.lastChild);
+				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+			}
+		}
+		this.#editing = paragraph.id;
+		if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+			((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName == paragraph.tagName ? 1 : 0, -5).map((value: ChildNode): string => (value as HTMLElement).tagName == 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
+			paragraph.removeChild(paragraph.lastChild);
+			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
+		} else
+			throw new Error('Cannot Edit Non-Delivered Message.');
+		((paragraph.parentNode as HTMLSpanElement).nextSibling as HTMLInputElement).focus();
 	}
 
 	/**
