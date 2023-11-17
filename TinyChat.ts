@@ -296,19 +296,20 @@ class Client {
 		clearChatGlobal.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
-				for (let i: number = 0; i < split.length; i++) {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: (value as HTMLParagraphElement).id,
-						event: MessageDataEvent.Unsend
-					}, i === 0);
-				}
+				if ((value as HTMLParagraphElement).className === 'sent')
+					for (let i: number = 0; i < split.length; i++) {
+						const split2: Array<string> = aesAccess.split(',');
+						const trueFrom2: string = split2[i];
+						split2.splice(i, 1);
+						split2.unshift(this.#peer.id);
+						await this.#send(trueFrom2, {
+							from: split2.join(','),
+							body: '',
+							time: '',
+							id: (value as HTMLParagraphElement).id,
+							event: MessageDataEvent.Unsend
+						}, i === 0);
+					}
 			});
 		}
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
@@ -652,6 +653,10 @@ class Client {
 					el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 				break;
 			case MessageDataEvent.Edit:
+				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
+				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
+					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
+					break;
 				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
 					if ((el.firstChild as HTMLElement).tagName === el.tagName)
 						while (el.firstChild.nextSibling)
@@ -685,10 +690,13 @@ class Client {
 					});
 				break;
 			case MessageDataEvent.Unsend:
-				const temp: HTMLParagraphElement = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
-				while (temp.previousSibling && !(temp.previousSibling as HTMLElement).className)
-					temp.parentElement?.removeChild(temp.previousSibling as ChildNode);
-				temp.parentElement?.removeChild(temp as ChildNode);
+				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
+				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
+					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
+					break;
+				while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
+					iter.parentElement?.removeChild(iter.previousSibling as ChildNode);
+				iter.parentElement?.removeChild(iter as ChildNode);
 
 				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
 					iter = el.lastChild as HTMLParagraphElement;
@@ -946,6 +954,8 @@ class Client {
 		if (!this.#eventID)
 			return;
 		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		if (paragraph.className !== 'sent')
+			return;
 		if (this.#replying) {
 			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
@@ -973,7 +983,10 @@ class Client {
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const aesAccess: string = (this.#window.document.getElementById(this.#eventID)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement
+		if (paragraph.className !== 'sent')
+			return;
+		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		for (let i: number = 0; i < split.length; i++) {
 			const split2: Array<string> = aesAccess.split(',');
