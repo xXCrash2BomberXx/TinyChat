@@ -297,7 +297,7 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -326,7 +326,7 @@ class Client {
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -372,7 +372,7 @@ class Client {
 						const messageID: string = this.#randomUUID();
 						const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 						for (let i: number = 0; i < split.length; i++) {
-							let split2: Array<string> = aesAccess.split(',');
+							const split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
 							split2.splice(i, 1);
 							split2.unshift(this.#peer.id);
@@ -412,7 +412,7 @@ class Client {
 				const messageID: string = this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -458,7 +458,7 @@ class Client {
 				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -479,7 +479,7 @@ class Client {
 				this.#editing = undefined;
 			} else if (sendBar.value.length === 0 && event.key.length === 1)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -493,7 +493,7 @@ class Client {
 				}
 			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing)
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -518,7 +518,7 @@ class Client {
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				for (let i: number = 0; i < split.length; i++) {
-					let split2: Array<string> = aesAccess.split(',');
+					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
 					split2.unshift(this.#peer.id);
@@ -865,7 +865,7 @@ class Client {
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
 		for (let i: number = 0; i < split.length; i++) {
-			let split2: Array<string> = aesAccess.split(',');
+			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
 			split2.splice(i, 1);
 			split2.unshift(this.#peer.id);
@@ -976,7 +976,7 @@ class Client {
 		const aesAccess: string = (this.#window.document.getElementById(this.#eventID)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		for (let i: number = 0; i < split.length; i++) {
-			let split2: Array<string> = aesAccess.split(',');
+			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
 			split2.splice(i, 1);
 			split2.unshift(this.#peer.id);
