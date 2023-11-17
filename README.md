@@ -125,7 +125,7 @@ Building this project for development purposes requires either `npm` or `tsc` to
 
 - **Testing:** Testing cannot be done without `npm` installed.
 
-After the prject has been compiled, simply open `TinyChat.html` with your desired web browser and chat away!
+After the project has been compiled, simply open `TinyChat.html` with your desired web browser and chat away!
 
 > [!NOTE]
 > Any changes to TypeScript Files during development will require rebuilding the project as used prior. Modifications to any other file types (i.e. HTML, CSS) will be automatically updated when reloading the page.
@@ -288,7 +288,7 @@ graph LR;
     I --> J>The Decrypted Message is Added to the UI];
     H --> K>A Delivery Receipt is Sent to the Sender];
     K --> M;
-    T --> U>A Stop Typping Indicator is Received];
+    T --> U>A Stop Typing Indicator is Received];
     U --> V>The Typing Indicator is Removed from the UI];
   end
 
