@@ -713,6 +713,7 @@ class Client {
 				paragraph.id = messageData.id;
 				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
@@ -752,6 +753,7 @@ class Client {
 					ev.stopPropagation();
 					this.#window.open(decrypted);
 				}
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
@@ -795,6 +797,7 @@ class Client {
 							iter = iter.previousSibling as HTMLParagraphElement;
 				}
 				paragraph.id = messageData.id;
+				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
 					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
@@ -878,7 +881,7 @@ class Client {
 		this.#reacting = undefined;
 	}
 
-	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent): void {
+	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent | TouchEvent): void {
 		ev.preventDefault();
 		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
@@ -888,8 +891,13 @@ class Client {
 		this.#eventID = paragraph.id;
 		const menu: HTMLDivElement = this.#window.document.getElementById(opt) as HTMLDivElement;
 		menu.style.display = 'block';
-		menu.style.left = ev.pageX + 'px';
-		menu.style.top = ev.pageY + 'px';
+		if (ev instanceof MouseEvent) {
+			menu.style.left = ev.pageX + 'px';
+			menu.style.top = ev.pageY + 'px';
+		} else {
+			menu.style.left = ev.targetTouches[ev.targetTouches.length - 1].pageX + 'px';
+			menu.style.top = ev.targetTouches[ev.targetTouches.length - 1].pageY + 'px';
+		}
 	}
 
 	openReacting(): void {
