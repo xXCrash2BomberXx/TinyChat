@@ -446,8 +446,7 @@ class Client {
 				sendBar.readOnly = true;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = true;
-				if (sendBar.value)
-					sendBar.value = await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>'));
+				const body: string = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
 				if (this.#replying) {
 					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
 					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
@@ -465,7 +464,7 @@ class Client {
 					split2.unshift(this.#peer.id);
 					await this.#send(trueFrom2, {
 						from: split2.join(','),
-						body: sendBar.value,
+						body: body,
 						time: messageTime,
 						id: messageID,
 						event: this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined,
@@ -1139,10 +1138,10 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptAES(aesAccess: string, message: string): Promise<string> {
-		return JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+		return message ? JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
 			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
 			this.#aesKeys[aesAccess][1],
-			new Uint8Array(new TextEncoder().encode(message))))));
+			new Uint8Array(new TextEncoder().encode(message)))))) : message;
 	}
 
 	/**
