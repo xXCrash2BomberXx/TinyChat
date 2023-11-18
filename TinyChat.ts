@@ -712,14 +712,27 @@ class Client {
 				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
 				data[1] = data[1].split(',');
 				const blob: Blob = new Blob([new Uint8Array(atob(data[1][1]).split('').map(char => char.charCodeAt(0)))], { type: 'application/octet-stream' });
-				const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
-				downloadLink.href = URL.createObjectURL(blob);
-				downloadLink.download = data[0];
-				downloadLink.innerHTML = data[0];
-				downloadLink.onclick = (ev: MouseEvent): void => ev.stopPropagation();
+				await new Promise((resolve: (value: (void | Promise<void>)) => void): void => {
+					const image: HTMLImageElement = new Image();
+					image.onload = (): void => {
+						image.onclick = (ev: MouseEvent): void => ev.stopPropagation();
+						image.oncontextmenu = (ev: MouseEvent): void => ev.stopPropagation();
+						paragraph.insertAdjacentElement('beforeend', image);
+						resolve();
+					};
+					image.onerror = (): void => {
+						const downloadLink: HTMLAnchorElement = this.#window.document.createElement('a');
+						downloadLink.href = URL.createObjectURL(blob);
+						downloadLink.download = data[0];
+						downloadLink.innerHTML = data[0];
+						downloadLink.onclick = (ev: MouseEvent): void => ev.stopPropagation();
+						paragraph.insertAdjacentElement('beforeend', downloadLink);
+						resolve();
+					}
+					image.src = URL.createObjectURL(blob);
+				});
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
 				paragraph.id = messageData.id;
-				paragraph.insertAdjacentElement('beforeend', downloadLink);
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
