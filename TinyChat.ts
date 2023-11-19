@@ -944,7 +944,7 @@ class Client {
 	/**
 	 * Sends the message that is being typed.
 	 */
-	send() {
+	send(): void {
 		if (!this.#eventID)
 			return;
 		(this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement).click();
@@ -953,11 +953,21 @@ class Client {
 	/**
 	 * Schedules the message that is being typed.
 	 */
-	schedule() {
+	schedule(): void {
 		if (!this.#eventID)
 			return;
 		const id: HTMLInputElement = this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement;
-		this.#window.setTimeout(id.click, 5000);
+		let time: number | undefined = undefined;
+		let input: string | null;
+		do {
+			input = this.#window.prompt('Duration (seconds)');
+			if (!input)
+				return;
+			try {
+				time = parseInt(input);
+			} catch (e) {}
+		} while (!time);
+		this.#window.setTimeout((): void => id.click(), time*1000);
 	}
 
 	/**
