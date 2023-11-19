@@ -521,6 +521,8 @@ class Client {
 				this.#editing = undefined;
 			}
 		};
+		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
+		sendButton.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		sendButtons.insertAdjacentElement('beforeend', sendButton);
 
 		collapsible.insertAdjacentElement('beforeend', sendButtons);
@@ -917,12 +919,34 @@ class Client {
 	}
 
 	/**
+	 * Opens the message scheduling context menu.
+	 * @param {MouseEvent | TouchEvent} ev - The click event that opened the menu.
+	 */
+	#openSending(ev: MouseEvent | TouchEvent): void {
+		ev.preventDefault();
+		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
+		(this.#window.document.getElementById('reactionMenu') as HTMLDivElement).style.display = 'none';
+
+		const menu: HTMLDivElement = this.#window.document.getElementById('scheduleMenu') as HTMLDivElement;
+		menu.style.display = 'block';
+		if (ev instanceof MouseEvent) {
+			menu.style.left = ev.pageX + 'px';
+			menu.style.top = ev.pageY + 'px';
+		} else {
+			menu.style.left = ev.targetTouches[ev.targetTouches.length - 1].pageX + 'px';
+			menu.style.top = ev.targetTouches[ev.targetTouches.length - 1].pageY + 'px';
+		}
+	}
+
+	/**
 	 * Opens the message action context menu.
 	 * @param {HTMLParagraphElement} paragraph - The paragraph element being clicked on.
 	 * @param {MouseEvent | TouchEvent} ev - The click event that opened the menu.
 	 */
 	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent | TouchEvent): void {
 		ev.preventDefault();
+		(this.#window.document.getElementById('scheduleMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('reactionMenu') as HTMLDivElement).style.display = 'none';
@@ -1009,6 +1033,7 @@ class Client {
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+				(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
 			}
 		}
 		this.#editing = paragraph.id;

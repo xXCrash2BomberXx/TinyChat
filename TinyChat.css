@@ -29,7 +29,7 @@ summary {
 }
 
 summary,
-a,
+li,
 #id,
 .chatButtons {
 	cursor: pointer;
