@@ -439,10 +439,52 @@ class Client {
 		el.id = aesAccess;
 		collapsible.insertAdjacentElement('beforeend', el);
 
+		const sendButtons: HTMLDivElement = this.#window.document.createElement('div');
+		sendButtons.className = 'chatButtonsContainer';
+
 		const sendBar: HTMLTextAreaElement = this.#window.document.createElement('textarea');
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
-			if (event.key === 'Enter' && !event.shiftKey && (sendBar.value || this.#editing) && !sendBar.readOnly) {
+			if (sendBar.value.length === 0 && event.key.length === 1)
+				for (let i: number = 0; i < split.length; i++) {
+					const split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: '',
+						time: '',
+						id: '',
+						event: MessageDataEvent.Typing,
+					}, i === 0);
+				}
+			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing)
+				for (let i: number = 0; i < split.length; i++) {
+					const split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: '',
+						time: '',
+						id: '',
+						event: MessageDataEvent.StopTyping,
+					}, i === 0);
+				}
+			sendBar.style.height = '';
+			sendBar.style.height = sendBar.scrollHeight + 'px';
+		};
+		sendButtons.insertAdjacentElement('beforeend', sendBar);
+
+		const sendButton: HTMLInputElement = this.#window.document.createElement('input');
+		sendButton.value = '>';
+		sendButton.type = 'button';
+		sendButton.className = 'sendButton';
+		sendButton.onclick = async (ev: MouseEvent): Promise<void> => {
+			ev.preventDefault();
+			if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
 				sendBar.readOnly = true;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = true;
@@ -477,38 +519,11 @@ class Client {
 					elem.disabled = false;
 				this.#replying = undefined;
 				this.#editing = undefined;
-			} else if (sendBar.value.length === 0 && event.key.length === 1)
-				for (let i: number = 0; i < split.length; i++) {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: '',
-						event: MessageDataEvent.Typing,
-					}, i === 0);
-				}
-			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing)
-				for (let i: number = 0; i < split.length; i++) {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: '',
-						event: MessageDataEvent.StopTyping,
-					}, i === 0);
-				}
-			sendBar.style.height = '';
-			sendBar.style.height = sendBar.scrollHeight + 'px';
+			}
 		};
-		collapsible.insertAdjacentElement('beforeend', sendBar);
+		sendButtons.insertAdjacentElement('beforeend', sendButton);
+
+		collapsible.insertAdjacentElement('beforeend', sendButtons);
 
 		if (establishKey)
 			if ('connect' in Peer.prototype) {
@@ -542,9 +557,9 @@ class Client {
 	}
 
 	/**
-	 * 
-	 * @param to 
-	 * @param messageData 
+	 * Render a message on the UI.
+	 * @param {string} to - The recipient ID associated with the message.
+	 * @param {MessageData} messageData - Message to render.
 	 */
 	async #render(to: string, messageData: MessageData): Promise<void> {
 		const localEdit: string | undefined = this.#editing;
@@ -901,6 +916,11 @@ class Client {
 		this.#reacting = undefined;
 	}
 
+	/**
+	 * Opens the message action context menu.
+	 * @param {HTMLParagraphElement} paragraph - The paragraph element being clicked on.
+	 * @param {MouseEvent | TouchEvent} ev - The click event that opened the menu.
+	 */
 	openContext(paragraph: HTMLParagraphElement, ev: MouseEvent | TouchEvent): void {
 		ev.preventDefault();
 		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
@@ -920,6 +940,9 @@ class Client {
 		}
 	}
 
+	/**
+	 * Opens the reaction context menu.
+	 */
 	openReacting(): void {
 		if (!this.#eventID)
 			return;
@@ -932,6 +955,9 @@ class Client {
 		prevMenu.style.display = 'none';
 	}
 
+	/**
+	 * Marks a message for replying.
+	 */
 	markReply(): void {
 		if (!this.#eventID)
 			return;
@@ -962,6 +988,9 @@ class Client {
 		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
 	}
 
+	/**
+	 * Marks a message for editing.
+	 */
 	markEdit(): void {
 		if (!this.#eventID)
 			return;
@@ -984,7 +1013,7 @@ class Client {
 		}
 		this.#editing = paragraph.id;
 		if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-			(paragraph.parentNode?.nextSibling as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
+			(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
 			paragraph.removeChild(paragraph.lastChild);
 			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 		} else
@@ -992,6 +1021,9 @@ class Client {
 		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
 	}
 
+	/**
+	 * Unsends the message that has been marked for unsending.
+	 */
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
