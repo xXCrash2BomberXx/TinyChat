@@ -29,7 +29,7 @@ summary {
 }
 
 summary,
-a,
+li,
 #id,
 .chatButtons {
 	cursor: pointer;
@@ -52,14 +52,22 @@ details {
 	overflow: hidden;
 }
 
-.message,
-.sendBar {
-	width: 75%;
+.message {
 	margin-left: 5%;
 }
 
 .message,
+.sendBar {
+	width: 75%;
+}
+
+.sendButton {
+	width: 10%;
+}
+
+.message,
 .sendBar,
+.sendButton,
 .chatButtons {
 	display: block;
 	border: 0.2em solid;
@@ -183,6 +191,7 @@ li {
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.sendButton,
 	.chatButtons,
 	.context-menu,
 	summary {
@@ -214,6 +223,7 @@ li {
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.sendButton,
 	.chatButtons,
 	.context-menu,
 	summary {
