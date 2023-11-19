@@ -941,12 +941,18 @@ class Client {
 		}
 	}
 
+	/**
+	 * Sends the message that is being typed.
+	 */
 	send() {
 		if (!this.#eventID)
 			return;
 		(this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement).click();
 	}
 
+	/**
+	 * Schedules the message that is being typed.
+	 */
 	schedule() {
 		if (!this.#eventID)
 			return;
