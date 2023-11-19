@@ -433,6 +433,16 @@ class Client {
 		};
 		chatButtons.insertAdjacentElement('beforeend', shareLocation);
 
+		const sendTypingLabel: HTMLLabelElement = this.#window.document.createElement('label');
+		sendTypingLabel.innerHTML = 'Send Typing Indicators';
+		sendTypingLabel.onclick = (): void => { sendTyping.checked = !sendTyping.checked; };
+		chatButtons.insertAdjacentElement('beforeend', sendTypingLabel);
+		const sendTyping: HTMLInputElement = this.#window.document.createElement('input');
+		sendTyping.type = 'checkbox';
+		sendTyping.className = 'chatButtons';
+		chatButtons.insertAdjacentElement('beforeend', sendTyping);
+		sendTyping.checked = true;
+
 		collapsible.insertAdjacentElement('beforeend', chatButtons);
 		const el: HTMLSpanElement = this.#window.document.createElement('span');
 		el.className = 'message';
@@ -477,7 +487,7 @@ class Client {
 					elem.disabled = false;
 				this.#replying = undefined;
 				this.#editing = undefined;
-			} else if (sendBar.value.length === 0 && event.key.length === 1)
+			} else if (sendBar.value.length === 0 && event.key.length === 1 && sendTyping.checked)
 				for (let i: number = 0; i < split.length; i++) {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
