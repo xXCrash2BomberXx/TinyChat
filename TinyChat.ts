@@ -972,6 +972,7 @@ class Client {
 
 	/**
 	 * Schedules the message that is being typed.
+	 * @param {number | undefined} [seconds = undefined] - Number of seconds to wait before sending (Will prompt if not provided).
 	 */
 	async schedule(seconds: number | undefined = undefined): Promise<void> {
 		if (!this.#eventID)
