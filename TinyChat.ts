@@ -973,7 +973,7 @@ class Client {
 	/**
 	 * Schedules the message that is being typed.
 	 */
-	async schedule(): Promise<void> {
+	async schedule(seconds: number | undefined = undefined): Promise<void> {
 		if (!this.#eventID)
 			return;
 		const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild as HTMLInputElement;
@@ -981,16 +981,17 @@ class Client {
 		const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
 		const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
-		let time: number | undefined = undefined;
-		let input: string | null;
-		do {
-			input = this.#window.prompt('Duration (seconds)');
-			if (!input)
-				return;
-			try {
-				time = parseInt(input);
-			} catch (e) { }
-		} while (!time);
+		if (!seconds) {
+			let input: string | null;
+			do {
+				input = this.#window.prompt('Duration (seconds)');
+				if (!input)
+					return;
+				try {
+					seconds = parseInt(input);
+				} catch (e) { }
+			} while (!seconds);
+		}
 		if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
 			sendBar.readOnly = true;
 			for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
@@ -1048,7 +1049,7 @@ class Client {
 						prev: prev,
 					}, i === 0);
 				}
-			}, time * 1000);
+			}, seconds * 1000);
 		}
 	}
 
