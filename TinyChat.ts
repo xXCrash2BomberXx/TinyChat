@@ -973,10 +973,14 @@ class Client {
 	/**
 	 * Schedules the message that is being typed.
 	 */
-	schedule(): void {
+	async schedule(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const id: HTMLInputElement = this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement;
+		const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild as HTMLInputElement;
+		const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
+		const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
+		const split: Array<string> = aesAccess.split(',');
+		const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
 		let time: number | undefined = undefined;
 		let input: string | null;
 		do {
@@ -985,9 +989,67 @@ class Client {
 				return;
 			try {
 				time = parseInt(input);
-			} catch (e) {}
+			} catch (e) { }
 		} while (!time);
-		this.#window.setTimeout((): void => id.click(), time*1000);
+		if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
+			sendBar.readOnly = true;
+			for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+				elem.disabled = true;
+			if (this.#replying) {
+				const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+				if (prev.parentElement?.parentElement === collapsible) {
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
+					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+				} else {
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					}
+					this.#replying = undefined;
+				}
+			}
+			if (this.#editing) {
+				const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+				if (prev.parentElement?.parentElement !== collapsible) {
+					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+						prev.removeChild(prev.lastChild);
+						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+					}
+					this.#editing = undefined;
+				}
+			}
+			const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
+			const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+			sendBar.value = '';
+			sendBar.readOnly = false;
+			const prev: string | undefined = this.#replying;
+			this.#replying = undefined;
+			const messageID: string = this.#editing || this.#randomUUID();
+			const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+			this.#editing = undefined;
+			for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+				elem.disabled = false;
+			this.#window.setTimeout(async (): Promise<void> => {
+				for (let i: number = 0; i < split.length; i++) {
+					const split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: body,
+						time: messageTime,
+						id: messageID,
+						event: event,
+						prev: prev,
+					}, i === 0);
+				}
+			}, time * 1000);
+		}
 	}
 
 	/**
