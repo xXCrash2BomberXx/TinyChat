@@ -176,8 +176,8 @@ li {
 
 	.received,
 	.typing {
-		border-left: var(--t) solid #dddddd;
-		background-color: #dddddd;
+		border-left: var(--t) solid rgb(197, 107, 189), 0.49;
+		background-color:var(--t) solid rgb(197, 107, 189), 0.49 ;
 	}
 
 	.sent {
@@ -188,7 +188,9 @@ li {
 
 @media (prefers-color-scheme: dark) {
 	body {
-		background-color: black;
+		background-color: darkgray;
+        background-image: url('fnafbackground.jpg'); /* Change the file path accordingly */
+        background-size: cover; /* Adjust as needed */
 	}
 
 	.control,
@@ -200,19 +202,16 @@ li {
 	.chatButtons,
 	.context-menu,
 	summary {
-		color: white;
-		border-color: darkgray;
-		background-color: gray;
+		background-color: violet;
 	}
 
 	.received,
 	.typing {
-		border-left: var(--t) solid #dddddd;
-		background-color: #dddddd;
+		background-color: purple;
 	}
 
 	.sent {
-		border-right: var(--t) solid #0074d9;
-		background-color: #0074d9;
+		border-right: var(--t) solid #ee82d6;
+		background-color: #ee82d6;
 	}
 }
