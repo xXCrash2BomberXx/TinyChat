@@ -488,17 +488,44 @@ class Client {
 				sendBar.readOnly = true;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = true;
-				const body: string = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
 				if (this.#replying) {
 					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-						prev.removeChild(prev.lastChild);
-						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+					if (prev.parentElement?.parentElement === collapsible) {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+					} else {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						this.#replying = undefined;
 					}
-					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
 				}
-				const messageID: string = this.#editing ? this.#editing : this.#randomUUID();
+				if (this.#editing) {
+					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+					if (prev.parentElement?.parentElement !== collapsible) {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+							(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+						}
+						this.#editing = undefined;
+					}
+				}
+				const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
+				const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+				sendBar.value = '';
+				sendBar.readOnly = false;
+				const prev: string | undefined = this.#replying;
+				this.#replying = undefined;
+				const messageID: string = this.#editing || this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+				this.#editing = undefined;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = false;
 				for (let i: number = 0; i < split.length; i++) {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -509,16 +536,10 @@ class Client {
 						body: body,
 						time: messageTime,
 						id: messageID,
-						event: this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined,
-						prev: this.#replying,
+						event: event,
+						prev: prev,
 					}, i === 0);
 				}
-				sendBar.value = '';
-				sendBar.readOnly = false;
-				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
-					elem.disabled = false;
-				this.#replying = undefined;
-				this.#editing = undefined;
 			}
 		};
 		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(aesAccess, ev);
@@ -564,7 +585,6 @@ class Client {
 	 * @param {MessageData} messageData - Message to render.
 	 */
 	async #render(to: string, messageData: MessageData): Promise<void> {
-		const localEdit: string | undefined = this.#editing;
 		const split: Array<string> = messageData.from.split(',');
 		const trueFrom: string = split[0];
 		let aesAccess: string;
@@ -673,7 +693,7 @@ class Client {
 				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
 					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 					break;
-				this.#window.document.querySelectorAll(`[id='${to === this.#peer.id ? messageData.id : localEdit}']`).forEach(async (el: any): Promise<void> => {
+				this.#window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<void> => {
 					if ((el.firstChild as HTMLElement).tagName === el.tagName)
 						while (el.firstChild.nextSibling)
 							el.removeChild(el.firstChild.nextSibling);
@@ -1040,7 +1060,7 @@ class Client {
 				throw new Error('Cannot Reply to Non-Delivered Message.');
 		} else
 			this.#replying = undefined;
-		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
+		(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).focus();
 	}
 
 	/**
@@ -1074,7 +1094,7 @@ class Client {
 			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
 		} else
 			throw new Error('Cannot Edit Non-Delivered Message.');
-		(paragraph.parentNode?.nextSibling as HTMLInputElement).focus();
+		(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).focus();
 	}
 
 	/**
