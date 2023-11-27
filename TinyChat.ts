@@ -983,7 +983,7 @@ class Client {
 			const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
 			const split: Array<string> = aesAccess.split(',');
 			const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
-			if (!seconds) {
+			if (seconds === undefined) {
 				let input: string | null;
 				do {
 					input = this.#window.prompt('Duration (seconds)');
