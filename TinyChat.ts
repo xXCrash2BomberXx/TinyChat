@@ -140,7 +140,7 @@ interface MessageData {
 };
 
 class Client {
-	#eventID: string | undefined = undefined;
+	#eventID: string | HTMLInputElement | undefined = undefined;
 	/**
 	 * Message ID of the message being edited.
 	 * @type {string?}
@@ -392,6 +392,8 @@ class Client {
 			};
 			input.click();
 		};
+		uploadFile.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
+		uploadFile.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		chatButtons.insertAdjacentElement('beforeend', uploadFile);
 
 		const shareLocation: HTMLInputElement = this.#window.document.createElement('input');
@@ -431,6 +433,8 @@ class Client {
 				console.error("Error getting current position:", error);
 			});
 		};
+		shareLocation.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
+		shareLocation.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		chatButtons.insertAdjacentElement('beforeend', shareLocation);
 
 		collapsible.insertAdjacentElement('beforeend', chatButtons);
@@ -542,8 +546,8 @@ class Client {
 				});
 			}
 		};
-		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(aesAccess, ev);
-		sendButton.ontouchstart = (ev: TouchEvent): void => this.#openSending(aesAccess, ev);
+		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
+		sendButton.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		sendButtons.insertAdjacentElement('beforeend', sendButton);
 
 		collapsible.insertAdjacentElement('beforeend', sendButtons);
@@ -940,16 +944,16 @@ class Client {
 
 	/**
 	 * Opens the message scheduling context menu.
-	 * @param {string} aesAccess - The conversation ID being clicked on.
 	 * @param {MouseEvent | TouchEvent} ev - The click event that opened the menu.
 	 */
-	#openSending(aesAccess: string, ev: MouseEvent | TouchEvent): void {
+	#openSending(ev: MouseEvent | TouchEvent): void {
 		ev.preventDefault();
+		console.log(ev);
 		(this.#window.document.getElementById('receivedMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('sentMenu') as HTMLDivElement).style.display = 'none';
 		(this.#window.document.getElementById('reactionMenu') as HTMLDivElement).style.display = 'none';
 
-		this.#eventID = aesAccess;
+		this.#eventID = ev.target as HTMLInputElement;
 		const menu: HTMLDivElement = this.#window.document.getElementById('scheduleMenu') as HTMLDivElement;
 		menu.style.display = 'block';
 		if (ev instanceof MouseEvent) {
@@ -967,7 +971,10 @@ class Client {
 	send(): void {
 		if (!this.#eventID)
 			return;
-		(this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement).click();
+		else if (typeof this.#eventID === 'string')
+			(this.#window.document.getElementById(this.#eventID)?.nextSibling?.lastChild as HTMLInputElement).click();
+		else if (typeof this.#eventID === 'object')
+			this.#eventID.click();
 	}
 
 	/**
@@ -978,94 +985,98 @@ class Client {
 		return new Promise(async (resolve: (value: (void | Promise<void>)) => void): Promise<void> => {
 			if (!this.#eventID)
 				resolve();
-			const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID as string)?.nextSibling?.firstChild as HTMLInputElement;
-			const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
-			const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
-			const split: Array<string> = aesAccess.split(',');
-			const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
-			if (seconds === undefined) {
-				let input: string | null;
-				do {
-					input = this.#window.prompt('Duration (seconds)');
-					if (!input)
-						return;
-					try {
-						seconds = parseInt(input);
-					} catch (e) { }
-				} while (!seconds);
-			}
-			if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
-				sendBar.readOnly = true;
-				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
-					elem.disabled = true;
-				if (this.#replying) {
-					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-					if (prev.parentElement?.parentElement === collapsible) {
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#replying = await this.#encryptAES(aesAccess, this.#replying);
-					} else {
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						}
-						this.#replying = undefined;
-					}
+			else if (typeof this.#eventID === 'string') {
+				const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID as string)?.nextSibling?.firstChild as HTMLInputElement;
+				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
+				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
+				const split: Array<string> = aesAccess.split(',');
+				const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
+				if (seconds === undefined) {
+					let input: string | null;
+					do {
+						input = this.#window.prompt('Duration (seconds)');
+						if (!input)
+							return;
+						try {
+							seconds = parseInt(input);
+						} catch (e) { }
+					} while (!seconds);
 				}
-				if (this.#editing) {
-					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-					if (prev.parentElement?.parentElement !== collapsible) {
-						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-							prev.removeChild(prev.lastChild);
-							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-							(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+				if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
+					sendBar.readOnly = true;
+					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+						elem.disabled = true;
+					if (this.#replying) {
+						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+						if (prev.parentElement?.parentElement === collapsible) {
+							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+								prev.removeChild(prev.lastChild);
+								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+							}
+							this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+						} else {
+							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+								prev.removeChild(prev.lastChild);
+								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+							}
+							this.#replying = undefined;
 						}
-						this.#editing = undefined;
 					}
-				}
-				const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
-				const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
-				sendBar.value = '';
-				sendBar.readOnly = false;
-				const prev: string | undefined = this.#replying;
-				this.#replying = undefined;
-				const messageID: string = this.#editing || this.#randomUUID();
-				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
-				this.#editing = undefined;
-				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
-					elem.disabled = false;
-				split.forEach(async (_: string, i: number): Promise<void> => {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: '',
-						time: '',
-						id: '',
-						event: MessageDataEvent.StopTyping,
-					}, i === 0);
-				});
-				this.#window.setTimeout(async (): Promise<void> => {
+					if (this.#editing) {
+						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+						if (prev.parentElement?.parentElement !== collapsible) {
+							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+								prev.removeChild(prev.lastChild);
+								prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+								(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+							}
+							this.#editing = undefined;
+						}
+					}
+					const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
+					const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+					sendBar.value = '';
+					sendBar.readOnly = false;
+					const prev: string | undefined = this.#replying;
+					this.#replying = undefined;
+					const messageID: string = this.#editing || this.#randomUUID();
+					const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+					this.#editing = undefined;
+					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+						elem.disabled = false;
 					split.forEach(async (_: string, i: number): Promise<void> => {
-					const split2: Array<string> = aesAccess.split(',');
-					const trueFrom2: string = split2[i];
-					split2.splice(i, 1);
-					split2.unshift(this.#peer.id);
-					await this.#send(trueFrom2, {
-						from: split2.join(','),
-						body: body,
-						time: messageTime,
-						id: messageID,
-						event: event,
-						prev: prev,
-					}, i === 0);
-				});
-				resolve();
-			}, seconds * 1000);
+						const split2: Array<string> = aesAccess.split(',');
+						const trueFrom2: string = split2[i];
+						split2.splice(i, 1);
+						split2.unshift(this.#peer.id);
+						await this.#send(trueFrom2, {
+							from: split2.join(','),
+							body: '',
+							time: '',
+							id: '',
+							event: MessageDataEvent.StopTyping,
+						}, i === 0);
+					});
+					this.#window.setTimeout(async (): Promise<void> => {
+						split.forEach(async (_: string, i: number): Promise<void> => {
+							const split2: Array<string> = aesAccess.split(',');
+							const trueFrom2: string = split2[i];
+							split2.splice(i, 1);
+							split2.unshift(this.#peer.id);
+							await this.#send(trueFrom2, {
+								from: split2.join(','),
+								body: body,
+								time: messageTime,
+								id: messageID,
+								event: event,
+								prev: prev,
+							}, i === 0);
+						});
+						resolve();
+					}, seconds * 1000);
+				}
+			} else if (typeof this.#eventID === 'object') {
+				console.error('Not Implimented Yet');
 			}
 		});
 	}
@@ -1101,8 +1112,8 @@ class Client {
 	openReacting(): void {
 		if (!this.#eventID)
 			return;
-		this.#reacting = this.#eventID;
-		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#window.document.getElementById(this.#eventID)?.className + 'Menu') as HTMLDivElement;
+		this.#reacting = this.#eventID as string;
+		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#window.document.getElementById(this.#eventID as string)?.className + 'Menu') as HTMLDivElement;
 		const menu: HTMLDivElement = this.#window.document.getElementById('reactionMenu') as HTMLDivElement;
 		menu.style.display = 'block';
 		menu.style.left = prevMenu.style.left;
@@ -1116,7 +1127,7 @@ class Client {
 	markReply(): void {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
 		if (this.#editing) {
 			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
@@ -1149,7 +1160,7 @@ class Client {
 	markEdit(): void {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement;
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
 		if (paragraph.className !== 'sent')
 			return;
 		if (this.#replying) {
@@ -1183,7 +1194,7 @@ class Client {
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID) as HTMLParagraphElement
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
