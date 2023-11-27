@@ -297,7 +297,7 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				if ((value as HTMLParagraphElement).className === 'sent')
-					for (let i: number = 0; i < split.length; i++) {
+					split.forEach(async (_: string, i: number): Promise<void> => {
 						const split2: Array<string> = aesAccess.split(',');
 						const trueFrom2: string = split2[i];
 						split2.splice(i, 1);
@@ -309,7 +309,7 @@ class Client {
 							id: (value as HTMLParagraphElement).id,
 							event: MessageDataEvent.Unsend
 						}, i === 0);
-					}
+					});
 			});
 		}
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
@@ -326,7 +326,7 @@ class Client {
 					elem.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -338,7 +338,7 @@ class Client {
 						id: '',
 						event: MessageDataEvent.RSAKeyShare,
 					}, i === 0);
-				}
+				});
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
@@ -372,7 +372,7 @@ class Client {
 						}
 						const messageID: string = this.#randomUUID();
 						const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
-						for (let i: number = 0; i < split.length; i++) {
+						split.forEach(async (_: string, i: number): Promise<void> => {
 							const split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
 							split2.splice(i, 1);
@@ -385,7 +385,7 @@ class Client {
 								event: MessageDataEvent.File,
 								prev: this.#replying,
 							}, i === 0);
-						}
+						});
 						this.#replying = undefined;
 					}
 				}
@@ -412,7 +412,7 @@ class Client {
 				}
 				const messageID: string = this.#randomUUID();
 				const messageTime: string = await this.#encryptAES(aesAccess, new Date().toLocaleTimeString());
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -425,7 +425,7 @@ class Client {
 						event: MessageDataEvent.Location,
 						prev: this.#replying,
 					}, i === 0);
-				}
+				});
 				this.#replying = undefined;
 			}, function (error) {
 				console.error("Error getting current position:", error);
@@ -446,7 +446,7 @@ class Client {
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
 			if (sendBar.value.length === 0 && event.key.length === 1)
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -458,9 +458,9 @@ class Client {
 						id: '',
 						event: MessageDataEvent.Typing,
 					}, i === 0);
-				}
+				});
 			else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing)
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -472,7 +472,7 @@ class Client {
 						id: '',
 						event: MessageDataEvent.StopTyping,
 					}, i === 0);
-				}
+				});
 			sendBar.style.height = '';
 			sendBar.style.height = sendBar.scrollHeight + 'px';
 		};
@@ -526,7 +526,7 @@ class Client {
 				this.#editing = undefined;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = false;
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -539,7 +539,7 @@ class Client {
 						event: event,
 						prev: prev,
 					}, i === 0);
-				}
+				});
 			}
 		};
 		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(aesAccess, ev);
@@ -555,7 +555,7 @@ class Client {
 					elem.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
-				for (let i: number = 0; i < split.length; i++) {
+				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -567,7 +567,7 @@ class Client {
 						id: '',
 						event: MessageDataEvent.RSAKeyShare,
 					}, i === 0);
-				}
+				});
 				await this.#aesKeyEstablished(aesAccess);
 				sendBar.readOnly = false;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
@@ -921,7 +921,7 @@ class Client {
 		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
-		for (let i: number = 0; i < split.length; i++) {
+		split.forEach(async (_: string, i: number): Promise<void> => {
 			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
 			split2.splice(i, 1);
@@ -934,7 +934,7 @@ class Client {
 				event: undefined,
 				prev: this.#reacting,
 			}, i === 0);
-		}
+		});
 		this.#reacting = undefined;
 	}
 
@@ -975,68 +975,82 @@ class Client {
 	 * @param {number | undefined} [seconds = undefined] - Number of seconds to wait before sending (Will prompt if not provided).
 	 */
 	async schedule(seconds: number | undefined = undefined): Promise<void> {
-		if (!this.#eventID)
-			return;
-		const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild as HTMLInputElement;
-		const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
-		const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
-		const split: Array<string> = aesAccess.split(',');
-		const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
-		if (!seconds) {
-			let input: string | null;
-			do {
-				input = this.#window.prompt('Duration (seconds)');
-				if (!input)
-					return;
-				try {
-					seconds = parseInt(input);
-				} catch (e) { }
-			} while (!seconds);
-		}
-		if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
-			sendBar.readOnly = true;
-			for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
-				elem.disabled = true;
-			if (this.#replying) {
-				const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
-				if (prev.parentElement?.parentElement === collapsible) {
-					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-						prev.removeChild(prev.lastChild);
-						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-					}
-					this.#replying = await this.#encryptAES(aesAccess, this.#replying);
-				} else {
-					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
-						prev.removeChild(prev.lastChild);
-						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-					}
-					this.#replying = undefined;
-				}
+		return new Promise(async (resolve: (value: (void | Promise<void>)) => void): Promise<void> => {
+			if (!this.#eventID)
+				resolve();
+			const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID as string)?.nextSibling?.firstChild as HTMLInputElement;
+			const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
+			const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
+			const split: Array<string> = aesAccess.split(',');
+			const chatButtons: HTMLDivElement = collapsible.firstChild?.nextSibling as HTMLDivElement;
+			if (!seconds) {
+				let input: string | null;
+				do {
+					input = this.#window.prompt('Duration (seconds)');
+					if (!input)
+						return;
+					try {
+						seconds = parseInt(input);
+					} catch (e) { }
+				} while (!seconds);
 			}
-			if (this.#editing) {
-				const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
-				if (prev.parentElement?.parentElement !== collapsible) {
-					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
-						prev.removeChild(prev.lastChild);
-						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
-						(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+			if ((sendBar.value || this.#editing) && !sendBar.readOnly) {
+				sendBar.readOnly = true;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = true;
+				if (this.#replying) {
+					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+					if (prev.parentElement?.parentElement === collapsible) {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						this.#replying = await this.#encryptAES(aesAccess, this.#replying);
+					} else {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+						}
+						this.#replying = undefined;
 					}
-					this.#editing = undefined;
 				}
-			}
-			const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
-			const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
-			sendBar.value = '';
-			sendBar.readOnly = false;
-			const prev: string | undefined = this.#replying;
-			this.#replying = undefined;
-			const messageID: string = this.#editing || this.#randomUUID();
-			const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
-			this.#editing = undefined;
-			for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
-				elem.disabled = false;
-			this.#window.setTimeout(async (): Promise<void> => {
-				for (let i: number = 0; i < split.length; i++) {
+				if (this.#editing) {
+					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+					if (prev.parentElement?.parentElement !== collapsible) {
+						if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
+							prev.removeChild(prev.lastChild);
+							prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+							(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
+						}
+						this.#editing = undefined;
+					}
+				}
+				const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
+				const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+				sendBar.value = '';
+				sendBar.readOnly = false;
+				const prev: string | undefined = this.#replying;
+				this.#replying = undefined;
+				const messageID: string = this.#editing || this.#randomUUID();
+				const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
+				this.#editing = undefined;
+				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
+					elem.disabled = false;
+				split.forEach(async (_: string, i: number): Promise<void> => {
+					const split2: Array<string> = aesAccess.split(',');
+					const trueFrom2: string = split2[i];
+					split2.splice(i, 1);
+					split2.unshift(this.#peer.id);
+					await this.#send(trueFrom2, {
+						from: split2.join(','),
+						body: '',
+						time: '',
+						id: '',
+						event: MessageDataEvent.StopTyping,
+					}, i === 0);
+				});
+				this.#window.setTimeout(async (): Promise<void> => {
+					split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
 					split2.splice(i, 1);
@@ -1049,9 +1063,11 @@ class Client {
 						event: event,
 						prev: prev,
 					}, i === 0);
-				}
+				});
+				resolve();
 			}, seconds * 1000);
-		}
+			}
+		});
 	}
 
 	/**
@@ -1171,8 +1187,7 @@ class Client {
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
-		const split: Array<string> = aesAccess.split(',');
-		for (let i: number = 0; i < split.length; i++) {
+		aesAccess.split(',').forEach(async (_: string, i: number): Promise<void> => {
 			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
 			split2.splice(i, 1);
@@ -1181,10 +1196,10 @@ class Client {
 				from: split2.join(','),
 				body: '',
 				time: '',
-				id: this.#eventID,
+				id: this.#eventID as string,
 				event: MessageDataEvent.Unsend,
 			}, i === 0);
-		}
+		});
 	}
 
 	/**
