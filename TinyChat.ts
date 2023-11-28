@@ -428,14 +428,8 @@ class Client {
 			this.#eventID = aesAccess;
 			this.schedule(0);
 		};
-		sendButton.oncontextmenu = (ev: MouseEvent): void => {
-			this.#openSending(ev);
-			this.#eventID = aesAccess;
-		};
-		sendButton.ontouchstart = (ev: TouchEvent): void => {
-			this.#openSending(ev);
-			this.#eventID = aesAccess;
-		};
+		sendButton.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
+		sendButton.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		sendButtons.insertAdjacentElement('beforeend', sendButton);
 
 		collapsible.insertAdjacentElement('beforeend', sendButtons);
@@ -871,8 +865,8 @@ class Client {
 					} catch (e) { }
 				} while (!seconds);
 			}
-			if (typeof this.#eventID === 'string') {
-				const sendBar: HTMLInputElement = this.#window.document.getElementById(this.#eventID as string)?.nextSibling?.firstChild as HTMLInputElement;
+			if (typeof this.#eventID === 'string' || (typeof this.#eventID === 'object' && this.#eventID.className === 'sendButton')) {
+				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling as HTMLInputElement : this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild as HTMLInputElement);
 				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
 				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
 				const split: Array<string> = aesAccess.split(',');
