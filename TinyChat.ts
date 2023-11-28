@@ -866,7 +866,7 @@ class Client {
 				} while (!seconds);
 			}
 			if (typeof this.#eventID === 'string' || (typeof this.#eventID === 'object' && this.#eventID.className === 'sendButton')) {
-				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling as HTMLInputElement : this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild as HTMLInputElement);
+				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
 				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
 				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
 				const split: Array<string> = aesAccess.split(',');
