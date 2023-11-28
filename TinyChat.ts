@@ -374,6 +374,16 @@ class Client {
 		shareLocation.ontouchstart = (ev: TouchEvent): void => this.#openSending(ev);
 		chatButtons.insertAdjacentElement('beforeend', shareLocation);
 
+		const sendTypingLabel: HTMLLabelElement = this.#window.document.createElement('label');
+		sendTypingLabel.innerHTML = 'Send Typing Indicators';
+		sendTypingLabel.onclick = (): void => { sendTyping.checked = !sendTyping.checked; };
+		chatButtons.insertAdjacentElement('beforeend', sendTypingLabel);
+		const sendTyping: HTMLInputElement = this.#window.document.createElement('input');
+		sendTyping.type = 'checkbox';
+		sendTyping.className = 'chatButtons';
+		chatButtons.insertAdjacentElement('beforeend', sendTyping);
+		sendTyping.checked = true;
+
 		collapsible.insertAdjacentElement('beforeend', chatButtons);
 		const el: HTMLSpanElement = this.#window.document.createElement('span');
 		el.className = 'message';
@@ -386,7 +396,7 @@ class Client {
 		const sendBar: HTMLTextAreaElement = this.#window.document.createElement('textarea');
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
-			if (sendBar.value.length === 0 && event.key.length === 1)
+			if (sendBar.value.length === 0 && event.key.length === 1 && sendTyping.checked)
 				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];

@@ -34,6 +34,7 @@ summary {
 
 summary,
 li,
+label,
 #id,
 .chatButtons {
 	cursor: pointer;
@@ -189,9 +190,12 @@ li {
 		background-color: white;
 	}
 
+	label {
+		color: black;
+	}
+
 	.control,
 	input,
-	label,
 	textarea:disabled,
 	.message,
 	.sendBar,
@@ -221,9 +225,12 @@ li {
 		background-color: black;
 	}
 
+	label {
+		color: white;
+	}
+
 	.control,
 	input,
-	label,
 	textarea:disabled,
 	.message,
 	.sendBar,
