@@ -6,7 +6,7 @@
 TinyChat works through the usage of [PeerJS](https://peerjs.com/).
 When you open a TinyChat web page, a User ID will be shown in the top right bar.
 This User ID is how people can contact you, but this will change every time you refresh the page.
-TinyChat aims to give end-to-end encrypted communication through RSA-OAEP and AES-CBC encryption.
+TinyChat aims to give end-to-end encrypted communication through RSA-OAEP, Elliptic Curve Diffie-Hellman, and AES-CBC encryption.
 Each conversation will have a unique AES-256 key with that key being shared using your RSA public key to allow the peer to produce a key that only the sender knows prior to encryption and that only you can decrypt as it will be encrypted with your RSA public key.
 
 > [!IMPORTANT]
