@@ -147,10 +147,17 @@ graph TB;
     #8226; #dhKeys: { [id: string]: { [id: string]: CryptoKeyPair } }
     #8226; #window: window
     #8226; #crypto: Crypto
+    #8226; #eventID: string | HTMLInputElement | undefined
     <hr>#8226; createChat: (to: string): HTMLSpanElement
     #8226; #render: (to: string, messageData: MessageData): void
     #8226; #send: (to: string, messageData: MessageData): void
     #8226; react: (reaction: string): void
+    #8226; schedule: (seconds: number | undefined): void
+    #8226; openContext: (): void
+    #8226; openReacting: (): void
+    #8226; markReply: (): void
+    #8226; markEdit: (): void
+    #8226; unsend: (): void
   "] --> |Has a| B["
   Peer
     #8226; id: string
