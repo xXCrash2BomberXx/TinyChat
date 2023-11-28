@@ -36,7 +36,8 @@ summary,
 li,
 label,
 #id,
-.chatButtons {
+.chatButtons,
+.sendButton {
 	cursor: pointer;
 }
 
