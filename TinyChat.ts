@@ -560,7 +560,6 @@ class Client {
 						return;
 					else
 						iter = iter.previousSibling as HTMLParagraphElement;
-				paragraph.id = messageData.id;
 				el.insertAdjacentElement('beforeend', paragraph);
 				break;
 			case MessageDataEvent.StopTyping:
