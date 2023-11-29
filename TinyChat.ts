@@ -221,6 +221,8 @@ class Client {
 			if (messageData.from.split(',')[0] === dataConnection.peer)
 				await this.#render(this.#peer.id, messageData);
 		}));
+		if (!('connect' in Peer.prototype))
+			this.#peer.id = this.#randomUUID();
 
 		/**
 		 * Waits for the client to connect to the server and refreshes the client id.

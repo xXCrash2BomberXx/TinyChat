@@ -70,7 +70,7 @@ const enum MessageDataEvent {
 	Location,
 };
 
-const generateClient: () => typeof Client = () => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto);
+const generateClient: () => typeof Client = (): typeof Client => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto);
 
 Promise.all(Object.entries({
 	'createChatTest': async (): Promise<boolean> => {
