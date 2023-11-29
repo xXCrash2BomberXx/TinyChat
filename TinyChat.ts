@@ -596,7 +596,7 @@ class Client {
 						while (el.firstChild)
 							el.removeChild(el.firstChild);
 					el.insertAdjacentHTML('beforeend', `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''
-						}${await this.#decryptAES(aesAccess, messageData.body)
+						}${messageData.body ? await this.#decryptAES(aesAccess, messageData.body) : ''
 						} <small><small><small><i>edited ${await this.#decryptAES(aesAccess, messageData.time)
 						}</i></small></small></small>`);
 				});
@@ -628,16 +628,6 @@ class Client {
 				while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
 					iter.parentElement?.removeChild(iter.previousSibling as ChildNode);
 				iter.parentElement?.removeChild(iter as ChildNode);
-
-				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-					iter = el.lastChild as HTMLParagraphElement;
-					while (iter && iter.className === 'typing')
-						if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
-							el.removeChild(iter);
-							break;
-						} else
-							iter = iter.previousSibling as HTMLParagraphElement;
-				}
 				break;
 			case MessageDataEvent.File:
 				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
@@ -912,7 +902,7 @@ class Client {
 						}
 					}
 					const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
-					const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+					const event: MessageDataEvent | undefined = this.#editing ? MessageDataEvent.Edit : undefined;
 					sendBar.value = '';
 					sendBar.readOnly = false;
 					const prev: string | undefined = this.#replying;
@@ -1086,6 +1076,7 @@ class Client {
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
+				(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
 			}
 			this.#editing = undefined;
 		} else if (this.#replying) {
@@ -1095,7 +1086,7 @@ class Client {
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 			}
 		}
-		if (this.#replying != paragraph.id) {
+		if (this.#replying !== paragraph.id) {
 			this.#replying = paragraph.id;
 			if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
 				paragraph.removeChild(paragraph.lastChild);
@@ -1131,13 +1122,45 @@ class Client {
 				(prev.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = '';
 			}
 		}
-		this.#editing = paragraph.id;
-		if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
-			(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
-			paragraph.removeChild(paragraph.lastChild);
-			paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
-		} else
-			throw new Error('Cannot Edit Non-Delivered Message.');
+		if (this.#editing !== this.#eventID) {
+			this.#editing = paragraph.id;
+			if (paragraph.lastChild && (paragraph.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✓<\/i>(<\/small>){3}$/g)) {
+				(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).value = Array.from(paragraph.childNodes).slice((paragraph.firstChild as HTMLElement).tagName === paragraph.tagName ? 1 : 0, -3).map((value: ChildNode): string => (value as HTMLElement).tagName === 'BR' ? '\n' : (value as Text).data).join('').slice(0, -1);
+				paragraph.removeChild(paragraph.lastChild);
+				paragraph.insertAdjacentHTML('beforeend', ' <small><small><small><i>✎</i></small></small></small>');
+			} else
+				throw new Error('Cannot Edit Non-Delivered Message.');
+
+			(paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',').forEach(async (_: string, i: number): Promise<void> => {
+				const split2: Array<string> = (paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',');
+				const trueFrom2: string = split2[i];
+				split2.splice(i, 1);
+				split2.unshift(this.#peer.id);
+				await this.#send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: '',
+					event: MessageDataEvent.Typing,
+				}, i === 0);
+			});
+		} else {
+			this.#editing = undefined;
+			(paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',').forEach(async (_: string, i: number): Promise<void> => {
+				const split2: Array<string> = (paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',');
+				const trueFrom2: string = split2[i];
+				split2.splice(i, 1);
+				split2.unshift(this.#peer.id);
+				await this.#send(trueFrom2, {
+					from: split2.join(','),
+					body: '',
+					time: '',
+					id: '',
+					event: MessageDataEvent.StopTyping,
+				}, i === 0);
+			});
+		}
+
 		(paragraph.parentNode?.nextSibling?.firstChild as HTMLInputElement).focus();
 	}
 
