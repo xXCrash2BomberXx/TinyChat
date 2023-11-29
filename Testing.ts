@@ -360,10 +360,32 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	'TypingIndicatorReceived': async (): Promise<boolean> => {
+	'typingIndicatorReceived': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
 		await client.createChat(UUID);
+		await client.render(client.id, {
+			from: UUID,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.Typing,
+			prev: undefined
+		});
+		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="typing">Typing...</p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
+	},
+	'doubleTypingIndicatorReceived': async (): Promise<boolean> => {
+		const client: typeof Client = generateClient();
+		const UUID: string = client.randomUUID();
+		await client.createChat(UUID);
+		await client.render(client.id, {
+			from: UUID,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.Typing,
+			prev: undefined
+		});
 		await client.render(client.id, {
 			from: UUID,
 			body: '',
