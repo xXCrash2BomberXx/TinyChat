@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.
+> Additionally, this project has been reported to not work on MS Edge, Brave, and Safari.
 
 TinyChat works through the usage of [PeerJS](https://peerjs.com/).
 When you open a TinyChat web page, a User ID will be shown in the top right bar.

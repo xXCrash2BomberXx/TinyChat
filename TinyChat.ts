@@ -560,7 +560,6 @@ class Client {
 						return;
 					else
 						iter = iter.previousSibling as HTMLParagraphElement;
-				paragraph.id = messageData.id;
 				el.insertAdjacentElement('beforeend', paragraph);
 				break;
 			case MessageDataEvent.StopTyping:
@@ -598,7 +597,7 @@ class Client {
 							el.removeChild(el.firstChild);
 					el.insertAdjacentHTML('beforeend', `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''
 						}${await this.#decryptAES(aesAccess, messageData.body)
-						} <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)
+						} <small><small><small><i>edited ${await this.#decryptAES(aesAccess, messageData.time)
 						}</i></small></small></small>`);
 				});
 
