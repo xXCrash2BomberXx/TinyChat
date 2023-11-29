@@ -596,7 +596,7 @@ class Client {
 						while (el.firstChild)
 							el.removeChild(el.firstChild);
 					el.insertAdjacentHTML('beforeend', `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''
-						}${await this.#decryptAES(aesAccess, messageData.body)
+						}${messageData.body ? await this.#decryptAES(aesAccess, messageData.body) : ''
 						} <small><small><small><i>edited ${await this.#decryptAES(aesAccess, messageData.time)
 						}</i></small></small></small>`);
 				});
@@ -628,16 +628,6 @@ class Client {
 				while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
 					iter.parentElement?.removeChild(iter.previousSibling as ChildNode);
 				iter.parentElement?.removeChild(iter as ChildNode);
-
-				if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
-					iter = el.lastChild as HTMLParagraphElement;
-					while (iter && iter.className === 'typing')
-						if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
-							el.removeChild(iter);
-							break;
-						} else
-							iter = iter.previousSibling as HTMLParagraphElement;
-				}
 				break;
 			case MessageDataEvent.File:
 				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
@@ -912,7 +902,7 @@ class Client {
 						}
 					}
 					const body: string | undefined = sendBar.value ? await this.#encryptAES(aesAccess, sendBar.value.replaceAll('\n', '</br>')) : sendBar.value;
-					const event: MessageDataEvent | undefined = this.#editing ? (sendBar.value ? MessageDataEvent.Edit : MessageDataEvent.Unsend) : undefined;
+					const event: MessageDataEvent | undefined = this.#editing ? MessageDataEvent.Edit : undefined;
 					sendBar.value = '';
 					sendBar.readOnly = false;
 					const prev: string | undefined = this.#replying;
