@@ -21,6 +21,7 @@
 		"forceConsistentCasingInFileNames": true
 	},
 	"files": [
+		".\\Global.d.ts",
 		".\\Testing.ts"
 	],
 	"exclude": [

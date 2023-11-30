@@ -876,6 +876,26 @@ Promise.all(Object.entries({
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="received" id="${messageID2}"><p class="receivedReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
 	*/
+	'basicGroupMessageReceived': async (): Promise<boolean> => {
+		const client: typeof Client = generateClient();
+		const UUID: string = client.randomUUID();
+		const UUID2: string = client.randomUUID();
+		//@ts-ignore: 2339
+		const aesAccess: string = [UUID, UUID2].toSorted().join(',');
+		await client.createChat(`${UUID}, ${UUID2}`);
+		const messageBody: string = 'test message';
+		const messageTime: string = new Date().toLocaleTimeString();
+		const messageID: string = client.randomUUID();
+		await client.render(client.id, {
+			from: `${UUID},${UUID2}`,
+			body: await client.encryptAES(aesAccess, messageBody),
+			time: await client.encryptAES(aesAccess, messageTime),
+			id: messageID,
+			event: undefined,
+			prev: undefined
+		});
+		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"><p class="received" id="${messageID}"><small><small><small><u>${UUID}</u></small></small></small><br>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
+	},
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {
 		console.error(`Failed Test: ${key}`);
