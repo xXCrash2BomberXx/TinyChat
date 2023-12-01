@@ -623,13 +623,24 @@ class Client {
 					});
 				break;
 			case MessageDataEvent.Unsend:
-				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
-				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
-					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
-					break;
-				while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
-					iter.parentElement?.removeChild(iter.previousSibling as ChildNode);
-				iter.parentElement?.removeChild(iter as ChildNode);
+				Array.from(this.#window.document.querySelectorAll(`[id='${messageData.id}']`)).forEach((iter: Element): void => {
+					if (((to === this.#peer.id) === ['sent', 'sentReply'].includes(iter.className)) ||
+						((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
+						return;
+					while (iter.previousSibling && !(iter.previousSibling as HTMLElement).className)
+						iter.parentElement?.removeChild(iter.previousSibling as ChildNode);
+					iter.parentElement?.removeChild(iter as ChildNode);
+
+					if (to === this.#peer.id && el?.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+						iter = el.lastChild as HTMLParagraphElement;
+						while (iter && iter.className === 'typing')
+							if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+								el.removeChild(iter);
+								break;
+							} else
+								iter = iter.previousSibling as HTMLParagraphElement;
+					}
+				});
 				break;
 			case MessageDataEvent.File:
 				const data = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
