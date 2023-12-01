@@ -1,21 +1,30 @@
 {
-    "compilerOptions": {
-        "outDir": ".\\",
-        "target": "esnext",
-        "lib": ["esnext", "dom"],
-        "module": "esnext",
-        "moduleResolution": "node",
-        "strict": true,
-        "allowSyntheticDefaultImports": false,
-        "noImplicitOverride": true,
-        "noImplicitReturns": true,
+	"compilerOptions": {
+		"outDir": ".\\",
+		"target": "esnext",
+		"lib": ["esnext", "dom"],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"exactOptionalPropertyTypes": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		//"noPropertyAccessFromIndexSignature": true,
+		//"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"strict": true,
+		"useUnknownInCatchVariables": true,
+		"inlineSourceMap": true,
+		"allowJs": true,
+		"checkJs": true,
 		"forceConsistentCasingInFileNames": true
-    },
-    "files": [
+	},
+	"files": [
 		".\\Global.d.ts",
 		".\\PeerJS.d.ts",
-        ".\\TinyChat.ts"
-    ],
+		".\\TinyChat.ts"
+	],
 	"exclude": [
 		"node_modules"
 	]

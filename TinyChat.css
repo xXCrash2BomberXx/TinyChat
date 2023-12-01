@@ -14,6 +14,10 @@ body {
 	padding-top: 0.5em;
 }
 
+img {
+	width: 100%;
+}
+
 .underline-text {
 	text-decoration: underline;
 }
@@ -28,7 +32,12 @@ summary {
 	height: 100%;
 }
 
-summary {
+summary,
+li,
+label,
+#id,
+.chatButtons,
+.sendButton {
 	cursor: pointer;
 }
 
@@ -45,24 +54,41 @@ details {
 	margin-top: 0.8em;
 }
 
+.sendBar {
+	overflow: hidden;
+}
+
+.message {
+	margin-left: 5%;
+}
+
+.message,
+.sendBar {
+	width: 75%;
+}
+
+.sendButton {
+	width: 10%;
+}
+
 .message,
 .sendBar,
+.sendButton,
 .chatButtons {
 	display: block;
 	border: 0.2em solid;
 	margin-top: 0.2em;
-	width: 75%;
-	margin-left: 5%;
+}
+
+.chatButtons {
+	flex: 1;
+	margin-right: 0.2em;
 }
 
 .chatButtonsContainer {
 	display: flex;
 	padding-right: 10%;
-}
-
-.chatButtons {
-	flex: 1;
-	width: 25%;
+	margin-left: 5%;
 }
 
 .sent,
@@ -72,6 +98,10 @@ details {
 	--t: 1em;
 	padding: calc(2*var(--r)/3);
 	-webkit-mask:
+		radial-gradient(var(--t) at var(--_d) 0, #0000 98%, #000 102%) var(--_d) 100%/calc(100% - var(--r)) var(--t) no-repeat,
+		conic-gradient(at var(--r) var(--r), #000 75%, #0000 0) calc(var(--r)/-2) calc(var(--r)/-2) padding-box,
+		radial-gradient(50% 50%, #000 98%, #0000 101%) 0 0/var(--r) var(--r) space padding-box;
+	mask: 
 		radial-gradient(var(--t) at var(--_d) 0, #0000 98%, #000 102%) var(--_d) 100%/calc(100% - var(--r)) var(--t) no-repeat,
 		conic-gradient(at var(--r) var(--r), #000 75%, #0000 0) calc(var(--r)/-2) calc(var(--r)/-2) padding-box,
 		radial-gradient(50% 50%, #000 98%, #0000 101%) 0 0/var(--r) var(--r) space padding-box;
@@ -143,6 +173,7 @@ details {
 	border: 0.2em solid;
 	border-radius: 2em;
 	padding: 0;
+	z-index: 1;
 }
 
 ul {
@@ -160,12 +191,16 @@ li {
 		background-color: white;
 	}
 
+	label {
+		color: black;
+	}
+
 	.control,
 	input,
-	label,
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.sendButton,
 	.chatButtons,
 	.context-menu,
 	summary {
@@ -193,12 +228,16 @@ li {
         background-size: cover; /* Adjust as needed */
 	}
 
+	label {
+		color: white;
+	}
+
 	.control,
 	input,
-	label,
 	textarea:disabled,
 	.message,
 	.sendBar,
+	.sendButton,
 	.chatButtons,
 	.context-menu,
 	summary {

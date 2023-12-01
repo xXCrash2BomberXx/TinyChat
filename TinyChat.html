@@ -2,36 +2,62 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, height=device-height">
-	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-	<meta http-equiv="Pragma" content="no-cache" />
-	<meta http-equiv="Expires" content="0" />
-	<title>TinyChat</title>
-	<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-	<link rel="stylesheet" href="./TinyChat.css">
+    <meta charset="utf-8">
+    <meta name="description" content="An end-to-end encrypted, web-based, fully anonymous chat application">
+    <meta name="keywords" content="TinyChat">
+    <meta name="viewport" content="width=device-width, height=device-height">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>TinyChat</title>
+    <link rel="stylesheet" href="./TinyChat.css">
 </head>
 
-<body onclick="document.getElementById('contextmenu').style.display = 'none';">
-	<div id="contextmenu" class="context-menu">
+<script src="https://unpkg.com/peerjs@latest/dist/peerjs.min.js"></script>
+
+<body
+    onclick="document.getElementById('receivedMenu').style.display = 'none'; document.getElementById('sentMenu').style.display = 'none'; document.getElementById('reactionMenu').style.display = 'none'; document.getElementById('scheduleMenu').style.display = 'none';">
+    <div id="receivedMenu" class="context-menu">
+        <ul>
+            <li onclick="client.markReply();">Reply</li>
+            <li onclick="event.stopPropagation(); client.openReacting();">React</li>
+        </ul>
+    </div>
+    <div id="sentMenu" class="context-menu">
+        <ul>
+            <li onclick="client.markReply();">Reply</li>
+            <li onclick="client.markEdit();">Edit</li>
+            <li onclick="client.unsend();">Unsend</li>
+            <li onclick="event.stopPropagation(); client.openReacting();">React</li>
+        </ul>
+    </div>
+	<div id="scheduleMenu" class="context-menu">
 		<ul>
-			<li><a onclick="client.react('🩷');">🩷</a></li>
-			<li><a onclick="client.react('👍');">👍</a></li>
-			<li><a onclick="client.react('👎');">👎</a></li>
-			<li><a onclick="client.react('😂');">😂</a></li>
-			<li><a onclick="client.react('!!!');">!!!</a></li>
-			<li><a onclick="client.react('???');">???</a></li>
+			<li onclick="client.schedule(0);">Send</li>
+			<li onclick="client.schedule();">Schedule</li>
 		</ul>
 	</div>
-	<span class="control">
-		To:
-		<input type="text" name="to" id="to" onkeydown="if (event.key == 'Enter') { client.createChat(this.value); this.value = ''; }" placeholder="...">
-	</span>
-	<span id="id" class="control" onclick="navigator.clipboard.writeText(document.getElementById('id').innerHTML.substring('User ID: '.length))"></span>
-	<script type="text/javascript" src="./TinyChat.js"></script>
-	<script type="text/javascript">
-		const client = new Client(window);
-	</script>
+    <div id="reactionMenu" class="context-menu">
+        <ul>
+            <li onclick="client.react('🩷');">🩷</li>
+            <li onclick="client.react('👍');">👍</li>
+            <li onclick="client.react('👎');">👎</li>
+            <li onclick="client.react('😂');">😂</li>
+            <li onclick="client.react('!!!');">!!!</li>
+            <li onclick="client.react('???');">???</li>
+        </ul>
+    </div>
+    <span class="control">
+        To:
+        <input type="text" name="to" id="to"
+            onkeydown="if (event.key == 'Enter') { client.createChat(this.value); this.value = ''; }" placeholder="...">
+    </span>
+    <span id="id" class="control"
+        onclick="navigator.clipboard.writeText(document.getElementById('id').innerHTML.substring('User ID: '.length))"></span>
+    <script type="text/javascript" src="./TinyChat.js"></script>
+    <script type="text/javascript">
+        const client = new Client(window);
+    </script>
 </body>
 
 </html>

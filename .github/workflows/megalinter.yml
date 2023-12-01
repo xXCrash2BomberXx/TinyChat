@@ -1,0 +1,40 @@
+name: MegaLinter
+
+on:
+    push:
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.ref }}-${{ github.workflow }}
+    cancel-in-progress: true
+
+jobs:
+    megalinter:
+        name: MegaLinter
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Pull MegaLinter
+              run: docker pull oxsecurity/megalinter-javascript:latest
+
+            - name: MegaLinter
+              id: ml
+              run: |
+                  docker run --rm \
+                    -e RUN_LOCAL=true \
+                    -e RUN_RULES="ALL" \
+                    -e LOG_LEVEL="info" \
+                    -v "$(pwd):/tmp/lint" \
+                    oxsecurity/megalinter-javascript:latest \
+                    /tmp/lint \
+                    || true
+
+            - name: Artifact MegaLinter
+              if: always()
+              uses: actions/upload-artifact@v3
+              with:
+                  name: MegaLinter reports
+                  path: |
+                      megalinter-reports
+                      mega-linter.log

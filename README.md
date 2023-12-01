@@ -2,16 +2,17 @@
 
 > [!NOTE]
 > Although this project is usable in the ways described below, this is *not* complete and progress can be seen [here](#features) as well as planned improvements for the future.
+> Additionally, this project has been reported to not work on MS Edge, Brave, and Safari.
 
 TinyChat works through the usage of [PeerJS](https://peerjs.com/).
 When you open a TinyChat web page, a User ID will be shown in the top right bar.
 This User ID is how people can contact you, but this will change every time you refresh the page.
-TinyChat aims to give end-to-end encrypted communication through RSA-OAEP and AES-CBC encryption.
+TinyChat aims to give end-to-end encrypted communication through RSA-OAEP, Elliptic Curve Diffie-Hellman, and AES-CBC encryption.
 Each conversation will have a unique AES-256 key with that key being shared using your RSA public key to allow the peer to produce a key that only the sender knows prior to encryption and that only you can decrypt as it will be encrypted with your RSA public key.
 
 > [!IMPORTANT]
 > Although the messages themselves are encrypted, many other metadata items are not.
-> Further explanation of how this is done can be seen [here](#mermaid-diagram).
+> Further explanation of how this is done can be seen [here](#key-establishment).
 >
 > What the attacker *cannot* read:
 >
@@ -23,14 +24,9 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > What the attacker *can* read:
 >
 > - The User ID that sent the message
+> - User IDs in the group
 > - The message ID (This is a randomly generated GUID)
 > - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
-
-> [!WARNING]
-> The largest vulnerability to this web application is the initial AES keyshare.
-> On slower network connections, an attack can theoretically read the public RSA key and send a malicious AES key with a fake signature.
-> This attack would be undetectable as it classifies as a "Man in the Middle Attack".
-> Although this would be quite difficult to achieve in general usage, it is theoretically possible and worth consideration.
 
 ## Features
 
@@ -92,13 +88,6 @@ Each conversation will have a unique AES-256 key with that key being shared usin
     - [x] ~~Create Deletion Request~~
     - [x] ~~Delete Message from Sender~~
     - [x] ~~Delete Message from Receiver~~
-- [ ] Effects
-  - [ ] Backend
-    - [ ] Create Effects
-    - [ ] Send Effects
-  - [ ] Frontend
-    - [ ] Create Effects
-    - [ ] Reaction Indication in UI
 - [x] ~~Reactions~~
   - [x] ~~Backend~~
     - [x] ~~Create Reactions~~
@@ -106,6 +95,20 @@ Each conversation will have a unique AES-256 key with that key being shared usin
   - [x] ~~Frontend~~
     - [x] ~~Create Reactions~~
     - [x] ~~Reaction Indication in UI~~
+- [x] ~~Files~~
+  - [x] ~~Backend~~
+    - [x] ~~Upload File~~
+    - [x] ~~Download File~~
+  - [x] ~~Frontend~~
+    - [x] ~~Upload File~~
+    - [x] ~~Download File~~
+- [ ] Effects
+  - [ ] Backend
+    - [ ] Create Effects
+    - [ ] Send Effects
+  - [ ] Frontend
+    - [ ] Create Effects
+    - [ ] Reaction Indication in UI
 
 ## Building
 
@@ -113,148 +116,190 @@ Building this project for development purposes requires either `npm` or `tsc` to
 
 **NPM Method:**
 
-- **Building:** Run `npm run build` which will install `tsc` locally and build the main website. After running the command once, the project can then be rebuilt with `npx tsc` which will compile the TypeScript files for usage. Alternatively, `npm run build` can be used to rebuild the main website. `tsc` can also be manually installed with `npm install -g typescript` and `npm install -g tsc` to remove the need to use `npx`.
+- **Building:** Run `npm run build` which will install `tsc` locally and build the main website. After running the command once, the project can then be rebuilt with `npx tsc` which will compile the TypeScript files for usage. Alternatively, `npm run build` can be used to rebuild the main website. `tsc` can also be manually installed with `npm install -g typescript` to remove the need to use `npx`.
 
 - **Testing:** Run `npm run test` which will install `tsc` locally, build both the main website and the testing backend, and run the testing backend. Modifications to the main website can be recompiled with `npx tsc` and modifications to the testing backend can be recompiled with `npx tsc -p test.tsconfig.json`. Alternatively, `npm run test` can be used to rebuild both the main website and testing backend.
 
 **TSC Method:**
 
-- **Building:** If `tsc` has already been installed through either `npm` with the `-g` flag or through other methods, compiling is as simple as running `tsc` to build the main website. The project can then be rebuilt with `tsc` again.
+- **Building:** If `tsc` has already been installed through either `npm install -g typescript` or through other methods, compiling is as simple as running `tsc` to build the main website. The project can then be rebuilt with `tsc` again.
 
 - **Testing:** Testing cannot be done without `npm` installed.
 
-After the prject has been compiled, simply open `TinyChat.html` with your desired web browser and chat away!
+After the project has been compiled, simply open `TinyChat.html` with your desired web browser and chat away!
 
 > [!NOTE]
 > Any changes to TypeScript Files during development will require rebuilding the project as used prior. Modifications to any other file types (i.e. HTML, CSS) will be automatically updated when reloading the page.
 
-## Mermaid Diagram
+## 4+1 Diagram
 
-Below shows the process of 2+ clients intiating a conversation.
-`Client#1` is the client initiating the conversation, `Client#2` is the first client listed in the sender box, and `Client#+` are any clients after.
-As you can see from the graph, the processes the users perform themselves are quite minimal allowing for an overall easy-to-use messaging client.
-Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
-Since one of the recipients is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
+### Logical View
 
 ```mermaid
 graph TB;
-    subgraph "Client#2"
-    I;
-    end
-    subgraph "Client#+"
-    M;
-    N;
-    end
-  subgraph "Client#1"
-  A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Creates a new Conversation];
-  B --> C>The Conversation is Added to the UI];
-  B --> D>Sends RSA Public Key];
-  D --> J>Waits for AES Symmetric Key];
-  I --> J;
-  J --> K>Decrypts Encrypted Key with RSA Private Key];
+  A["
+  Client
+    <hr>#8226; #peer: Peer
+    #8226; #editing: string
+    #8226; #replying: string
+    #8226; #reacting: string
+    #8226; #keyPair: CryptoKeyPair
+    #8226; #aesKeys: { [id: string]: [Uint8Array, CryptoKey] }
+    #8226; #dhKeys: { [id: string]: { [id: string]: CryptoKeyPair } }
+    #8226; #window: window
+    #8226; #crypto: Crypto
+    #8226; #eventID: string | HTMLInputElement | undefined
+    <hr>#8226; createChat: (to: string): HTMLSpanElement
+    #8226; #render: (to: string, messageData: MessageData): void
+    #8226; #send: (to: string, messageData: MessageData): void
+    #8226; react: (reaction: string): void
+    #8226; schedule: (seconds: number | undefined): void
+    #8226; openContext: (): void
+    #8226; openReacting: (): void
+    #8226; markReply: (): void
+    #8226; markEdit: (): void
+    #8226; unsend: (): void
+  "] --> |Has a| B["
+  Peer
+    #8226; id: string
+    #8226; connections: object
+    #8226; disconnected: boolean
+    #8226; destroyed: boolean
+  "];
+  C["
+  MessageData
+    <hr>#8226; from: string
+    #8226; body: string
+    #8226; time: string
+    #8226; id: string
+    #8226; event: MessageDataEvent
+    #8226; prev: string
+    #8226; effect: MessageDataEffects
+  "];
+  D["
+  MessageDataEvent
+    <hr>#8226; Typing
+    #8226; StopTyping
+    #8226; Edit
+    #8226; Unsend
+    #8226; Delivered
+    #8226; GroupRSAKeyRequest
+    #8226; GroupRSAKeyShare
+    #8226; RSAKeyShare
+    #8226; AESKeyShare
+  "];
+  E["
+  MessageDataEffects
+  <hr>
+  "];
+```
+
+### Development View
+
+```mermaid
+graph TB
+  A["TinyChat.html"];
+  B["
+  PeerJS
+    <hr>#8226; https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js
+  "] --> A;
+  C["TinyChat.js"] --> A;
+  D["
+  NPM
+    <hr>#8226; typescript
+  "] --> C;
+  E["
+  TinyChat.ts
+    <hr>#8226; MessageDataEvent
+    #8226; MessageDataEffects
+    #8226; MessageData
+    #8226; Client
+  "] --> D;
+  F["TinyChat.css"] --> A;
+  G["Testing.js"];
+  H["
+  NPM
+    <hr>#8226; typescript
+    #8226; @peculiar/webcrypto
+    #8226; @types/node
+    #8226; fs
+    #8226; jsdom
+  "] --> G;
+  C --> G;
+  I["
+  Testing.ts
+  <hr>#8226; createChatTest
+  #8226; renderTest
+  "] --> H;
+```
+
+### Scenarios View
+
+#### Key Establishment
+
+```mermaid
+graph TB;
+  subgraph "Client #1"
+  A>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| B>Generate New AES Key Request];
+  B --> |This is done for each client| D>Sends RSA Public Key];
+  J --> K>Decrypt Encrypted Diffie-Hellman Public Key with RSA Private Key];
+  K --> L>"Generate Diffie-Hellman Public/Private Key"];
+  B --> F>Generate AES Key];
+  F --> M;
+  L --> M>One-Time-Pad = Diffie-Hellman Symmetric Key ^ Generated AES Key];
+  M --> N>Encrypt Generated Diffie-Hellman Public Key and One-Time-Pad with Client #+'s RSA Public Key];
+  N --> O>Send Encrypted Data to Client #+];
   end
-  subgraph "Client#2"
-  E>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| F>Waits for RSA Public Key];
-  D --> F;
-  F --> G>Creates an AES Symmetric Key];
-  G -->H>Encrypts the AES Key with Client #1s RSA Public Key];
-  H -->I>Sends Encrypted Key to Cient #1];
-  F --> O>Sends RSA Public Key Request to all other members];
-  O --> M;
-  N --> P>Receives RSA Public Keys];
-  G --> Q;
-  P --> Q>Encrypts the AES Key with Client #+s RSA Public Key];
-  Q --> R>Sends Encrypted Key to Cient #+];
-  F --> U>The Conversation is Added to the UI];
-  end
-  subgraph "Client#+"
-  L>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| M>Waits for RSA Public Key Request];
-  M --> N>Sends RSA Public Key];
-  N --> S> Waits for AES Symmetric Key];
-  R --> S;
-  S --> T>Decrypts Encrypted Key with RSA Private Key];
-  M --> V>The Conversation is Added to the UI];
+  subgraph "Client #+"
+  C>Creates an RSA Key] --> |This is done once each time the page is opened or refreshed| E>Creates a new Conversation];
+  D --> E>Waits for RSA Public Key];
+  E --> G>"Generate Diffie-Hellman  Public/Private Key"];
+  G --> H>Encrypt Generated Diffie-Hellman Public Key with Client #1's RSA Public Key];
+  H --> I>Send Encrypted Data and RSA Public Key to Client #1];
+  I --> J>Receive Encrypted Data from Client #+];
+  O --> P>Receive Encrypted Data from Client #1];
+  P --> Q>Decrypt Encrypted Diffie-Hellman Public Key and One-Time-Pad with RSA Private Key];
+  Q --> R>AES Key = One-Time-Pad ^ Diffie-Hellman Symmetric Key];
   end
 
   classDef user fill:#fff,color:#000
   class B user;
 ```
 
-Further, below shows the process of a message being sent in a group conversation.
-As much of the security has already been established, there is no need to put as much processing on any client in particular and the distribution of the workload can be kept to where it is exclusively necessary.
-Because of this, all `Receivers` have the same processes and the `Sender` is the one responsible for ensuring security of their own message (although this is done on the backend meaning the actual user has to do nothing with it).
-A `delivery receipt` is only processed once to ensure that the message is being sent to any client and are no longer processed after the first is received.
+#### Messaging
 
 ```mermaid
-graph TB;
-    subgraph "Receivers"
-    C;
-    end
+graph LR;
   subgraph "Sender"
+    subgraph "Modifiers"
+      P>Edit] --> O;
+      Q>Reply] --> O;
+    end
+    O>XOR] --> A;
     A>A Message is Typed];
+    A --> S>Stop Typing];
+    S --> T>A Stop Typing Indicator is Sent to each Receiver];
     A --> B>A Typing Indicator is Sent to each Receiver];
-    B --> C;
     A --> E>The Message is Sent];
     E --> F>The Message is Encrypted with the AES Symmetric Key];
+    R>Reaction] --> F;
     F --> G>The Encrypted Message is Sent to each Receiver];
     E --> L>The Message is Added to the UI];
     L --> M>The Sender Waits for a Delivery Receipt];
-    M --> N>A Delivery Receipt is Added to the UI];
+    M --> |Only for First Received| N>A Delivery Receipt is Added to the UI];
   end
   subgraph "Receivers"
-    C>A Typing Indicator is Received] --> D>The Typing Indicator is Added to the UI];
+    B --> C>A Typing Indicator is Received];
+    C --> D>The Typing Indicator is Added to the UI];
     G --> H>The Encrypted Message is Received];
     H --> I>The Encrypted Message is Decrypted with the AES Symmetric Key];
     I --> J>The Decrypted Message is Added to the UI];
     H --> K>A Delivery Receipt is Sent to the Sender];
     K --> M;
+    T --> U>A Stop Typing Indicator is Received];
+    U --> V>The Typing Indicator is Removed from the UI];
   end
 
   classDef user fill:#fff,color:#000
-  class A,E user;
+  class A,E,P,Q,R,S user;
 ```
-
-## State Diagram
-
-`Startup` is the initial state where the TinyChat application is launched.
-As the conversation initiator, `Client#1` moves to the `Displaying User ID` state upon opening TinyChat, which represents the unique User ID being shown to the user.
-`Client#1` shares this User ID to `Client#2` and any additional clients (`Client#+`).
-This action transitions the system to the `Awaiting Connection` state, where TinyChat is now waiting for a connection from the recipients.
-Once `Client#2` connects using the shared User ID, the system moves to the `Connected` state.
-Here, `Client#2`, being the primary recipient, is responsible for initiating the encryption process.
-This design is intended to prevent the malicious creation of a conversation by `Client#1`.
-Upon establishing the encrypted connection, the system enters the `Encrypted Communication` state.
-
-### MessageExchange
-
-Within the confines of `Encrypted Communication`, the `MessageExchange` state exemplifies the action of both sending and receiving encrypted messages involving `Client#1`, `Client#2`, and `Client#+`.
-Every participant, be it the initiator `Client#1` or any other client, can share messages.
-These messages, whether they're replies or new threads, are ensured to reach all participants, thereby promoting a coherent group chat environment.
-Moreover, upon message receipt, clients can dispatch a "read receipt" to the sender, signifying successful message reception.
-
-### EncryptionDecryption
-
-Denotes the process where messages are either encrypted for sending or decrypted upon receiving.
-As the conversation progresses, messages are continually processed (encrypted or decrypted) and exchanged between the clients.
-This loop ensures that all participants can communicate securely.
-Finally, when the conversation is concluded, the state transitions to `Closed`, marking the end of the encrypted communication.
-As you can see from the graph, the processes the users perform themselves are quite minimal, allowing for an overall easy-to-use messaging client.
-Additionally, because everything is end-to-end encrypted, the server holding the data will never know your message contents.
-The reasoning behind `Client#2` doing much of the key-generation and key-sharing is to prevent the malicious creation of a conversation.
-Since one of the recipients (`Client#2`) is responsible for generating much of the encryption data, `Client#1` is incapable of creating conversations with invalid keys.
-
-```mermaid
-stateDiagram
-    Startup --> DisplayingUserID: Open TinyChat
-    DisplayingUserID --> AwaitingConnection: Share User ID
-    AwaitingConnection --> Connected: Connect with Peer
-    Connected --> EncryptedCommunication: Establish Encryption
-    EncryptedCommunication --> Closed: Close Chat
-    state EncryptedCommunication {
-        MessageExchange
-        EncryptionDecryption
-        MessageExchange --> EncryptionDecryption: Process Message
-        EncryptionDecryption --> MessageExchange: Continue Exchange
-    }
-'''

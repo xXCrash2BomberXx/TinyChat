@@ -1,33 +1,34 @@
 name: TypeScript Check
 
 on:
-  push:
-  workflow_dispatch:
+    push:
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Install
-      run: npm install
-    
-    - name: Build Main Website
-      run: npx tsc
-    
-    - name: Build Tests
-      run: npx tsc -p test.tsconfig.json
-    
-    - name: Run Tests
-      run: node Testing.js
-    
-    - name: Artifact JS
-      uses: actions/upload-artifact@v3
-      with:
-        name: TinyChat
-        path: |
-          TinyChat.js
-          TinyChat.html
-          TinyChat.css
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install
+              run: npm install
+
+            - name: Build Main Website
+              run: npx tsc
+
+            - name: Build Tests
+              run: npx tsc -p test.tsconfig.json
+
+            - name: Run Tests
+              run: node Testing.js
+
+            - name: Artifact JS
+              if: always()
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TinyChat
+                  path: |
+                      TinyChat.js
+                      TinyChat.html
+                      TinyChat.css
