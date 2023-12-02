@@ -988,6 +988,72 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"><p class="typing">${UUID} is Typing...</p><p class="typing">${UUID2} is Typing...</p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
+	'stopTypingGroupIndicatorReceived': async (): Promise<boolean> => {
+		const client: typeof Client = generateClient();
+		const UUID: string = client.randomUUID();
+		const UUID2: string = client.randomUUID();
+		//@ts-ignore: 2339
+		const aesAccess: string = [UUID, UUID2].toSorted().join(',');
+		await client.createChat(`${UUID}, ${UUID2}`);
+		await client.render(client.id, {
+			from: `${UUID},${UUID2}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.Typing,
+			prev: undefined
+		});
+		await client.render(client.id, {
+			from: `${UUID2},${UUID}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.Typing,
+			prev: undefined
+		});
+		await client.render(client.id, {
+			from: `${UUID},${UUID2}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.StopTyping,
+			prev: undefined
+		});
+		await client.render(client.id, {
+			from: `${UUID2},${UUID}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.StopTyping,
+			prev: undefined
+		});
+		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
+	},
+	'stopTypingGroupIndicatorNoTypingReceived': async (): Promise<boolean> => {
+		const client: typeof Client = generateClient();
+		const UUID: string = client.randomUUID();
+		const UUID2: string = client.randomUUID();
+		//@ts-ignore: 2339
+		const aesAccess: string = [UUID, UUID2].toSorted().join(',');
+		await client.createChat(`${UUID}, ${UUID2}`);
+		await client.render(client.id, {
+			from: `${UUID},${UUID2}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.StopTyping,
+			prev: undefined
+		});
+		await client.render(client.id, {
+			from: `${UUID2},${UUID}`,
+			body: '',
+			time: '',
+			id: '',
+			event: MessageDataEvent.StopTyping,
+			prev: undefined
+		});
+		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
+	},
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {
 		console.error(`Failed Test: ${key}`);
