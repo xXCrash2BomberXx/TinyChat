@@ -186,72 +186,39 @@ li {
 	margin: 0 5px;
 }
 
-@media (prefers-color-scheme: light) {
-	body {
-		background-color: white;
-	}
-
-	label {
-		color: black;
-	}
-
-	.control,
-	input,
-	textarea:disabled,
-	.message,
-	.sendBar,
-	.sendButton,
-	.chatButtons,
-	.context-menu,
-	summary {
-		color: black;
-		border-color: gray;
-		background-color: lightgray;
-	}
-
-	.received,
-	.typing {
-		border-left: var(--t) solid #dddddd;
-		background-color: #dddddd;
-	}
-
-	.sent {
-		border-right: var(--t) solid #0074d9;
-		background-color: #0074d9;
-	}
+body {
+	background-color: darkgray;
+	background-image: url('fnafbackground.jpg');
+	background-size: cover;
 }
 
-@media (prefers-color-scheme: dark) {
-	body {
-		background-color: black;
-	}
+label {
+	color: white;
+}
 
-	label {
-		color: white;
-	}
+.control,
+input,
+textarea:disabled,
+.message,
+.sendBar,
+.sendButton,
+.chatButtons,
+.context-menu,
+summary {
+	color: black;
+	border-color: black;
+	background-color: violet;
+}
 
-	.control,
-	input,
-	textarea:disabled,
-	.message,
-	.sendBar,
-	.sendButton,
-	.chatButtons,
-	.context-menu,
-	summary {
-		color: white;
-		border-color: darkgray;
-		background-color: gray;
-	}
+.received,
+.typing {
+	color: #f4decb;
+	border-left: var(--t) solid purple;
+	background-color: purple;
+}
 
-	.received,
-	.typing {
-		border-left: var(--t) solid #dddddd;
-		background-color: #dddddd;
-	}
-
-	.sent {
-		border-right: var(--t) solid #0074d9;
-		background-color: #0074d9;
-	}
+.sent {
+	color: purple;
+	border-right: var(--t) solid #f4decb;
+	background-color: #f4decb;
 }
