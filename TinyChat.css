@@ -188,8 +188,8 @@ li {
 
 body {
 	background-color: darkgray;
-	background-image: url('fnafbackground.jpg'); /* Change the file path accordingly */
-	background-size: cover; /* Adjust as needed */
+	background-image: url('fnafbackground.jpg');
+	background-size: cover;
 }
 
 label {
@@ -205,11 +205,14 @@ textarea:disabled,
 .chatButtons,
 .context-menu,
 summary {
+	color: violet;
+	border-color: violet;
 	background-color: violet;
 }
 
 .received,
 .typing {
+	border-left: var(--t) solid purple;
 	background-color: purple;
 }
 
