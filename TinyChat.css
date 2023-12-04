@@ -212,13 +212,13 @@ summary {
 
 .received,
 .typing {
-	color: white;
+	color: #f4decb;
 	border-left: var(--t) solid purple;
 	background-color: purple;
 }
 
 .sent {
-	color: black;
-	border-right: var(--t) solid #ee82d6;
-	background-color: #ee82d6;
+	color: purple;
+	border-right: var(--t) solid #f4decb;
+	background-color: #f4decb;
 }
