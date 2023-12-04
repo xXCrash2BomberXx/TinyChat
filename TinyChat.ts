@@ -426,6 +426,8 @@ class Client {
 						event: MessageDataEvent.StopTyping,
 					}, i === 0);
 				});
+			else if (sendBar.value.length && event.key === 'Enter' && event.shiftKey)
+				sendButton.click();
 			sendBar.style.height = '';
 			sendBar.style.height = sendBar.scrollHeight + 'px';
 		};
