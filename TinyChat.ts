@@ -81,7 +81,9 @@ const enum MessageDataEvent {
  * @readonly
  * @enum {number}
  */
-const enum MessageDataEffects { };
+const enum MessageDataEffects {
+	Confetti,
+};
 
 /**
  * A message to be sent to a peer.
@@ -775,6 +777,21 @@ class Client {
 				} else
 					el.insertAdjacentElement('beforeend', paragraph);
 
+				switch (messageData.effect) {
+					case MessageDataEffects.Confetti:
+						const confettiImg: HTMLImageElement = this.#window.document.createElement('img');
+						confettiImg.src = 'confetti.webp';
+						confettiImg.style.position = 'absolute';
+						confettiImg.style.top = '0';
+						confettiImg.style.left = '0';
+						confettiImg.style.zIndex = '9999';
+						this.#window.document.body.appendChild(confettiImg);
+						this.#window.setTimeout((): void => { this.#window.document.body.removeChild(confettiImg); }, 5000);
+						break;
+					default:
+						break;
+				}
+
 				if (to === this.#peer.id)
 					await this.#send(trueFrom, {
 						from: split.join(','),
@@ -953,6 +970,7 @@ class Client {
 								id: messageID,
 								event: event,
 								prev: prev,
+								effect: MessageDataEffects.Confetti,
 							}, i === 0);
 						});
 						resolve();
