@@ -970,7 +970,6 @@ class Client {
 								id: messageID,
 								event: event,
 								prev: prev,
-								effect: MessageDataEffects.Confetti,
 							}, i === 0);
 						});
 						resolve();
