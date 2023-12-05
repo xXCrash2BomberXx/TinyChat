@@ -326,6 +326,7 @@ class Client {
 				sendBar.readOnly = true;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = true;
+				sendButton.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				split.forEach(async (_: string, i: number): Promise<void> => {
@@ -345,6 +346,7 @@ class Client {
 				sendBar.readOnly = false;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = false;
+				sendButton.disabled = false;
 			} else
 				this.#aesKeys[aesAccess] = await this.#generateAES();
 		};
@@ -378,7 +380,7 @@ class Client {
 
 		const sendTypingLabel: HTMLLabelElement = this.#window.document.createElement('label');
 		sendTypingLabel.innerHTML = 'Send Typing Indicators';
-		sendTypingLabel.onclick = (): void => { sendTyping.checked = !sendTyping.checked; };
+		sendTypingLabel.onclick = (): void => { if (!sendTyping.disabled) sendTyping.checked = !sendTyping.checked; };
 		chatButtons.insertAdjacentElement('beforeend', sendTypingLabel);
 		const sendTyping: HTMLInputElement = this.#window.document.createElement('input');
 		sendTyping.type = 'checkbox';
@@ -453,6 +455,7 @@ class Client {
 				sendBar.readOnly = true;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = true;
+				sendButton.disabled = true;
 				delete this.#aesKeys[aesAccess];
 				const exported: string = await this.#exportRSAKey();
 				split.forEach(async (_: string, i: number): Promise<void> => {
@@ -472,6 +475,7 @@ class Client {
 				sendBar.readOnly = false;
 				for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 					elem.disabled = false;
+				sendButton.disabled = false;
 			} else
 				this.#aesKeys[aesAccess] = await this.#generateAES();
 
@@ -881,6 +885,7 @@ class Client {
 			}
 			if (typeof this.#eventID === 'string' || (typeof this.#eventID === 'object' && this.#eventID.className === 'sendButton')) {
 				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
+				const sendButton: HTMLInputElement = sendBar.nextSibling as HTMLInputElement;
 				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
 				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
 				const split: Array<string> = aesAccess.split(',');
@@ -889,6 +894,7 @@ class Client {
 					sendBar.readOnly = true;
 					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 						elem.disabled = true;
+					sendButton.disabled = true;
 					if (this.#replying) {
 						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
 						if (prev.parentElement?.parentElement === collapsible) {
@@ -920,6 +926,7 @@ class Client {
 					const event: MessageDataEvent | undefined = this.#editing ? MessageDataEvent.Edit : undefined;
 					sendBar.value = '';
 					sendBar.readOnly = false;
+					sendButton.disabled = false;
 					const prev: string | undefined = this.#replying;
 					this.#replying = undefined;
 					const messageID: string = this.#editing || this.#randomUUID();

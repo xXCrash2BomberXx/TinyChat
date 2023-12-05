@@ -222,3 +222,11 @@ summary {
 	border-right: var(--t) solid #f4decb;
 	background-color: #f4decb;
 }
+
+*[disabled] {
+	color: gray;
+}
+
+*[readOnly] {
+	background-color: gray;
+}
