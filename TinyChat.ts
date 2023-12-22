@@ -195,7 +195,7 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	#peer: Peer = new Peer();
+	#peer: Peer;
 
 	/**
 	 * Window container to modify the DOM of
@@ -215,6 +215,7 @@ class Client {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
 		this.#keyPair = this.#generateRSA();
+		this.#peer = new Peer('connect' in Peer.prototype ? this.#window.localStorage.getItem('tinychat_id') || undefined : undefined) ;
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -230,10 +231,15 @@ class Client {
 		const check: () => void = (): void => {
 			if (this.#peer.id) {
 				(this.#window.document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${this.#peer.id}`;
+				if ('connect' in Peer.prototype) {
+					this.#window.localStorage.setItem('tinychat_id', this.#peer.id);
+					for (const key of JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>)
+						this.createChat(key, true);
+				}
 				return;
 			}
 			setTimeout(check, 50);
-		}
+		};
 		check();
 	}
 
@@ -272,6 +278,14 @@ class Client {
 			return duplicateCheck;
 		}
 
+		if ('connect' in Peer.prototype) {
+			const history: Array<string> = JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>;
+			if (!history.includes(to)) {
+				history.push(to);
+				this.#window.localStorage.setItem('tinychat_history', JSON.stringify(history));
+			}
+		}
+
 		const collapsible: HTMLDetailsElement = this.#window.document.createElement('details');
 		collapsible.open = true;
 		this.#window.document.body.insertAdjacentElement('beforeend', collapsible);
@@ -288,7 +302,7 @@ class Client {
 		clearChatLocal.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
 			clearChatLocal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => { clearChatLocal.parentElement?.nextSibling?.removeChild(value); });
-		}
+		};
 		chatButtons.insertAdjacentElement('beforeend', clearChatLocal);
 
 		const clearChatGlobal: HTMLInputElement = this.#window.document.createElement('input');
@@ -313,7 +327,7 @@ class Client {
 						}, i === 0);
 					});
 			});
-		}
+		};
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
 
 		const generateNewAESKeyButton: HTMLInputElement = this.#window.document.createElement('input');
@@ -713,7 +727,7 @@ class Client {
 					ev.preventDefault();
 					ev.stopPropagation();
 					this.#window.open(decrypted);
-				}
+				};
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
@@ -1007,7 +1021,7 @@ class Client {
 										});
 										resolve();
 									}, seconds as number * 1000);
-								}
+								};
 							}
 						};
 						input.click();
@@ -1192,7 +1206,7 @@ class Client {
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
