@@ -36,6 +36,7 @@ summary,
 li,
 label,
 #id,
+#reset,
 .chatButtons,
 .sendButton {
 	cursor: pointer;

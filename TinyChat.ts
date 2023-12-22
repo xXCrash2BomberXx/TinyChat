@@ -195,7 +195,7 @@ class Client {
 	 * @type {Peer}
 	 * @readonly
 	 */
-	#peer: Peer = new Peer();
+	#peer: Peer;
 
 	/**
 	 * Window container to modify the DOM of
@@ -215,6 +215,7 @@ class Client {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
 		this.#keyPair = this.#generateRSA();
+		this.#peer = new Peer(w.localStorage.getItem('tinychat_id') || undefined);
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -230,10 +231,12 @@ class Client {
 		const check: () => void = (): void => {
 			if (this.#peer.id) {
 				(this.#window.document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${this.#peer.id}`;
+				if ('connect' in Peer.prototype)
+					w.localStorage.setItem('tinychat_id', this.#peer.id);
 				return;
 			}
 			setTimeout(check, 50);
-		}
+		};
 		check();
 	}
 
@@ -288,7 +291,7 @@ class Client {
 		clearChatLocal.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
 			clearChatLocal.parentElement?.nextSibling?.childNodes.forEach((value: ChildNode): void => { clearChatLocal.parentElement?.nextSibling?.removeChild(value); });
-		}
+		};
 		chatButtons.insertAdjacentElement('beforeend', clearChatLocal);
 
 		const clearChatGlobal: HTMLInputElement = this.#window.document.createElement('input');
@@ -313,7 +316,7 @@ class Client {
 						}, i === 0);
 					});
 			});
-		}
+		};
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
 
 		const generateNewAESKeyButton: HTMLInputElement = this.#window.document.createElement('input');
