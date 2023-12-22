@@ -215,7 +215,7 @@ class Client {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
 		this.#keyPair = this.#generateRSA();
-		this.#peer = new Peer(w.localStorage.getItem('tinychat_id') || undefined);
+		this.#peer = new Peer(this.#window.localStorage.getItem('tinychat_id') || undefined);
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -232,7 +232,7 @@ class Client {
 			if (this.#peer.id) {
 				(this.#window.document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${this.#peer.id}`;
 				if ('connect' in Peer.prototype)
-					w.localStorage.setItem('tinychat_id', this.#peer.id);
+					this.#window.localStorage.setItem('tinychat_id', this.#peer.id);
 				return;
 			}
 			setTimeout(check, 50);
@@ -716,7 +716,7 @@ class Client {
 					ev.preventDefault();
 					ev.stopPropagation();
 					this.#window.open(decrypted);
-				}
+				};
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
@@ -1010,7 +1010,7 @@ class Client {
 										});
 										resolve();
 									}, seconds as number * 1000);
-								}
+								};
 							}
 						};
 						input.click();
@@ -1195,7 +1195,7 @@ class Client {
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement
+		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
