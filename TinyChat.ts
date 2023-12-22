@@ -215,7 +215,7 @@ class Client {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
 		this.#keyPair = this.#generateRSA();
-		this.#peer = new Peer(this.#window.localStorage.getItem('tinychat_id') || undefined);
+		this.#peer = new Peer('connect' in Peer.prototype ? this.#window.localStorage.getItem('tinychat_id') || undefined : undefined) ;
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -278,10 +278,12 @@ class Client {
 			return duplicateCheck;
 		}
 
-		const history: Array<string> = JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>;
-		if (!history.includes(to)) {
-			history.push(to);
-			this.#window.localStorage.setItem('tinychat_history', JSON.stringify(history));
+		if ('connect' in Peer.prototype) {
+			const history: Array<string> = JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>;
+			if (!history.includes(to)) {
+				history.push(to);
+				this.#window.localStorage.setItem('tinychat_history', JSON.stringify(history));
+			}
 		}
 
 		const collapsible: HTMLDetailsElement = this.#window.document.createElement('details');
