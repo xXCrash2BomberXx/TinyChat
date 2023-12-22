@@ -231,8 +231,11 @@ class Client {
 		const check: () => void = (): void => {
 			if (this.#peer.id) {
 				(this.#window.document.getElementById('id') as HTMLSpanElement).innerHTML += `User ID: ${this.#peer.id}`;
-				if ('connect' in Peer.prototype)
+				if ('connect' in Peer.prototype) {
 					this.#window.localStorage.setItem('tinychat_id', this.#peer.id);
+					for (const key of JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>)
+						this.createChat(key, true);
+				}
 				return;
 			}
 			setTimeout(check, 50);
@@ -273,6 +276,12 @@ class Client {
 		if (duplicateCheck) {
 			(duplicateCheck.nextSibling as HTMLInputElement).focus();
 			return duplicateCheck;
+		}
+
+		const history: Array<string> = JSON.parse(this.#window.localStorage.getItem('tinychat_history') || '[]') as Array<string>;
+		if (!history.includes(to)) {
+			history.push(to);
+			this.#window.localStorage.setItem('tinychat_history', JSON.stringify(history));
 		}
 
 		const collapsible: HTMLDetailsElement = this.#window.document.createElement('details');
