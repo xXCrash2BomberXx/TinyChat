@@ -23,10 +23,10 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 >
 > What the attacker *can* read:
 >
-> - The User ID that sent the message
-> - User IDs in the group
-> - The message ID (This is a randomly generated GUID)
-> - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
+> - The User ID that sent the message (Needed for Message Decryption)
+> - User IDs in the group (Needed for Message Decryption)
+> - The message ID (Randomly generated GUID)
+> - The message event type (message, delivery receipt, typing indicator, message edit, etc.) (Needed for Message Decryption)
 
 ## Features
 
