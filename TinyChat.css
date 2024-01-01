@@ -22,14 +22,25 @@ img {
 	text-decoration: underline;
 }
 
+.control {
+	width: -moz-fit-content;
+	width: fit-content;
+}
+
+body > span:nth-child(6) {
+	width: calc(100% - 30em);
+	min-width: 15em;
+}
+
 .control,
 summary {
+	display: inline-block;
 	margin-top: 0.4em;
 	margin-right: 0.2em;
 	padding: 0.2em;
 	border: 0.2em solid;
 	border-radius: 20em;
-	height: 100%;
+	height: 1em;
 }
 
 summary,
@@ -45,7 +56,7 @@ label,
 #to {
 	border: 0px;
 	background-color: #00000000;
-	width: 50%;
+	width: 80%;
 }
 
 details {
