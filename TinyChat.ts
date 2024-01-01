@@ -178,19 +178,6 @@ class Client {
 	#dhKeys: { [id: string]: { [id: string]: CryptoKeyPair } } = {};
 
 	/**
-	 * Converts a `string` into an `ArrayBuffer`.
-	 * @param {string} str - `string` to convert to an `ArrayBuffer`.
-	 * @returns {ArrayBuffer} `ArrayBuffer` representation of the provided `string`.
-	 */
-	#str2ab(str: string): ArrayBuffer {
-		const buf: ArrayBuffer = new ArrayBuffer(str.length);
-		const bufView: Uint8Array = new Uint8Array(buf);
-		for (let i: number = 0, strLen = str.length; i < strLen; i++)
-			bufView[i] = str.charCodeAt(i);
-		return buf;
-	}
-
-	/**
 	 * User connection to the server
 	 * @type {Peer}
 	 * @readonly
@@ -1266,7 +1253,7 @@ class Client {
 	async #importDHKey(pem: string): Promise<CryptoKey> {
 		return this.#crypto.subtle.importKey(
 			'spki',
-			this.#str2ab(this.#window.atob(pem)),
+			Uint8Array.from(this.#window.atob(pem), (c: string): number => c.charCodeAt(0)),
 			{ name: 'ECDH', namedCurve: 'P-256' },
 			true,
 			[],
@@ -1335,7 +1322,7 @@ class Client {
 		const parsed: [Array<number>, string] = JSON.parse(pem);
 		return [new Uint8Array(parsed[0]), await this.#crypto.subtle.importKey(
 			'raw',
-			this.#str2ab(this.#window.atob(parsed[1])),
+			Uint8Array.from(this.#window.atob(parsed[1]), (c: string): number => c.charCodeAt(0)),
 			{ name: 'AES-CBC', length: 256 },
 			true,
 			['encrypt', 'decrypt'])];
@@ -1348,10 +1335,17 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptAES(aesAccess: string, message: string): Promise<string> {
-		return message ? new TextDecoder().decode(new Uint8Array(await this.#crypto.subtle.encrypt(
-			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-			this.#aesKeys[aesAccess][1],
-			new TextEncoder().encode(message)))) : message;
+		return message ? this.#window.btoa(
+			String.fromCharCode(
+				...new Uint8Array(
+					await this.#crypto.subtle.encrypt(
+						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
+						this.#aesKeys[aesAccess][1],
+						new TextEncoder().encode(message)
+					)
+				)
+			)
+		) : message;
 	}
 
 	/**
@@ -1361,10 +1355,13 @@ class Client {
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptAES(aesAccess: string, message: string): Promise<string> {
-		return message ? new TextDecoder().decode(new Uint8Array(await this.#crypto.subtle.decrypt(
-			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-			this.#aesKeys[aesAccess][1],
-			new TextEncoder().encode(message)))) : message;
+		return message ? new TextDecoder().decode(
+			await this.#crypto.subtle.decrypt(
+				{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
+				this.#aesKeys[aesAccess][1],
+				Uint8Array.from(this.#window.atob(message), (c: string): number => c.charCodeAt(0))
+			)
+		) : message;
 	}
 
 	/**
@@ -1399,7 +1396,7 @@ class Client {
 	async #importRSAKey(pem: string): Promise<CryptoKey> {
 		return this.#crypto.subtle.importKey(
 			'spki',
-			this.#str2ab(this.#window.atob(pem)),
+			Uint8Array.from(this.#window.atob(pem), (c: string): number => c.charCodeAt(0)),
 			{ name: 'RSA-OAEP', hash: 'SHA-256' },
 			true,
 			['encrypt'],
@@ -1413,10 +1410,17 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptRSA(publicKey: CryptoKey, message: string): Promise<string> {
-		return message ? new TextDecoder().decode(new Uint8Array(await this.#crypto.subtle.encrypt(
-			{ name: 'RSA-OAEP' },
-			publicKey,
-			new TextEncoder().encode(message)))) : message;
+		return message ? this.#window.btoa(
+			String.fromCharCode(
+				...new Uint8Array(
+					await this.#crypto.subtle.encrypt(
+						{ name: "RSA-OAEP" },
+						publicKey,
+						new TextEncoder().encode(message)
+					)
+				)
+			)
+		) : message;
 	}
 
 	/**
@@ -1425,10 +1429,13 @@ class Client {
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptRSA(message: string): Promise<string> {
-		return message ? new TextDecoder().decode(new Uint8Array(await this.#crypto.subtle.decrypt(
-			{ name: 'RSA-OAEP' },
-			(await this.#keyPair).privateKey,
-			new TextEncoder().encode(message)))) : message;
+		return message ? new TextDecoder().decode(
+			await crypto.subtle.decrypt(
+				{ name: "RSA-OAEP" },
+				(await this.#keyPair).privateKey,
+				Uint8Array.from(atob(message), (c: string): number => c.charCodeAt(0))
+			)
+		) : message;
 	}
 
 	get window(): Window {
