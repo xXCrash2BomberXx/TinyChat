@@ -215,7 +215,7 @@ class Client {
 		this.#window = w;
 		this.#crypto = crypto ? crypto : w.crypto;
 		this.#keyPair = this.#generateRSA();
-		this.#peer = new Peer('connect' in Peer.prototype ? this.#window.localStorage.getItem('tinychat_id') || undefined : undefined) ;
+		this.#peer = new Peer('connect' in Peer.prototype ? this.#window.localStorage.getItem('tinychat_id') || undefined : undefined);
 		this.#peer.on('connection', (dataConnection: DataConnection): void => dataConnection.on('data', async (data: string): Promise<void> => {
 			console.log(`RECEIVED: ${data}`);
 			const messageData: MessageData = JSON.parse(data);
@@ -1348,10 +1348,10 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptAES(aesAccess: string, message: string): Promise<string> {
-		return message ? JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+		return message ? new TextDecoder().decode(await this.#crypto.subtle.encrypt(
 			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
 			this.#aesKeys[aesAccess][1],
-			new Uint8Array(new TextEncoder().encode(message)))))) : message;
+			new Uint8Array(new TextEncoder().encode(message)))) : message;
 	}
 
 	/**
@@ -1361,10 +1361,10 @@ class Client {
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptAES(aesAccess: string, message: string): Promise<string> {
-		return new TextDecoder().decode(await this.#crypto.subtle.decrypt(
+		return message ? new TextDecoder().decode(await this.#crypto.subtle.decrypt(
 			{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
 			this.#aesKeys[aesAccess][1],
-			new Uint8Array(JSON.parse(message))));
+			new Uint8Array(new TextEncoder().encode(message)))) : message;
 	}
 
 	/**
@@ -1413,10 +1413,10 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptRSA(publicKey: CryptoKey, message: string): Promise<string> {
-		return JSON.stringify(Array.from(new Uint8Array(await this.#crypto.subtle.encrypt(
+		return message ? new TextDecoder().decode(await this.#crypto.subtle.encrypt(
 			{ name: 'RSA-OAEP' },
 			publicKey,
-			new Uint8Array(new TextEncoder().encode(message))))));
+			new Uint8Array(new TextEncoder().encode(message)))) : message;
 	}
 
 	/**
@@ -1425,10 +1425,10 @@ class Client {
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
 	async #decryptRSA(message: string): Promise<string> {
-		return new TextDecoder().decode(await this.#crypto.subtle.decrypt(
+		return message ? new TextDecoder().decode(await this.#crypto.subtle.decrypt(
 			{ name: 'RSA-OAEP' },
 			(await this.#keyPair).privateKey,
-			new Uint8Array(JSON.parse(message))));
+			new Uint8Array(new TextEncoder().encode(message)))) : message;
 	}
 
 	get window(): Window {
