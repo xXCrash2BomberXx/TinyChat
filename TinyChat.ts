@@ -259,7 +259,7 @@ class Client {
 		const aesAccess: string = split.toSorted().join(',');
 		split[0] = this.#peer.id;
 
-		const duplicateCheck: HTMLSpanElement | undefined = this.#window.document.getElementById(aesAccess) as HTMLSpanElement | undefined;
+		const duplicateCheck: HTMLSpanElement | null = this.#getConversationByID(aesAccess);
 		if (duplicateCheck) {
 			(duplicateCheck.nextSibling as HTMLInputElement).focus();
 			return duplicateCheck;
@@ -502,7 +502,7 @@ class Client {
 			aesAccess = split.toSorted().join(',');
 			split[0] = to;
 		}
-		let el: HTMLSpanElement | null = this.#window.document.getElementById(aesAccess) as HTMLSpanElement | null;
+		let el: HTMLSpanElement | null = this.#getConversationByID(aesAccess);
 		if (!el)
 			el = await this.createChat(messageData.from, false);
 		let messageID: string;
@@ -598,7 +598,7 @@ class Client {
 				break;
 			case MessageDataEvent.Edit:
 				messageID = await this.#decryptAES(aesAccess, messageData.id);
-				iter = this.#window.document.getElementById(messageID) as HTMLParagraphElement;
+				iter = this.#getMessageByID(messageID, aesAccess) as HTMLParagraphElement;
 				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
 					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 					break;
@@ -683,7 +683,7 @@ class Client {
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
-					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const prev: HTMLParagraphElement = this.#getMessageByID(await this.#decryptAES(aesAccess, messageData.prev), aesAccess) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
 					reply.className = prev.className + 'Reply';
 					reply.id = prev.id;
@@ -723,7 +723,7 @@ class Client {
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
-					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const prev: HTMLParagraphElement = this.#getMessageByID(await this.#decryptAES(aesAccess, messageData.prev), aesAccess) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
 					reply.className = prev.className + 'Reply';
 					reply.id = prev.id;
@@ -767,7 +767,7 @@ class Client {
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
-					const prev: HTMLParagraphElement = this.#window.document.getElementById(await this.#decryptAES(aesAccess, messageData.prev)) as HTMLParagraphElement;
+					const prev: HTMLParagraphElement = this.#getMessageByID(await this.#decryptAES(aesAccess, messageData.prev), aesAccess) as HTMLParagraphElement;
 					const reply: HTMLParagraphElement = this.#window.document.createElement('p');
 					reply.className = prev.className + 'Reply';
 					reply.id = prev.id;
@@ -825,9 +825,9 @@ class Client {
 	 * @param {string} reaction - The reaction to send to the client.
 	 */
 	async react(reaction: string): Promise<void> {
-		const aesAccess: string = (this.#window.document.getElementById(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
+		const aesAccess: string = (this.#getMessageByID(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
-		const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID());
+		const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID(aesAccess));
 		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
@@ -890,7 +890,7 @@ class Client {
 				} while (!seconds);
 			}
 			if (typeof this.#eventID === 'string' || (typeof this.#eventID === 'object' && this.#eventID.className === 'sendButton')) {
-				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#window.document.getElementById(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
+				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#getMessageByID(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
 				const sendButton: HTMLInputElement = sendBar.nextSibling as HTMLInputElement;
 				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
 				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
@@ -902,7 +902,7 @@ class Client {
 						elem.disabled = true;
 					sendButton.disabled = true;
 					if (this.#replying) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+						const prev: HTMLSpanElement = this.#getMessageByID(this.#replying, aesAccess) as HTMLSpanElement;
 						if (prev.parentElement?.parentElement === collapsible) {
 							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
 								prev.removeChild(prev.lastChild);
@@ -918,7 +918,7 @@ class Client {
 						}
 					}
 					if (this.#editing) {
-						const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+						const prev: HTMLSpanElement = this.#getMessageByID(this.#editing, aesAccess) as HTMLSpanElement;
 						if (prev.parentElement?.parentElement !== collapsible) {
 							if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
 								prev.removeChild(prev.lastChild);
@@ -935,7 +935,7 @@ class Client {
 					sendButton.disabled = false;
 					const prev: string | undefined = this.#replying;
 					this.#replying = undefined;
-					const messageID: string = await this.#encryptAES(aesAccess, this.#editing || this.#randomUUID());
+					const messageID: string = await this.#encryptAES(aesAccess, this.#editing || this.#randomUUID(aesAccess));
 					this.#editing = undefined;
 					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 						elem.disabled = false;
@@ -975,7 +975,7 @@ class Client {
 				const aesAccess: string = (this.#eventID?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 				const split: Array<string> = aesAccess.split(',');
 				if (this.#replying) {
-					const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+					const prev: HTMLSpanElement = this.#getMessageByID(this.#replying, aesAccess) as HTMLSpanElement;
 					if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
 						prev.removeChild(prev.lastChild);
 						prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
@@ -984,7 +984,7 @@ class Client {
 				}
 				const prev: string | undefined = this.#replying;
 				this.#replying = undefined;
-				const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID());
+				const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID(aesAccess));
 				switch (this.#eventID.value) {
 					case 'Upload File':
 						const input = this.#window.document.createElement('input');
@@ -1084,7 +1084,7 @@ class Client {
 		if (!this.#eventID)
 			return;
 		this.#reacting = this.#eventID as string;
-		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#window.document.getElementById(this.#eventID as string)?.className + 'Menu') as HTMLDivElement;
+		const prevMenu: HTMLDivElement = this.#window.document.getElementById(this.#getMessageByID(this.#eventID as string)?.className + 'Menu') as HTMLDivElement;
 		const menu: HTMLDivElement = this.#window.document.getElementById('reactionMenu') as HTMLDivElement;
 		menu.style.display = 'block';
 		menu.style.left = prevMenu.style.left;
@@ -1098,9 +1098,9 @@ class Client {
 	markReply(): void {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
+		const paragraph: HTMLParagraphElement = this.#getMessageByID(this.#eventID as string) as HTMLParagraphElement;
 		if (this.#editing) {
-			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			const prev: HTMLSpanElement = this.#getMessageByID(this.#editing) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
@@ -1108,7 +1108,7 @@ class Client {
 			}
 			this.#editing = undefined;
 		} else if (this.#replying) {
-			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			const prev: HTMLSpanElement = this.#getMessageByID(this.#replying) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
@@ -1132,18 +1132,18 @@ class Client {
 	markEdit(): void {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
+		const paragraph: HTMLParagraphElement = this.#getMessageByID(this.#eventID as string) as HTMLParagraphElement;
 		if (paragraph.className !== 'sent')
 			return;
 		if (this.#replying) {
-			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#replying) as HTMLSpanElement;
+			const prev: HTMLSpanElement = this.#getMessageByID(this.#replying) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>⏎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 			}
 			this.#replying = undefined;
 		} else if (this.#editing) {
-			const prev: HTMLSpanElement = this.#window.document.getElementById(this.#editing) as HTMLSpanElement;
+			const prev: HTMLSpanElement = this.#getMessageByID(this.#editing) as HTMLSpanElement;
 			if (prev.lastChild && (prev.lastChild as HTMLElement).outerHTML.match(/(<small>){3}<i>✎<\/i>(<\/small>){3}$/g)) {
 				prev.removeChild(prev.lastChild);
 				prev.insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
@@ -1198,7 +1198,7 @@ class Client {
 	async unsend(): Promise<void> {
 		if (!this.#eventID)
 			return;
-		const paragraph: HTMLParagraphElement = this.#window.document.getElementById(this.#eventID as string) as HTMLParagraphElement;
+		const paragraph: HTMLParagraphElement = this.#getMessageByID(this.#eventID as string) as HTMLParagraphElement;
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
@@ -1220,13 +1220,14 @@ class Client {
 
 	/**
 	 * Generate a random UUID not in use.
+	 * @param {string?} conversationID - UUID `string` of the conversation to generate a UUID for.
 	 * @returns {string} a `string` of the unused UUID.
 	 */
-	#randomUUID(): string {
+	#randomUUID(conversationID: string | undefined = undefined): string {
 		let UUID: string;
 		do {
 			UUID = this.#crypto.randomUUID();
-		} while (this.#window.document.getElementById(UUID));
+		} while (conversationID ? this.#window.document.getElementById(conversationID)?.querySelector(`[id='${UUID}']`) : this.#window.document.getElementById(UUID));
 		return UUID;
 	}
 
@@ -1442,6 +1443,26 @@ class Client {
 				Uint8Array.from(atob(message), (c: string): number => c.charCodeAt(0))
 			)
 		) : message;
+	}
+
+	#getConversationByID(aesAccess: string): HTMLSpanElement | null {
+		let el: HTMLSpanElement | null = null;
+		this.#window.document.querySelectorAll(`[id='${aesAccess}']`).forEach((value: Element): void => {
+			if (value.className === 'message')
+				el = value as HTMLSpanElement;
+		});
+		return el;
+	}
+
+	#getMessageByID(id: string, aesAccess: string | undefined = undefined): HTMLParagraphElement | null {
+		if (!aesAccess)
+			return this.#window.document.getElementById(id) as HTMLParagraphElement | null;
+		let el: HTMLSpanElement | null = null;
+		this.#window.document.querySelectorAll(`[id='${aesAccess}']`).forEach((value: Element): void => {
+			if (value.className === 'message')
+				el = value as HTMLSpanElement;
+		});
+		return el ? (el as HTMLSpanElement).querySelector(`[id='${id}']`) : null;
 	}
 
 	get window(): Window {
