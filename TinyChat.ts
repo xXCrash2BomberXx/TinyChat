@@ -299,7 +299,8 @@ class Client {
 		clearChatGlobal.onclick = (ev: MouseEvent): void => {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
-				if ((value as HTMLParagraphElement).className === 'sent')
+				if ((value as HTMLParagraphElement).className === 'sent') {
+					const messageID: string = await this.#encryptAES(aesAccess, (value as HTMLParagraphElement).id);
 					split.forEach(async (_: string, i: number): Promise<void> => {
 						const split2: Array<string> = aesAccess.split(',');
 						const trueFrom2: string = split2[i];
@@ -309,10 +310,11 @@ class Client {
 							from: split2.join(','),
 							body: '',
 							time: '',
-							id: (value as HTMLParagraphElement).id,
+							id: messageID,
 							event: MessageDataEvent.Unsend
 						}, i === 0);
 					});
+				}
 			});
 		};
 		chatButtons.insertAdjacentElement('beforeend', clearChatGlobal);
@@ -503,6 +505,7 @@ class Client {
 		let el: HTMLSpanElement | null = this.#window.document.getElementById(aesAccess) as HTMLSpanElement | null;
 		if (!el)
 			el = await this.createChat(messageData.from, false);
+		let messageID: string;
 		let iter: HTMLParagraphElement;
 		const paragraph: HTMLParagraphElement = this.#window.document.createElement('p');
 		let parsed: Array<string>;
@@ -586,18 +589,20 @@ class Client {
 				break;
 			case MessageDataEvent.Delivered:
 				let i: number;
+				messageID = await this.#decryptAES(aesAccess, messageData.id);
 				for (i = el.children.length - 1; i >= 0; i--)
-					if (el.children[i].id === messageData.id && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
+					if (el.children[i].id === messageID && !el.children[i].innerHTML.endsWith(' <small><small><small><i>✓</i></small></small></small>'))
 						break;
 				if (el.children[i])
 					el.children[i].insertAdjacentHTML('beforeend', ' <small><small><small><i>✓</i></small></small></small>');
 				break;
 			case MessageDataEvent.Edit:
-				iter = this.#window.document.getElementById(messageData.id) as HTMLParagraphElement;
+				messageID = await this.#decryptAES(aesAccess, messageData.id);
+				iter = this.#window.document.getElementById(messageID) as HTMLParagraphElement;
 				if (((to === this.#peer.id) === (iter.className === 'sent')) ||
 					((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 					break;
-				this.#window.document.querySelectorAll(`[id='${messageData.id}']`).forEach(async (el: any): Promise<void> => {
+				this.#window.document.querySelectorAll(`[id='${messageID}']`).forEach(async (el: any): Promise<void> => {
 					if ((el.firstChild as HTMLElement).tagName === el.tagName)
 						while (el.firstChild.nextSibling)
 							el.removeChild(el.firstChild.nextSibling);
@@ -630,7 +635,7 @@ class Client {
 					});
 				break;
 			case MessageDataEvent.Unsend:
-				Array.from(this.#window.document.querySelectorAll(`[id='${messageData.id}']`)).forEach((iter: Element): void => {
+				Array.from(this.#window.document.querySelectorAll(`[id='${await this.#decryptAES(aesAccess, messageData.id)}']`)).forEach((iter: Element): void => {
 					if (((to === this.#peer.id) === ['sent', 'sentReply'].includes(iter.className)) ||
 						((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
 						return;
@@ -673,7 +678,7 @@ class Client {
 					image.src = URL.createObjectURL(blob);
 				});
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
-				paragraph.id = messageData.id;
+				paragraph.id = await this.#decryptAES(aesAccess, messageData.id);;
 				paragraph.insertAdjacentHTML('beforeend', ` <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`);
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
@@ -709,7 +714,7 @@ class Client {
 				paragraph.innerHTML = `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''}<a href="${decrypted
 					}">Location</a> <small><small><small><i>${await this.#decryptAES(aesAccess, messageData.time)}</i></small></small></small>`;
 				paragraph.className = to !== this.#peer.id ? 'sent' : 'received';
-				paragraph.id = messageData.id;
+				paragraph.id = await this.#decryptAES(aesAccess, messageData.id);
 				(paragraph.querySelector('a') as HTMLAnchorElement).onclick = (ev: MouseEvent): void => {
 					ev.preventDefault();
 					ev.stopPropagation();
@@ -758,7 +763,7 @@ class Client {
 						} else
 							iter = iter.previousSibling as HTMLParagraphElement;
 				}
-				paragraph.id = messageData.id;
+				paragraph.id = await this.#decryptAES(aesAccess, messageData.id);
 				paragraph.ontouchstart = (ev: TouchEvent): void => this.openContext(paragraph, ev);
 				paragraph.oncontextmenu = (ev: MouseEvent): void => this.openContext(paragraph, ev);
 				if (messageData.prev) {
@@ -822,7 +827,7 @@ class Client {
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = (this.#window.document.getElementById(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
-		const messageID: string = this.#randomUUID();
+		const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID());
 		const messageTime: string = await this.#encryptAES(aesAccess, (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString());
 		reaction = await this.#encryptAES(aesAccess, reaction);
 		this.#reacting = await this.#encryptAES(aesAccess, this.#reacting as string);
@@ -930,7 +935,7 @@ class Client {
 					sendButton.disabled = false;
 					const prev: string | undefined = this.#replying;
 					this.#replying = undefined;
-					const messageID: string = this.#editing || this.#randomUUID();
+					const messageID: string = await this.#encryptAES(aesAccess, this.#editing || this.#randomUUID());
 					this.#editing = undefined;
 					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 						elem.disabled = false;
@@ -979,7 +984,7 @@ class Client {
 				}
 				const prev: string | undefined = this.#replying;
 				this.#replying = undefined;
-				const messageID: string = this.#randomUUID();
+				const messageID: string = await this.#encryptAES(aesAccess, this.#randomUUID());
 				switch (this.#eventID.value) {
 					case 'Upload File':
 						const input = this.#window.document.createElement('input');
@@ -1197,6 +1202,7 @@ class Client {
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
+		const messageID: string = await this.#encryptAES(aesAccess, this.#eventID as string);
 		aesAccess.split(',').forEach(async (_: string, i: number): Promise<void> => {
 			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
@@ -1206,7 +1212,7 @@ class Client {
 				from: split2.join(','),
 				body: '',
 				time: '',
-				id: this.#eventID as string,
+				id: messageID,
 				event: MessageDataEvent.Unsend,
 			}, i === 0);
 		});
