@@ -890,7 +890,8 @@ class Client {
 				} while (!seconds);
 			}
 			if (typeof this.#eventID === 'string' || (typeof this.#eventID === 'object' && this.#eventID.className === 'sendButton')) {
-				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#getMessageByID(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
+				console.log(this.#eventID);
+				const sendBar: HTMLInputElement = (typeof this.#eventID === 'object' ? this.#eventID.previousSibling : this.#getConversationByID(this.#eventID)?.nextSibling?.firstChild) as HTMLInputElement;
 				const sendButton: HTMLInputElement = sendBar.nextSibling as HTMLInputElement;
 				const collapsible: HTMLDetailsElement = sendBar.parentElement?.parentElement as HTMLDetailsElement;
 				const aesAccess: string = (collapsible?.firstChild as HTMLElement).innerHTML;
@@ -1448,18 +1449,23 @@ class Client {
 	#getConversationByID(aesAccess: string): HTMLSpanElement | null {
 		let el: HTMLSpanElement | null = null;
 		this.#window.document.querySelectorAll(`[id='${aesAccess}']`).forEach((value: Element): void => {
-			if (value.className === 'message')
+			if (el === null && value.className === 'message')
 				el = value as HTMLSpanElement;
 		});
 		return el;
 	}
 
 	#getMessageByID(id: string, aesAccess: string | undefined = undefined): HTMLParagraphElement | null {
-		if (!aesAccess)
-			return this.#window.document.getElementById(id) as HTMLParagraphElement | null;
 		let el: HTMLSpanElement | null = null;
+		if (aesAccess === undefined) {
+			this.#window.document.querySelectorAll(`[id='${id}']`).forEach((value: Element): void => {
+				if (el === null && ['sent', 'received'].includes(value.className))
+					el = value as HTMLSpanElement;
+			});
+			return el;
+		}
 		this.#window.document.querySelectorAll(`[id='${aesAccess}']`).forEach((value: Element): void => {
-			if (value.className === 'message')
+			if (el === null && value.className === 'message')
 				el = value as HTMLSpanElement;
 		});
 		return el ? (el as HTMLSpanElement).querySelector(`[id='${id}']`) : null;
