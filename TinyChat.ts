@@ -394,7 +394,7 @@ class Client {
 		uploadFile.className = 'chatButtons';
 		uploadFile.onclick = async (ev: MouseEvent): Promise<void> => {
 			ev.preventDefault();
-			this.#eventID;
+			this.#eventID = uploadFile;
 			this.schedule(0);
 		};
 		uploadFile.oncontextmenu = (ev: MouseEvent): void => this.#openSending(ev);
@@ -645,7 +645,7 @@ class Client {
 								while (el.firstChild)
 									el.removeChild(el.firstChild);
 							el.insertAdjacentHTML('beforeend', `${to === this.#peer.id && split.length > 1 ? `<small><small><small><u>${trueFrom}</u></small></small></small><br>` : ''
-								}${messageData.body} <small><small><small><i>edited ${decryptedMessageData.time}</i></small></small></small>`);
+								}${decryptedMessageData.body} <small><small><small><i>${decryptedMessageData.time}</i></small></small></small>`);
 						});
 
 						if (to === this.#peer.id && el.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
@@ -979,6 +979,7 @@ class Client {
 					sendButton.disabled = false;
 					const prev: string | undefined = this.#replying;
 					this.#replying = undefined;
+					const messageID: string = this.#editing || this.#randomUUID(aesAccess);
 					this.#editing = undefined;
 					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 						elem.disabled = false;
@@ -1002,8 +1003,8 @@ class Client {
 					this.#window.setTimeout(async (): Promise<void> => {
 						const encryptedBody: string = await this.#encryptAES(aesAccess, JSON.stringify({
 							body: body,
-							time: (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString(),
-							id: this.#editing || this.#randomUUID(aesAccess),
+							time: (event === EncryptedMessageDataEvent.Edit ? 'edited at ' : '') + new Date().toLocaleTimeString(),
+							id: messageID,
 							event: event,
 							prev: prev,
 						} satisfies EncryptedMessageData));
@@ -1041,8 +1042,8 @@ class Client {
 							if (input.files) {
 								const reader: FileReader = new FileReader();
 								reader.readAsDataURL(input.files[0]);
-								reader.onload = async () => {
-									const message: string = await this.#encryptAES(aesAccess, JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]));
+								reader.onload = (): void => {
+									const message: string = JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]);
 									this.#window.setTimeout(async (): Promise<void> => {
 										const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
 											body: message,
