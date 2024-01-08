@@ -21,12 +21,12 @@ Each conversation will have a unique AES-256 key with that key being shared usin
 > - The message ID
 > - The message ID being replied to (should the message be a reply)
 > - The effect being applied to the message (confetti, spotlight, etc.)
+> - The message event type (message, delivery receipt, typing indicator, message edit, etc.)
 >
 > What the attacker *can* read:
 >
 > - The User ID that sent the message (Needed for Message Decryption)
 > - User IDs in the group (Needed for Message Decryption)
-> - The message event type (message, delivery receipt, typing indicator, message edit, etc.) (Needed for Message Decryption)
 
 ## Features
 
