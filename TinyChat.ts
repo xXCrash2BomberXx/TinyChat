@@ -1042,7 +1042,7 @@ class Client {
 							if (input.files) {
 								const reader: FileReader = new FileReader();
 								reader.readAsDataURL(input.files[0]);
-								reader.onload = (): void => {
+								reader.onload = async (): Promise<void> => {
 									const message: string = JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]);
 									this.#window.setTimeout(async (): Promise<void> => {
 										const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
@@ -1315,7 +1315,7 @@ class Client {
 	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
 	 */
 	async #exportDHKey(key: CryptoKey): Promise<string> {
-		return this.#window.btoa(String.fromCharCode(...new Uint8Array(await this.#crypto.subtle.exportKey('spki', key))));
+		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey('spki', key)) as unknown as Array<number>));
 	}
 
 	/**
@@ -1383,7 +1383,7 @@ class Client {
 	async #exportAESKey(key: [Uint8Array, CryptoKey]): Promise<string> {
 		return JSON.stringify([
 			Array.from(key[0]),
-			this.#window.btoa(String.fromCharCode(...new Uint8Array(await this.#crypto.subtle.exportKey('raw', key[1]))))]);
+			this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey('raw', key[1])) as unknown as Array<number>))]);
 	}
 
 	/**
@@ -1408,17 +1408,12 @@ class Client {
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
 	async #encryptAES(aesAccess: string, message: string): Promise<string> {
-		return message ? this.#window.btoa(
-			String.fromCharCode(
-				...new Uint8Array(
-					await this.#crypto.subtle.encrypt(
-						{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
-						this.#aesKeys[aesAccess][1],
-						new TextEncoder().encode(message)
-					)
-				)
-			)
-		) : message;
+		return message ? this.#window.btoa(String.fromCharCode.apply(null,
+			new Uint8Array(await this.#crypto.subtle.encrypt(
+				{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
+				this.#aesKeys[aesAccess][1],
+				new TextEncoder().encode(message)
+			)) as unknown as Array<number>)) : message;
 	}
 
 	/**
@@ -1458,7 +1453,7 @@ class Client {
 	 * @returns {Promise<string>} `Promise<string>` that resolves to the `string` representation of an RSA `CryptoKey`.
 	 */
 	async #exportRSAKey(): Promise<string> {
-		return this.#window.btoa(String.fromCharCode(...new Uint8Array(await this.#crypto.subtle.exportKey('spki', (await this.#keyPair).publicKey))));
+		return this.#window.btoa(String.fromCharCode.apply(null, new Uint8Array(await this.#crypto.subtle.exportKey('spki', (await this.#keyPair).publicKey)) as unknown as Array<number>));
 	}
 
 	/**
@@ -1484,14 +1479,14 @@ class Client {
 	 */
 	async #encryptRSA(publicKey: CryptoKey, message: string): Promise<string> {
 		return message ? this.#window.btoa(
-			String.fromCharCode(
-				...new Uint8Array(
+			String.fromCharCode.apply(null, 
+				new Uint8Array(
 					await this.#crypto.subtle.encrypt(
 						{ name: "RSA-OAEP" },
 						publicKey,
 						new TextEncoder().encode(message)
 					)
-				)
+				) as unknown as Array<number>
 			)
 		) : message;
 	}
