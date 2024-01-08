@@ -109,10 +109,10 @@ interface MessageData {
 	from: string,
 	/**
 	 * The message being sent.
-	 * @type {string}
+	 * @type {any}
 	 * @name MessageData.body
 	 */
-	body: string,
+	body: any,
 	/**
 	 * Special event for a message.
 	 * @type {MessageDataEvent?}
@@ -135,10 +135,10 @@ interface MessageData {
 interface EncryptedMessageData {
 	/**
 	 * The message being sent.
-	 * @type {string}
+	 * @type {any}
 	 * @name MessageData.body
 	 */
-	body: string,
+	body: any,
 	/**
 	 * The locale string representation of the time the message is being sent at.
 	 * @type {string}
