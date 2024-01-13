@@ -1,7 +1,35 @@
+//@ts-ignore: 6200
 const { Client } = require('./TinyChat.js');
 const { JSDOM } = require('jsdom');
 const localCrypto = new (require("@peculiar/webcrypto").Crypto)();
 const { readFileSync } = require('fs');
+
+/**
+ * Message event used in {@link MessageData.event}.
+ * @readonly
+ * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
+ * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
+ * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
+ * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
+ * @enum {number}
+ */
+const enum MessageDataEvent {
+	/**
+	 * Indicates an RSA public key is being sent unencrypted.
+	 * @name MessageDataEvent.RSAKeyShare
+	 */
+	RSAKeyShare,
+	/**
+	 * Indicates a Diffie-Hellman public key is being sent encrypted with the previously sent RSA Public key.
+	 * @name MessageDataEvent.RSAKeyShare
+	 */
+	DHKeyShare,
+	/**
+	 * Indicates an AES key is being sent encrypted with the previously sent RSA public key.
+	 * @name MessageDataEvent.AESKeyShare
+	 */
+	AESKeyShare,
+};
 
 /**
  * Message event used in {@link MessageData.event}.
@@ -11,13 +39,11 @@ const { readFileSync } = require('fs');
  * - {@link Edit} - Indicates a user has edited the message with ID {@link MessageData.id}.
  * - {@link Unsend} - Indicates a user has unsent the message with ID {@link MessageData.id}.
  * - {@link Delivered} - Indicates a message has been received.
- * - {@link GroupRSAKeyRequest} - Requests the RSA public key from the recipient.
- * - {@link GroupRSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
- * - {@link RSAKeyShare} - Indicates an RSA public key is being sent unencrypted.
- * - {@link AESKeyShare} - Indicates an AES key is being sent encrypted with the previously sent RSA public key.
+ * - {@link File} - Indicates a file is being sent.
+ * - {@link Location} - Indicates a location link is being sent.
  * @enum {number}
  */
-const enum MessageDataEvent {
+enum EncryptedMessageDataEvent {
 	/**
 	 * Indicates a user has started typing.
 	 * @name MessageDataEvent.Typing
@@ -44,21 +70,6 @@ const enum MessageDataEvent {
 	 */
 	Delivered,
 	/**
-	 * Indicates an RSA public key is being sent unencrypted.
-	 * @name MessageDataEvent.RSAKeyShare
-	 */
-	RSAKeyShare,
-	/**
-	 * Indicates a Diffie-Hellman public key is being sent encrypted with the previously sent RSA Public key.
-	 * @name MessageDataEvent.RSAKeyShare
-	 */
-	DHKeyShare,
-	/**
-	 * Indicates an AES key is being sent encrypted with the previously sent RSA public key.
-	 * @name MessageDataEvent.AESKeyShare
-	 */
-	AESKeyShare,
-	/**
 	 * Indicates a file is being sent.
 	 * @name MessageDataEvent.File
 	 */
@@ -69,6 +80,91 @@ const enum MessageDataEvent {
 	 */
 	Location,
 };
+
+/**
+ * Message effect used in {@link MessageData.effect}.
+ * @readonly
+ * @enum {number}
+ */
+const enum MessageDataEffects { };
+
+/**
+ * A message to be sent to a peer.
+ * @property {string} from - The sender of the current {@link MessageData} object.
+ * @property {string} body - The message being sent.
+ * @property {MessageDataEvent=} event - Special event for a message.
+ * @interface
+ */
+interface MessageData {
+	/**
+	 * The sender of the current {@link MessageData} object.
+	 * @type {string}
+	 * @name MessageData.from
+	 */
+	from: string,
+	/**
+	 * The message being sent.
+	 * @type {any}
+	 * @name MessageData.body
+	 */
+	body: any,
+	/**
+	 * Special event for a message.
+	 * @type {MessageDataEvent?}
+	 * @name MessageData.event
+	 */
+	event?: MessageDataEvent | undefined,
+};
+
+
+/**
+ * A message to be sent to a peer.
+ * @property {string} body - The message being sent.
+ * @property {string} time - The locale string representation of the time the message is being sent at.
+ * @property {string} id - The message ID.
+ * @property {EncryptedMessageDataEvent=} event - Special event for a message.
+ * @property {string=} prev - Message being replied to.
+ * @property {MessageDataEffects=} effect - Message effect being applied.
+ * @interface
+ */
+interface EncryptedMessageData {
+	/**
+	 * The message being sent.
+	 * @type {any}
+	 * @name MessageData.body
+	 */
+	body: any,
+	/**
+	 * The locale string representation of the time the message is being sent at.
+	 * @type {string}
+	 * @name MessageData.time
+	 */
+	time: string,
+	/**
+	 * The message ID.
+	 * @type {string}
+	 * @name MessageData.id
+	 */
+	id: string,
+	/**
+	 * Special event for a message.
+	 * @type {MessageDataEvent?}
+	 * @name MessageData.event
+	 */
+	event?: EncryptedMessageDataEvent | undefined,
+	/**
+	 * Message being replied to.
+	 * @type {string?}
+	 * @name MessageData.prev
+	 */
+	prev?: string | undefined,
+	/**
+	 * Message effect being applied.
+	 * @type {MessageDataEffects?}
+	 * @name MessageData.effect
+	 */
+	effect?: MessageDataEffects | undefined,
+}
 
 const generateClient: () => typeof Client = (): typeof Client => new Client(new JSDOM(readFileSync('./TinyChat.html')).window, localCrypto);
 
@@ -88,67 +184,23 @@ Promise.all(Object.entries({
 		const messageID: string = client.randomUUID();
 		await client.render(UUID, {
 			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(UUID, {
+				body: messageBody,
+				time: messageTime,
+				id: messageID,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
+			body: await client.encryptAES(UUID, {
+				body: '',
+				time: '',
+				id: messageID,
+				event: EncryptedMessageDataEvent.Delivered,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	/*
-	'editMessageSend': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		let messageBody: string = 'test message';
-		let messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		messageBody = 'test message 2';
-		messageTime = new Date().toLocaleTimeString();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: MessageDataEvent.Edit,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>edited ${messageTime}</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
 	'editReceivedMessageSend': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -158,24 +210,26 @@ Promise.all(Object.entries({
 		const messageID: string = client.randomUUID();
 		await client.render(client.id, {
 			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(UUID, {
+				body: messageBody,
+				time: messageTime,
+				id: messageID,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		const messageBody2: string = 'test message 2';
 		const messageTime2: string = new Date().toLocaleTimeString();
 		await client.render(UUID, {
 			from: client.id,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID,
-			event: MessageDataEvent.Edit,
-			prev: undefined
-		});
+			body: await client.encryptAES(UUID, {
+				body: messageBody2,
+				time: messageTime2,
+				id: messageID,
+				event: EncryptedMessageDataEvent.Edit,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
+	/*
 	'unsendMessageSend': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -234,90 +288,6 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	/*
-	'replySentMessageSend': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID2,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="sent" id="${messageID2}"><p class="sentReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
-	/*
-	'replyReceivedMessageSend': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID2,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="sent" id="${messageID2}"><p class="receivedReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
 	'basicMessageReceived': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -510,80 +480,6 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p><p class="typing">Typing...</p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	/*
-	'editMessageReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		let messageBody: string = 'test message';
-		let messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		messageBody = 'test message 2';
-		messageTime = new Date().toLocaleTimeString();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: MessageDataEvent.Edit,
-			prev: undefined
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>edited ${messageTime}</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
-	/*
-	'editMessageTypingReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
-		let messageBody: string = 'test message';
-		let messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
-		messageBody = 'test message 2';
-		messageTime = new Date().toLocaleTimeString();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: MessageDataEvent.Edit,
-			prev: undefined
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>edited ${messageTime}</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
 	'unsendSentMessageReceived': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -716,166 +612,6 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	/*
-	'replySentMessageReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="received" id="${messageID2}"><p class="sentReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
-	/*
-	'replySentMessageTypingReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(UUID, {
-			from: client.id,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: messageID,
-			event: MessageDataEvent.Delivered,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="sent" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="received" id="${messageID2}"><p class="sentReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
-	/*
-	'replyReceivedMessageReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="received" id="${messageID2}"><p class="receivedReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
-	/*
-	'replyReceivedMessageTypingReceived': async (): Promise<boolean> => {
-		const client: typeof Client = generateClient();
-		const UUID: string = client.randomUUID();
-		await client.createChat(UUID);
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
-		const messageBody: string = 'test message';
-		const messageTime: string = new Date().toLocaleTimeString();
-		const messageID: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody),
-			time: await client.encryptAES(UUID, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
-		await client.render(client.id, {
-			from: UUID,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
-		const messageBody2: string = 'test message 2';
-		const messageTime2: string = new Date().toLocaleTimeString();
-		const messageID2: string = client.randomUUID();
-		await client.render(client.id, {
-			from: UUID,
-			body: await client.encryptAES(UUID, messageBody2),
-			time: await client.encryptAES(UUID, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: await client.encryptAES(UUID, messageID)
-		});
-		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"><p class="received" id="${messageID}">${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small><p class="received" id="${messageID2}"><p class="receivedReply" id="${messageID}"><small><small>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small>   <small><small><small><i>✓</i></small></small></small></small></small></p>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
-	},
-	*/
 	'createGroupChatTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -1054,6 +790,7 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
+	*/
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {
 		console.error(`Failed Test: ${key}`);
