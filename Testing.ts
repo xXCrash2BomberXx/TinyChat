@@ -637,6 +637,7 @@ Promise.all(Object.entries({
 		});
 		return client.window.document.getElementById(UUID).parentElement.outerHTML === `<details open=""><summary>${UUID}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${UUID}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
+	*/
 	'createGroupChatTest': async (): Promise<boolean> => {
 		const client: typeof Client = generateClient();
 		const UUID: string = client.randomUUID();
@@ -658,23 +659,23 @@ Promise.all(Object.entries({
 		const messageID: string = client.randomUUID();
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: await client.encryptAES(aesAccess, messageBody),
-			time: await client.encryptAES(aesAccess, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: messageBody,
+				time: messageTime,
+				id: messageID,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		const messageBody2: string = 'test message 2';
 		const messageTime2: string = new Date().toLocaleTimeString();
 		const messageID2: string = client.randomUUID();
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: await client.encryptAES(aesAccess, messageBody2),
-			time: await client.encryptAES(aesAccess, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: messageBody2,
+				time: messageTime2,
+				id: messageID2,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"><p class="received" id="${messageID}"><small><small><small><u>${UUID}</u></small></small></small><br>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p><p class="received" id="${messageID2}"><small><small><small><u>${UUID2}</u></small></small></small><br>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
 	'basicGroupMessageTypingReceived': async (): Promise<boolean> => {
@@ -686,42 +687,44 @@ Promise.all(Object.entries({
 		await client.createChat(`${UUID}, ${UUID2}`);
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		const messageBody: string = 'test message';
 		const messageTime: string = new Date().toLocaleTimeString();
 		const messageID: string = client.randomUUID();
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: await client.encryptAES(aesAccess, messageBody),
-			time: await client.encryptAES(aesAccess, messageTime),
-			id: messageID,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: messageBody,
+				time: messageTime,
+				id: messageID,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		const messageBody2: string = 'test message 2';
 		const messageTime2: string = new Date().toLocaleTimeString();
 		const messageID2: string = client.randomUUID();
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: await client.encryptAES(aesAccess, messageBody2),
-			time: await client.encryptAES(aesAccess, messageTime2),
-			id: messageID2,
-			event: undefined,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: messageBody2,
+				time: messageTime2,
+				id: messageID2,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"><p class="received" id="${messageID}"><small><small><small><u>${UUID}</u></small></small></small><br>${messageBody} <small><small><small><i>${messageTime}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p><p class="received" id="${messageID2}"><small><small><small><u>${UUID2}</u></small></small></small><br>${messageBody2} <small><small><small><i>${messageTime2}</i></small></small></small> <small><small><small><i>✓</i></small></small></small></p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
 	'typingGroupIndicatorReceived': async (): Promise<boolean> => {
@@ -733,20 +736,22 @@ Promise.all(Object.entries({
 		await client.createChat(`${UUID}, ${UUID2}`);
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"><p class="typing">${UUID} is Typing...</p><p class="typing">${UUID2} is Typing...</p></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
 	'stopTypingGroupIndicatorReceived': async (): Promise<boolean> => {
@@ -758,36 +763,40 @@ Promise.all(Object.entries({
 		await client.createChat(`${UUID}, ${UUID2}`);
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.Typing,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.Typing,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.StopTyping,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.StopTyping,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.StopTyping,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.StopTyping,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
 	'stopTypingGroupIndicatorNoTypingReceived': async (): Promise<boolean> => {
@@ -799,23 +808,24 @@ Promise.all(Object.entries({
 		await client.createChat(`${UUID}, ${UUID2}`);
 		await client.render(client.id, {
 			from: `${UUID},${UUID2}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.StopTyping,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.StopTyping,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		await client.render(client.id, {
 			from: `${UUID2},${UUID}`,
-			body: '',
-			time: '',
-			id: '',
-			event: MessageDataEvent.StopTyping,
-			prev: undefined
-		});
+			body: await client.encryptAES(aesAccess, {
+				body: '',
+				time: '',
+				id: '',
+				event: EncryptedMessageDataEvent.StopTyping,
+			} satisfies EncryptedMessageData),
+		} satisfies MessageData);
 		return client.window.document.getElementById(aesAccess).parentElement.outerHTML === `<details open=""><summary>${aesAccess}</summary><div class="chatButtonsContainer"><input type="button" value="Clear Chat Locally" class="chatButtons"><input type="button" value="Clear Chat Globally" class="chatButtons"><input type="button" value="Generate New AES Key" class="chatButtons"><input type="button" value="Upload File" class="chatButtons"><input type="button" value="Share Location" class="chatButtons"><label>Send Typing Indicators</label><input type="checkbox" class="chatButtons"></div><span class="message" id="${aesAccess}"></span><div class="chatButtonsContainer"><textarea class="sendBar"></textarea><input type="button" value=">" class="sendButton"></div></details>`;
 	},
-	*/
 }).map(async ([key, value]: [string, () => Promise<boolean>]): Promise<void> => {
 	if (!await value()) {
 		console.error(`Failed Test: ${key}`);
