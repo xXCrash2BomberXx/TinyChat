@@ -332,12 +332,12 @@ class Client {
 			ev.preventDefault();
 			clearChatGlobal.parentElement?.nextSibling?.childNodes.forEach(async (value: ChildNode): Promise<void> => {
 				if ((value as HTMLParagraphElement).className === 'sent') {
-					const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+					const body: string = await this.#encryptAES(aesAccess, {
 						body: '',
 						time: '',
 						id: (value as HTMLParagraphElement).id,
 						event: EncryptedMessageDataEvent.Unsend,
-					} satisfies EncryptedMessageData));
+					} satisfies EncryptedMessageData);
 					split.forEach(async (_: string, i: number): Promise<void> => {
 						const split2: Array<string> = aesAccess.split(',');
 						const trueFrom2: string = split2[i];
@@ -346,7 +346,6 @@ class Client {
 						await this.#send(trueFrom2, {
 							from: split2.join(','),
 							body: body,
-							event: undefined
 						}, i === 0);
 					});
 				}
@@ -437,12 +436,12 @@ class Client {
 		sendBar.className = 'sendBar';
 		sendBar.onkeydown = async (event: KeyboardEvent): Promise<void> => {
 			if (sendBar.value.length === 0 && event.key.length === 1 && sendTyping.checked) {
-				const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+				const body: string = await this.#encryptAES(aesAccess, {
 					body: '',
 					time: '',
 					id: '',
 					event: EncryptedMessageDataEvent.Typing,
-				} satisfies EncryptedMessageData));
+				} satisfies EncryptedMessageData);
 				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -451,16 +450,15 @@ class Client {
 					await this.#send(trueFrom2, {
 						from: split2.join(','),
 						body: body,
-						event: undefined,
 					}, i === 0);
 				});
 			} else if (sendBar.value.length === 1 && event.key === 'Backspace' && !this.#editing) {
-				const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+				const body: string = await this.#encryptAES(aesAccess, {
 					body: '',
 					time: '',
 					id: '',
 					event: EncryptedMessageDataEvent.StopTyping,
-				} satisfies EncryptedMessageData));
+				} satisfies EncryptedMessageData);
 				split.forEach(async (_: string, i: number): Promise<void> => {
 					const split2: Array<string> = aesAccess.split(',');
 					const trueFrom2: string = split2[i];
@@ -469,7 +467,6 @@ class Client {
 					await this.#send(trueFrom2, {
 						from: split2.join(','),
 						body: body,
-						event: undefined,
 					}, i === 0);
 				});
 			} else if (sendBar.value.length && event.key === 'Enter' && event.shiftKey)
@@ -596,7 +593,7 @@ class Client {
 					delete this.#dhKeys[aesAccess];
 				break;
 			default:
-				const decryptedMessageData: EncryptedMessageData = JSON.parse(await this.#decryptAES(aesAccess, messageData.body));
+				const decryptedMessageData: EncryptedMessageData = await this.#decryptAES(aesAccess, messageData.body);
 				switch (decryptedMessageData.event) {
 					case EncryptedMessageDataEvent.Typing:
 						if (to !== this.#peer.id)
@@ -661,13 +658,12 @@ class Client {
 						if (to === this.#peer.id)
 							await this.#send(trueFrom, {
 								from: split.join(','),
-								body: await this.#encryptAES(aesAccess, JSON.stringify({
+								body: await this.#encryptAES(aesAccess, {
 									body: '',
 									time: '',
 									id: decryptedMessageData.id,
 									event: EncryptedMessageDataEvent.Delivered,
-								} satisfies EncryptedMessageData)),
-								event: undefined,
+								} satisfies EncryptedMessageData),
 							});
 						break;
 					case EncryptedMessageDataEvent.Unsend:
@@ -739,13 +735,12 @@ class Client {
 						if (to === this.#peer.id)
 							await this.#send(trueFrom, {
 								from: split.join(','),
-								body: await this.#encryptAES(aesAccess, JSON.stringify({
+								body: await this.#encryptAES(aesAccess, {
 									body: '',
 									time: '',
 									id: decryptedMessageData.id,
 									event: EncryptedMessageDataEvent.Delivered,
-								} satisfies EncryptedMessageData)),
-								event: undefined,
+								} satisfies EncryptedMessageData),
 							});
 						break;
 					case EncryptedMessageDataEvent.Location:
@@ -782,13 +777,12 @@ class Client {
 						if (to === this.#peer.id)
 							await this.#send(trueFrom, {
 								from: split.join(','),
-								body: await this.#encryptAES(aesAccess, JSON.stringify({
+								body: await this.#encryptAES(aesAccess, {
 									body: '',
 									time: '',
 									id: decryptedMessageData.id,
 									event: EncryptedMessageDataEvent.Delivered,
-								} satisfies EncryptedMessageData)),
-								event: undefined,
+								} satisfies EncryptedMessageData),
 							});
 						break;
 					default:
@@ -829,13 +823,12 @@ class Client {
 						if (to === this.#peer.id)
 							await this.#send(trueFrom, {
 								from: split.join(','),
-								body: await this.#encryptAES(aesAccess, JSON.stringify({
+								body: await this.#encryptAES(aesAccess, {
 									body: '',
 									time: '',
 									id: decryptedMessageData.id,
 									event: EncryptedMessageDataEvent.Delivered,
-								} satisfies EncryptedMessageData)),
-								event: undefined,
+								} satisfies EncryptedMessageData),
 							});
 						break;
 				}
@@ -872,13 +865,12 @@ class Client {
 	async react(reaction: string): Promise<void> {
 		const aesAccess: string = (this.#getMessageByID(this.#reacting as string)?.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
 		const split: Array<string> = aesAccess.split(',');
-		const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+		const body: string = await this.#encryptAES(aesAccess, {
 			body: reaction,
 			time: (this.#editing ? 'edited at ' : '') + new Date().toLocaleTimeString(),
 			id: this.#randomUUID(aesAccess),
 			prev: this.#reacting,
-			event: undefined
-		} satisfies EncryptedMessageData));
+		} satisfies EncryptedMessageData);
 		split.forEach(async (_: string, i: number): Promise<void> => {
 			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
@@ -887,7 +879,6 @@ class Client {
 			await this.#send(trueFrom2, {
 				from: split2.join(','),
 				body: body,
-				event: undefined,
 			}, i === 0);
 		});
 		this.#reacting = undefined;
@@ -983,12 +974,12 @@ class Client {
 					this.#editing = undefined;
 					for (const elem of chatButtons.children as unknown as Array<HTMLInputElement>)
 						elem.disabled = false;
-					const encryptedBody: string = await this.#encryptAES(aesAccess, JSON.stringify({
+					const encryptedBody: string = await this.#encryptAES(aesAccess, {
 						body: '',
 						time: '',
 						id: '',
 						event: EncryptedMessageDataEvent.StopTyping,
-					} satisfies EncryptedMessageData));
+					} satisfies EncryptedMessageData);
 					split.forEach(async (_: string, i: number): Promise<void> => {
 						const split2: Array<string> = aesAccess.split(',');
 						const trueFrom2: string = split2[i];
@@ -997,17 +988,16 @@ class Client {
 						await this.#send(trueFrom2, {
 							from: split2.join(','),
 							body: encryptedBody,
-							event: undefined,
 						}, i === 0);
 					});
 					this.#window.setTimeout(async (): Promise<void> => {
-						const encryptedBody: string = await this.#encryptAES(aesAccess, JSON.stringify({
+						const encryptedBody: string = await this.#encryptAES(aesAccess, {
 							body: body,
 							time: (event === EncryptedMessageDataEvent.Edit ? 'edited at ' : '') + new Date().toLocaleTimeString(),
 							id: messageID,
 							event: event,
 							prev: prev,
-						} satisfies EncryptedMessageData));
+						} satisfies EncryptedMessageData);
 						split.forEach(async (_: string, i: number): Promise<void> => {
 							const split2: Array<string> = aesAccess.split(',');
 							const trueFrom2: string = split2[i];
@@ -1016,7 +1006,6 @@ class Client {
 							await this.#send(trueFrom2, {
 								from: split2.join(','),
 								body: encryptedBody,
-								event: undefined,
 							}, i === 0);
 						});
 						resolve();
@@ -1045,13 +1034,13 @@ class Client {
 								reader.onload = async (): Promise<void> => {
 									const message: string = JSON.stringify([input.value.replace(/.*[\/\\]/, ''), reader.result as string]);
 									this.#window.setTimeout(async (): Promise<void> => {
-										const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+										const body: string = await this.#encryptAES(aesAccess, {
 											body: message,
 											time: new Date().toLocaleTimeString(),
 											id: this.#randomUUID(aesAccess),
 											event: EncryptedMessageDataEvent.File,
 											prev: prev,
-										} satisfies EncryptedMessageData));
+										} satisfies EncryptedMessageData);
 										split.forEach(async (_: string, i: number): Promise<void> => {
 											const split2: Array<string> = aesAccess.split(',');
 											const trueFrom2: string = split2[i];
@@ -1060,7 +1049,6 @@ class Client {
 											await this.#send(trueFrom2, {
 												from: split2.join(','),
 												body: body,
-												event: undefined,
 											}, i === 0);
 										});
 										resolve();
@@ -1073,13 +1061,13 @@ class Client {
 					case 'Share Location':
 						navigator.geolocation.getCurrentPosition(async (position: GeolocationPosition): Promise<void> => {
 							this.#window.setTimeout(async (): Promise<void> => {
-								const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+								const body: string = await this.#encryptAES(aesAccess, {
 									body: `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`,
 									time: new Date().toLocaleTimeString(),
 									id: this.#randomUUID(aesAccess),
 									event: EncryptedMessageDataEvent.Location,
 									prev: prev,
-								} satisfies EncryptedMessageData));
+								} satisfies EncryptedMessageData);
 								split.forEach(async (_: string, i: number): Promise<void> => {
 									const split2: Array<string> = aesAccess.split(',');
 									const trueFrom2: string = split2[i];
@@ -1088,7 +1076,6 @@ class Client {
 									await this.#send(trueFrom2, {
 										from: split2.join(','),
 										body: body,
-										event: undefined,
 									}, i === 0);
 								});
 								resolve();
@@ -1214,12 +1201,12 @@ class Client {
 			} else
 				throw new Error('Cannot Edit Non-Delivered Message.');
 
-			const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+			const body: string = await this.#encryptAES(aesAccess, {
 				body: '',
 				time: '',
 				id: '',
 				event: EncryptedMessageDataEvent.Typing,
-			} satisfies EncryptedMessageData));
+			} satisfies EncryptedMessageData);
 			(paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',').forEach(async (_: string, i: number): Promise<void> => {
 				const split2: Array<string> = (paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',');
 				const trueFrom2: string = split2[i];
@@ -1228,17 +1215,16 @@ class Client {
 				await this.#send(trueFrom2, {
 					from: split2.join(','),
 					body: body,
-					event: undefined,
 				}, i === 0);
 			});
 		} else {
 			this.#editing = undefined;
-			const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+			const body: string = await this.#encryptAES(aesAccess, {
 				body: '',
 				time: '',
 				id: '',
 				event: EncryptedMessageDataEvent.StopTyping,
-			} satisfies EncryptedMessageData));
+			} satisfies EncryptedMessageData);
 			(paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',').forEach(async (_: string, i: number): Promise<void> => {
 				const split2: Array<string> = (paragraph.parentElement?.parentElement?.firstChild as Element).innerHTML.split(',');
 				const trueFrom2: string = split2[i];
@@ -1247,7 +1233,6 @@ class Client {
 				await this.#send(trueFrom2, {
 					from: split2.join(','),
 					body: body,
-					event: undefined,
 				}, i === 0);
 			});
 		}
@@ -1265,12 +1250,12 @@ class Client {
 		if (paragraph.className !== 'sent')
 			return;
 		const aesAccess: string = (paragraph.parentElement?.parentElement?.firstChild as HTMLElement).innerHTML;
-		const body: string = await this.#encryptAES(aesAccess, JSON.stringify({
+		const body: string = await this.#encryptAES(aesAccess, {
 			body: '',
 			time: '',
 			id: this.#eventID as string,
 			event: EncryptedMessageDataEvent.Unsend,
-		} satisfies EncryptedMessageData));
+		} satisfies EncryptedMessageData);
 		aesAccess.split(',').forEach(async (_: string, i: number): Promise<void> => {
 			const split2: Array<string> = aesAccess.split(',');
 			const trueFrom2: string = split2[i];
@@ -1279,7 +1264,6 @@ class Client {
 			await this.#send(trueFrom2, {
 				from: split2.join(','),
 				body: body,
-				event: undefined,
 			}, i === 0);
 		});
 	}
@@ -1407,13 +1391,13 @@ class Client {
 	 * @param {string} message - Message to Encrypt.
 	 * @returns {string} a `string` of the Encrypted message.
 	 */
-	async #encryptAES(aesAccess: string, message: string): Promise<string> {
+	async #encryptAES(aesAccess: string, message: any): Promise<string> {
 		return message ? this.#window.btoa(String.fromCharCode.apply(null,
 			new Uint8Array(await this.#crypto.subtle.encrypt(
 				{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
 				this.#aesKeys[aesAccess][1],
-				new TextEncoder().encode(message)
-			)) as unknown as Array<number>)) : message;
+				new TextEncoder().encode(JSON.stringify(message))
+			)) as unknown as Array<number>)) : JSON.stringify(message);
 	}
 
 	/**
@@ -1422,14 +1406,14 @@ class Client {
 	 * @param {string} message - Message to Decrypt.
 	 * @returns {string} a `string` of the Decrypted message.
 	 */
-	async #decryptAES(aesAccess: string, message: string): Promise<string> {
-		return message ? new TextDecoder().decode(
+	async #decryptAES(aesAccess: string, message: string): Promise<EncryptedMessageData> {
+		return message ? JSON.parse(new TextDecoder().decode(
 			await this.#crypto.subtle.decrypt(
 				{ name: 'AES-CBC', iv: this.#aesKeys[aesAccess][0] },
 				this.#aesKeys[aesAccess][1],
 				Uint8Array.from(this.#window.atob(message), (c: string): number => c.charCodeAt(0))
 			)
-		) : message;
+		)) : JSON.parse(message);
 	}
 
 	/**
