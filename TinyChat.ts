@@ -70,6 +70,11 @@ enum EncryptedMessageDataEvent {
 	 */
 	Unsend,
 	/**
+	 * Indicates a user has unsent the message with ID {@link MessageData.id}.
+	 * @name MessageDataEvent.Unsend
+	 */
+	HardUnsend,
+	/**
 	 * Indicates a message has been received.
 	 * @name MessageDataEvent.Delivered
 	 */
@@ -667,6 +672,24 @@ class Client {
 							});
 						break;
 					case EncryptedMessageDataEvent.Unsend:
+						Array.from(this.#window.document.querySelectorAll(`[id='${decryptedMessageData.id}']`)).forEach((iter: Element): void => {
+							if (((to === this.#peer.id) === ['sent', 'sentReply'].includes(iter.className)) ||
+								((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))
+								return;
+							iter.classList.add("deleted"); 
+							
+							if (to === this.#peer.id && el?.lastChild && (el.lastChild as HTMLParagraphElement).className === 'typing') {
+								iter = el.lastChild as HTMLParagraphElement;
+								while (iter && iter.className === 'typing')
+									if (iter.innerHTML === ((split.length > 1) ? trueFrom + ' is ' : '') + 'Typing...') {
+										el.removeChild(iter);
+										break;
+									} else
+										iter = iter.previousSibling as HTMLParagraphElement;
+							}
+						});
+						break;
+					case EncryptedMessageDataEvent.HardUnsend:
 						Array.from(this.#window.document.querySelectorAll(`[id='${decryptedMessageData.id}']`)).forEach((iter: Element): void => {
 							if (((to === this.#peer.id) === ['sent', 'sentReply'].includes(iter.className)) ||
 								((split.length > 1) ? (to === this.#peer.id && ((['receivedReply', 'sentReply'].includes((iter.firstChild as HTMLElement).className) ? iter.firstChild?.nextSibling : iter.firstChild) as HTMLElement).innerText !== trueFrom) : false))

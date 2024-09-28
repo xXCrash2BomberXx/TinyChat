@@ -235,6 +235,16 @@ summary {
 	background-color: #f4decb;
 }
 
+.deleted:not(:hover) {
+	color: transparent;
+
+	&.sent:after,
+	&.received:before {
+		content: "Deleted";
+		color: red;
+	}
+}
+
 *[disabled] {
 	color: gray;
 }
